@@ -14,50 +14,92 @@
     <div class="navbar-left">
       <span class="logo">VA Business</span>
       <div class="menu">
-        <a href="dashboard.html" class="menu-item">Dashboards</a>
-        <a href="clientes.html" class="menu-item">Clientes</a>
+        <a href="dashboard.html" class="menu-item">Dashboard</a>
         <a href="extratos.html" class="menu-item active">Extratos</a>
-        <a href="pagamentos.html" class="menu-item">Pagamentos</a>
         <a href="configuracao.html" class="menu-item">Configuração</a>
       </div>
     </div>
     <div class="navbar-right">
-      <div class="user-info">
-        <span class="user-name" id="userName">Usuário</span>
-        <button class="logout-btn" onclick="logout()">Sair</button>
-      </div>
+      <span id="userDisplay">Usuário</span>
+      <button class="btn-logout" onclick="logout()">Sair</button>
     </div>
   </nav>
   
   <main class="container">
-    <h1>Importar Extratos</h1>
+    <h1>Importar Extratos Bancários</h1>
     
-    <div class="upload-box">
-      <label for="fileInput" class="upload-label">
-        <span>📁 Selecione arquivo XLS/XLSX</span>
-        <input type="file" id="fileInput" accept=".xls,.xlsx" onchange="handleFileUpload(event)">
-      </label>
+    <div class="form-section">
+      <h2>Upload de Arquivo</h2>
+      <p class="description">Selecione um arquivo XLS ou XLSX para importar</p>
+      
+      <div class="upload-area" id="uploadArea">
+        <input type="file" id="fileInput" accept=".xls,.xlsx" onchange="handleFileUpload(event)" style="display: none;">
+        <button class="btn-primary" onclick="document.getElementById('fileInput').click()">
+          📁 Selecionar Arquivo
+        </button>
+        <p id="fileName" style="margin-top: 10px; color: #666;"></p>
+      </div>
+      
+      <div id="importResult" style="display: none; margin-top: 20px; padding: 15px; background: #e8f5e9; border-radius: 6px;">
+        <p id="resultMsg" style="color: #2e7d32;"></p>
+      </div>
     </div>
     
-    <div id="resultado" style="display:none; margin: 20px 0; padding: 15px; background: #e8f5e9; border-radius: 6px;">
-      <p id="msg-resultado" style="color: #2e7d32;"></p>
+    <div class="form-section">
+      <h2>Extratos Importados</h2>
+      <table id="extratosTable" style="display: none;">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Descrição</th>
+            <th>Tipo</th>
+            <th>Valor</th>
+            <th>Saldo</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyExtratos"></tbody>
+      </table>
+      <p id="emptyMsg" style="text-align: center; color: #999; padding: 20px;">Nenhum extrato importado</p>
     </div>
-    
-    <table id="extratosTable" style="display:none;">
-      <thead>
-        <tr>
-          <th>Data</th>
-          <th>Descrição</th>
-          <th>Tipo</th>
-          <th>Valor</th>
-          <th>Saldo</th>
-        </tr>
-      </thead>
-      <tbody id="tbody-extratos"></tbody>
-    </table>
   </main>
   
-  <script src="../js/main.js"></script>
+  <script src="../js/auth.js"></script>
   <script src="../js/importador.js"></script>
+  <script>
+    window.addEventListener('load', () => {
+      checkAuth();
+      const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+      document.getElementById('userDisplay').textContent = user.nome || 'Usuário';
+      loadExtratos();
+    });
+    
+    function loadExtratos() {
+      const extratos = JSON.parse(localStorage.getItem('extratos') || '[]');
+      const tbody = document.getElementById('tbodyExtratos');
+      const table = document.getElementById('extratosTable');
+      const emptyMsg = document.getElementById('emptyMsg');
+      
+      if (extratos.length === 0) {
+        table.style.display = 'none';
+        emptyMsg.style.display = 'block';
+        return;
+      }
+      
+      tbody.innerHTML = '';
+      extratos.forEach(e => {
+        const row = tbody.insertRow();
+        row.innerHTML = `
+          <td>${e.data}</td>
+          <td>${e.descricao}</td>
+          <td><span class="badge">${e.tipo_pagamento}</span></td>
+          <td class="${e.valor < 0 ? 'negativo' : 'positivo'}">R$ ${Math.abs(e.valor).toFixed(2)}</td>
+          <td>R$ ${e.saldo.toFixed(2)}</td>
+        `;
+      });
+      
+      emptyMsg.style.display = 'none';
+      table.style.display = 'table';
+    }
+  </script>
 </body>
 </html>

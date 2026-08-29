@@ -4,31 +4,42 @@
  * Módulo: Importador XLS
  */
 
-async function importarExtratoXLS(file) {
-  try {
-    const data = await file.arrayBuffer();
-    const workbook = XLSX.read(data, { type: 'array' });
-    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-    const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-    
-    const extratos = processarDadosExtrato(json);
-    
-    if (extratos.length > 0) {
-      renderizarTabela(extratos);
-      salvarExtratos(extratos);
-      mostrarMensagem(`${extratos.length} extratos importados com sucesso!`);
-    } else {
-      alert('Nenhum dado encontrado no arquivo');
+function handleFileUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  
+  document.getElementById('fileName').textContent = `Arquivo: ${file.name}`;
+  
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    try {
+      const data = event.target.result;
+      const workbook = XLSX.read(data, { type: 'array' });
+      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+      const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+      
+      const extratos = processarExtratos(json);
+      
+      if (extratos.length > 0) {
+        salvarExtratos(extratos);
+        document.getElementById('resultMsg').textContent = `✓ ${extratos.length} extratos importados com sucesso!`;
+        document.getElementById('importResult').style.display = 'block';
+        
+        // Reload tabela
+        setTimeout(() => {
+          location.reload();
+        }, 1500);
+      }
+    } catch (error) {
+      alert('Erro ao processar arquivo: ' + error.message);
     }
-  } catch (error) {
-    console.error('Erro ao importar:', error);
-    alert('Erro ao importar arquivo: ' + error.message);
-  }
+  };
+  reader.readAsArrayBuffer(file);
 }
 
-function processarDadosExtrato(json) {
+function processarExtratos(json) {
   const extratos = [];
-  let startRow = 0;
+  let headerRow = -1;
   let colMap = {};
   
   // Encontrar header
@@ -37,32 +48,35 @@ function processarDadosExtrato(json) {
     if (!row || row.length === 0) continue;
     
     const rowStr = row.join('|').toUpperCase();
-    if (rowStr.includes('DATA') || rowStr.includes('DATA DE')) {
+    if (rowStr.includes('DATA') && (rowStr.includes('DESCRIÇÃO') || rowStr.includes('VALOR'))) {
+      headerRow = i;
       colMap = detectarColunas(row);
-      startRow = i + 1;
       break;
     }
   }
   
-  if (Object.keys(colMap).length === 0) return [];
+  if (headerRow === -1 || Object.keys(colMap).length === 0) {
+    alert('Estrutura do arquivo não reconhecida. Certifique-se de ter colunas: Data, Descrição, Valor, Saldo');
+    return [];
+  }
   
-  // Processar linhas
-  for (let i = startRow; i < json.length; i++) {
+  // Processar dados
+  for (let i = headerRow + 1; i < json.length; i++) {
     const row = json[i];
     if (!row || row.length === 0 || !row[colMap.data]) break;
     
     try {
       const valor = parseFloat(String(row[colMap.valor] || 0).replace(/[^\d,-]/g, '').replace(',', '.'));
+      const saldo = parseFloat(String(row[colMap.saldo] || 0).replace(/[^\d,-]/g, '').replace(',', '.'));
       
       extratos.push({
+        id: Date.now() + extratos.length,
         data: formatarData(row[colMap.data]),
         descricao: String(row[colMap.descricao] || '').trim(),
         valor: valor,
-        saldo: parseFloat(String(row[colMap.saldo] || 0).replace(/[^\d,-]/g, '').replace(',', '.')),
-        tipo_operacao: valor < 0 ? 'débito' : 'crédito',
-        tipo_pagamento: detectarTipoPagamento(String(row[colMap.descricao] || '')),
-        documento: row[colMap.documento] || '',
-        data_importacao: new Date().toLocaleDateString('pt-BR')
+        saldo: saldo,
+        tipo_pagamento: detectarTipo(String(row[colMap.descricao] || '')),
+        tipo_operacao: valor < 0 ? 'débito' : 'crédito'
       });
     } catch (e) {
       console.warn('Erro ao processar linha:', e);
@@ -74,18 +88,14 @@ function processarDadosExtrato(json) {
 
 function detectarColunas(headerRow) {
   const map = {};
-  
   headerRow.forEach((col, idx) => {
     if (!col) return;
-    const colUpper = String(col).toUpperCase();
-    
-    if (colUpper.includes('DATA')) map.data = idx;
-    if (colUpper.includes('DESCRIÇÃO') || colUpper.includes('DESCRICAO')) map.descricao = idx;
-    if (colUpper.includes('VALOR')) map.valor = idx;
-    if (colUpper.includes('SALDO')) map.saldo = idx;
-    if (colUpper.includes('DOCUMENTO') || colUpper.includes('DOC')) map.documento = idx;
+    const upper = String(col).toUpperCase();
+    if (upper.includes('DATA')) map.data = idx;
+    if (upper.includes('DESCRIÇÃO') || upper.includes('DESCRICAO')) map.descricao = idx;
+    if (upper.includes('VALOR')) map.valor = idx;
+    if (upper.includes('SALDO')) map.saldo = idx;
   });
-  
   return map;
 }
 
@@ -98,56 +108,16 @@ function formatarData(data) {
   return String(data);
 }
 
-function detectarTipoPagamento(descricao) {
-  if (!descricao) return 'outro';
+function detectarTipo(descricao) {
   const desc = descricao.toUpperCase();
-  
-  if (desc.includes('PIX')) return 'pix';
-  if (desc.includes('BOLETO') || desc.includes('COB')) return 'boleto';
-  if (desc.includes('TRANSF') || desc.includes('DOC') || desc.includes('TED')) return 'transferencia';
-  if (desc.includes('TARIFA')) return 'tarifa';
-  
-  return 'outro';
-}
-
-function renderizarTabela(extratos) {
-  const table = document.getElementById('extratosTable');
-  const tbody = document.getElementById('tbody-extratos');
-  
-  tbody.innerHTML = '';
-  
-  extratos.forEach((e, idx) => {
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td>${e.data}</td>
-      <td>${e.descricao}</td>
-      <td><span class="badge ${e.tipo_pagamento}">${e.tipo_pagamento}</span></td>
-      <td class="${e.valor < 0 ? 'negativo' : 'positivo'}">R$ ${Math.abs(e.valor).toFixed(2)}</td>
-      <td>R$ ${e.saldo.toFixed(2)}</td>
-    `;
-    tbody.appendChild(row);
-  });
-  
-  table.style.display = 'table';
+  if (desc.includes('PIX')) return 'PIX';
+  if (desc.includes('BOLETO') || desc.includes('COB')) return 'Boleto';
+  if (desc.includes('TRANSF') || desc.includes('DOC') || desc.includes('TED')) return 'Transferência';
+  return 'Outro';
 }
 
 function salvarExtratos(extratos) {
-  try {
-    const existentes = JSON.parse(localStorage.getItem('extratos') || '[]');
-    const todos = [...existentes, ...extratos];
-    localStorage.setItem('extratos', JSON.stringify(todos));
-    console.log('Extratos salvos:', todos.length);
-  } catch (error) {
-    console.error('Erro ao salvar:', error);
-  }
-}
-
-function mostrarMensagem(msg) {
-  const resultado = document.getElementById('resultado');
-  const msgEl = document.getElementById('msg-resultado');
-  
-  if (resultado && msgEl) {
-    msgEl.textContent = msg;
-    resultado.style.display = 'block';
-  }
+  const existentes = JSON.parse(localStorage.getItem('extratos') || '[]');
+  const todos = [...existentes, ...extratos];
+  localStorage.setItem('extratos', JSON.stringify(todos));
 }

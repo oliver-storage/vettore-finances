@@ -5,43 +5,26 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VA Business - Gestão Financeira</title>
-  <link rel="stylesheet" href="css/landing.css">
+  <link rel="stylesheet" href="css/styles.css">
 </head>
-<body>
+<body class="landing-page">
   <div class="landing-container">
-    <div class="landing-content">
+    <div class="landing-box">
       <h1>VA Business</h1>
-      <p class="tagline">Sistema de Gestão de Contas a Receber</p>
-      <p class="subtitle">Controle seus recebimentos com inteligência artificial</p>
+      <p class="subtitle">Sistema de Gestão de Contas a Receber</p>
+      <p class="description">Importação automática de extratos e matching inteligente</p>
       
-      <div class="action-buttons">
-        <button class="btn-login" onclick="goTo('html/login.html')">Entrar</button>
-        <button class="btn-signup" onclick="goTo('html/cadastro.html')">Criar Conta</button>
+      <div class="buttons">
+        <button class="btn-primary" onclick="window.location.href='html/login.html'">Entrar</button>
+        <button class="btn-secondary" onclick="window.location.href='html/login.html'">Novo Usuário</button>
       </div>
       
       <div class="features">
-        <div class="feature">
-          <span>📊</span>
-          <p>Dashboards em Tempo Real</p>
-        </div>
-        <div class="feature">
-          <span>🔄</span>
-          <p>Importação Automática</p>
-        </div>
-        <div class="feature">
-          <span>🤖</span>
-          <p>Matching Inteligente</p>
-        </div>
+        <div class="feature">📊 Dashboards</div>
+        <div class="feature">🔄 Importação XLS</div>
+        <div class="feature">🤖 Matching IA</div>
       </div>
     </div>
   </div>
-  
-  <script>
-    function goTo(url) { window.location.href = url; }
-    window.addEventListener('load', () => {
-      const bg = localStorage.getItem('bg-landing');
-      if (bg) document.body.style.background = bg;
-    });
-  </script>
 </body>
 </html>

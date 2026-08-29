@@ -13,51 +13,52 @@
     <div class="navbar-left">
       <span class="logo">VA Business</span>
       <div class="menu">
-        <a href="dashboard.html" class="menu-item active">Dashboards</a>
-        <a href="clientes.html" class="menu-item">Clientes</a>
+        <a href="dashboard.html" class="menu-item active">Dashboard</a>
         <a href="extratos.html" class="menu-item">Extratos</a>
-        <a href="pagamentos.html" class="menu-item">Pagamentos</a>
         <a href="configuracao.html" class="menu-item">Configuração</a>
       </div>
     </div>
     <div class="navbar-right">
-      <div class="user-info">
-        <span class="user-name" id="userName">Usuário</span>
-        <button class="logout-btn" onclick="logout()">Sair</button>
-      </div>
+      <span id="userDisplay">Usuário</span>
+      <button class="btn-logout" onclick="logout()">Sair</button>
     </div>
   </nav>
   
   <main class="container">
     <h1>Dashboard</h1>
     
-    <div class="dashboard-grid">
+    <div class="grid-4">
       <div class="card">
-        <h3>Faturamento Total</h3>
-        <p class="metric">R$ 18.691,76</p>
-        <small>Período: Jul/2026</small>
+        <h3>Usuários</h3>
+        <p class="metric" id="countUsers">0</p>
       </div>
-      
       <div class="card">
-        <h3>Clientes Ativos</h3>
-        <p class="metric">43</p>
-        <small>Cadastrados</small>
+        <h3>Extratos</h3>
+        <p class="metric" id="countExtratos">0</p>
       </div>
-      
       <div class="card">
-        <h3>Boletos Liquidados</h3>
-        <p class="metric">46</p>
-        <small>Período: Jul/2026</small>
+        <h3>Faturamento</h3>
+        <p class="metric">R$ 0,00</p>
       </div>
-      
       <div class="card">
         <h3>Taxa Matching</h3>
-        <p class="metric">85%</p>
-        <small>Automático</small>
+        <p class="metric">0%</p>
       </div>
     </div>
   </main>
   
-  <script src="../js/main.js"></script>
+  <script src="../js/auth.js"></script>
+  <script>
+    window.addEventListener('load', () => {
+      checkAuth();
+      const users = JSON.parse(localStorage.getItem('usuarios') || '[]');
+      const extratos = JSON.parse(localStorage.getItem('extratos') || '[]');
+      document.getElementById('countUsers').textContent = users.length;
+      document.getElementById('countExtratos').textContent = extratos.length;
+      
+      const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+      document.getElementById('userDisplay').textContent = user.nome || 'Usuário';
+    });
+  </script>
 </body>
 </html>

@@ -7,7 +7,7 @@
   <title>Cadastro - VA Business</title>
   <link rel="stylesheet" href="../css/auth.css">
 </head>
-<body>
+<body class="auth-page">
   <div class="auth-container">
     <div class="auth-box">
       <div class="auth-header">
@@ -15,33 +15,59 @@
         <p>Criar Novo Usuário</p>
       </div>
       
-      <form onsubmit="handleCadastro(event)">
+      <form id="cadastroForm" onsubmit="handleCadastro(event)">
         <div class="form-group">
-          <label>Nome Completo</label>
-          <input type="text" id="nome" placeholder="Seu nome" required>
+          <label for="nome">Nome Completo *</label>
+          <input 
+            type="text" 
+            id="nome" 
+            placeholder="Seu nome"
+            required
+          >
+          <span class="error-msg" id="nomeError"></span>
         </div>
         
         <div class="form-group">
-          <label>Email</label>
-          <input type="email" id="email" placeholder="seu@email.com" required>
+          <label for="email">Email *</label>
+          <input 
+            type="email" 
+            id="email" 
+            placeholder="seu@email.com"
+            required
+          >
+          <span class="error-msg" id="emailError"></span>
         </div>
         
         <div class="form-group">
-          <label>Senha</label>
-          <input type="password" id="password" placeholder="Crie uma senha" required>
+          <label for="password">Senha *</label>
+          <input 
+            type="password" 
+            id="password" 
+            placeholder="Crie uma senha (mín. 6 caracteres)"
+            required
+          >
+          <span class="error-msg" id="passwordError"></span>
         </div>
         
         <div class="form-group">
-          <label>Confirmar Senha</label>
-          <input type="password" id="confirm" placeholder="Repita a senha" required>
+          <label for="confirm">Confirmar Senha *</label>
+          <input 
+            type="password" 
+            id="confirm" 
+            placeholder="Repita a senha"
+            required
+          >
+          <span class="error-msg" id="confirmError"></span>
         </div>
         
-        <button type="submit" class="btn-submit">Cadastrar</button>
+        <div id="alertBox" class="alert-box" style="display: none;"></div>
+        
+        <button type="submit" class="btn-primary">Cadastrar</button>
       </form>
       
       <div class="auth-footer">
         <p>Já tem conta? <a href="login.html">Entre aqui</a></p>
-        <p><a href="../index.html">Voltar</a></p>
+        <p><a href="../index.html">← Voltar à home</a></p>
       </div>
     </div>
   </div>
@@ -49,21 +75,87 @@
   <script>
     function handleCadastro(e) {
       e.preventDefault();
-      const pwd = document.getElementById('password').value;
+      
+      // Limpar erros
+      document.getElementById('nomeError').textContent = '';
+      document.getElementById('emailError').textContent = '';
+      document.getElementById('passwordError').textContent = '';
+      document.getElementById('confirmError').textContent = '';
+      document.getElementById('alertBox').style.display = 'none';
+      
+      const nome = document.getElementById('nome').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
       const confirm = document.getElementById('confirm').value;
       
-      if (pwd !== confirm) {
-        alert('Senhas não conferem!');
+      // Validações
+      let temErro = false;
+      
+      if (!nome) {
+        document.getElementById('nomeError').textContent = 'Nome é obrigatório';
+        temErro = true;
+      }
+      
+      if (nome.length < 3) {
+        document.getElementById('nomeError').textContent = 'Nome deve ter no mínimo 3 caracteres';
+        temErro = true;
+      }
+      
+      if (!email) {
+        document.getElementById('emailError').textContent = 'Email é obrigatório';
+        temErro = true;
+      }
+      
+      if (!password) {
+        document.getElementById('passwordError').textContent = 'Senha é obrigatória';
+        temErro = true;
+      }
+      
+      if (password.length < 6) {
+        document.getElementById('passwordError').textContent = 'Senha deve ter no mínimo 6 caracteres';
+        temErro = true;
+      }
+      
+      if (password !== confirm) {
+        document.getElementById('confirmError').textContent = 'Senhas não conferem';
+        temErro = true;
+      }
+      
+      if (temErro) return;
+      
+      // Verificar email duplicado
+      const usuarios = JSON.parse(localStorage.getItem('usuarios') || '[]');
+      if (usuarios.find(u => u.email === email)) {
+        document.getElementById('emailError').textContent = 'Email já cadastrado';
         return;
       }
       
-      const user = {
-        name: document.getElementById('nome').value,
-        email: document.getElementById('email').value
+      // Criar novo usuário
+      const novoUsuario = {
+        id: Date.now(),
+        nome: nome,
+        email: email,
+        senha: password,
+        perfil: 'usuario',
+        ativo: true,
+        data_criacao: new Date().toLocaleDateString('pt-BR')
       };
       
-      localStorage.setItem('user', JSON.stringify(user));
-      window.location.href = 'dashboard.html';
+      usuarios.push(novoUsuario);
+      localStorage.setItem('usuarios', JSON.stringify(usuarios));
+      
+      showAlert('Cadastro realizado com sucesso! Redirecionando...', 'success');
+      
+      setTimeout(() => {
+        window.location.href = 'login.html';
+      }, 1500);
+    }
+    
+    function showAlert(msg, type) {
+      const box = document.getElementById('alertBox');
+      box.textContent = msg;
+      box.className = `alert-box alert-${type}`;
+      box.style.display = 'block';
     }
   </script>
 </body>
