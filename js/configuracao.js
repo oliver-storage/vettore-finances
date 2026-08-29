@@ -32,6 +32,10 @@ function handleNovaUnidade(e) {
   const bairro = document.getElementById('inputBairro').value.trim();
   const cidade = document.getElementById('inputCidade').value.trim();
   const estado = document.getElementById('inputEstado').value.trim();
+  const banco = document.getElementById('inputBanco').value.trim();
+  const agencia = document.getElementById('inputAgencia').value.trim();
+  const conta = document.getElementById('inputConta').value.trim();
+  const tipoConta = document.getElementById('inputTipoConta').value;
   
   if (!nomeFranquia || !razaoSocial || !cnpj || !cep || !rua || !numero || !cidade || !estado) {
     alert('Preencha todos os campos obrigatórios (*)');
@@ -64,6 +68,10 @@ function handleNovaUnidade(e) {
       bairro,
       cidade,
       estado,
+      banco,
+      agencia,
+      conta,
+      tipoConta,
       endereco_completo: `${rua}, ${numero}${complemento ? ', ' + complemento : ''} - ${bairro}, ${cidade} - ${estado} ${cep}`,
       data_atualizacao: new Date().toLocaleDateString('pt-BR')
     };
@@ -84,6 +92,10 @@ function handleNovaUnidade(e) {
       bairro,
       cidade,
       estado,
+      banco,
+      agencia,
+      conta,
+      tipoConta,
       endereco_completo: `${rua}, ${numero}${complemento ? ', ' + complemento : ''} - ${bairro}, ${cidade} - ${estado} ${cep}`,
       data_criacao: new Date().toLocaleDateString('pt-BR')
     };
@@ -107,6 +119,10 @@ function handleNovaUnidade(e) {
   document.getElementById('inputBairro').value = '';
   document.getElementById('inputCidade').value = '';
   document.getElementById('inputEstado').value = '';
+  document.getElementById('inputBanco').value = '';
+  document.getElementById('inputAgencia').value = '';
+  document.getElementById('inputConta').value = '';
+  document.getElementById('inputTipoConta').value = '';
   
   loadUnidades();
 }
@@ -139,6 +155,10 @@ function editarUnidade(id) {
   document.getElementById('inputBairro').value = unidade.bairro || '';
   document.getElementById('inputCidade').value = unidade.cidade || '';
   document.getElementById('inputEstado').value = unidade.estado || '';
+  document.getElementById('inputBanco').value = unidade.banco || '';
+  document.getElementById('inputAgencia').value = unidade.agencia || '';
+  document.getElementById('inputConta').value = unidade.conta || '';
+  document.getElementById('inputTipoConta').value = unidade.tipoConta || '';
   
   // Scroll para formulário
   document.querySelector('.form-section').scrollIntoView({ behavior: 'smooth' });
@@ -393,4 +413,61 @@ function deleteUsuario(id) {
   localStorage.setItem('usuarios', JSON.stringify(usuariosAtualizar));
   loadUsuarios();
   alert('Usuário deletado!');
+}
+
+// ===== PRIVILÉGIOS =====
+
+function loadPrivilegios() {
+  const user = JSON.parse(localStorage.getItem('currentUser'));
+  const admin = user.perfil === 'administrador';
+  
+  // Privilégios padrão
+  const privilegios = JSON.parse(localStorage.getItem('privilegios') || JSON.stringify([
+    { acao: 'Dashboard', admin: true, gerente: true, usuario: true },
+    { acao: 'Financeiro (Import)', admin: true, gerente: true, usuario: false },
+    { acao: 'Configuração', admin: true, gerente: true, usuario: false },
+    { acao: 'Usuários (CRUD)', admin: true, gerente: true, usuario: false },
+    { acao: 'Privilégios', admin: true, gerente: false, usuario: false }
+  ]));
+  
+  const tbody = document.getElementById('tbodyPrivilegios');
+  tbody.innerHTML = '';
+  
+  privilegios.forEach((priv, idx) => {
+    const row = tbody.insertRow();
+    row.innerHTML = `
+      <td><strong>${priv.acao}</strong></td>
+      <td><input type="checkbox" ${priv.admin ? 'checked' : ''} ${admin ? '' : 'disabled'} data-idx="${idx}" data-perfil="admin"></td>
+      <td><input type="checkbox" ${priv.gerente ? 'checked' : ''} ${admin ? '' : 'disabled'} data-idx="${idx}" data-perfil="gerente"></td>
+      <td><input type="checkbox" ${priv.usuario ? 'checked' : ''} ${admin ? '' : 'disabled'} data-idx="${idx}" data-perfil="usuario"></td>
+    `;
+  });
+  
+  // Mostrar botão save apenas se admin
+  document.getElementById('btnSavePriv').style.display = admin ? 'block' : 'none';
+}
+
+function salvarPrivilegios() {
+  const user = JSON.parse(localStorage.getItem('currentUser'));
+  if (user.perfil !== 'administrador') {
+    alert('Sem permissão');
+    return;
+  }
+  
+  const checkboxes = document.querySelectorAll('#tbodyPrivilegios input[type="checkbox"]');
+  const privilegios = [];
+  
+  const acoes = document.querySelectorAll('#tbodyPrivilegios strong');
+  acoes.forEach((acao, idx) => {
+    const priv = {
+      acao: acao.textContent,
+      admin: checkboxes[idx * 3].checked,
+      gerente: checkboxes[idx * 3 + 1].checked,
+      usuario: checkboxes[idx * 3 + 2].checked
+    };
+    privilegios.push(priv);
+  });
+  
+  localStorage.setItem('privilegios', JSON.stringify(privilegios));
+  alert('Privilégios salvos com sucesso!');
 }

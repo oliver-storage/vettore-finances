@@ -99,6 +99,33 @@
           </div>
         </div>
         
+        <hr style="margin: 30px 0; border: 1px solid #e5e7eb;">
+        <h3>Dados Bancários</h3>
+        
+        <div class="form-row-4">
+          <div class="form-group">
+            <label>Banco</label>
+            <input type="text" id="inputBanco" placeholder="Ex: Banco do Brasil">
+          </div>
+          <div class="form-group">
+            <label>Agência</label>
+            <input type="text" id="inputAgencia" placeholder="0000" maxlength="5">
+          </div>
+          <div class="form-group">
+            <label>Conta</label>
+            <input type="text" id="inputConta" placeholder="00000-0" maxlength="12">
+          </div>
+          <div class="form-group">
+            <label>Tipo Conta</label>
+            <select id="inputTipoConta">
+              <option value="">Selecionar...</option>
+              <option value="corrente">Corrente</option>
+              <option value="poupanca">Poupança</option>
+              <option value="investimento">Investimento</option>
+            </select>
+          </div>
+        </div>
+        
         <button type="submit" class="btn-primary">+ Adicionar Unidade</button>
       </form>
       
@@ -170,48 +197,30 @@
     <!-- ABA 3: PRIVILÉGIOS -->
     <div id="privilegios" class="tab-content">
       <h2>Privilégios por Perfil</h2>
+      <p class="description" id="privDesc">Apenas Administrador pode editar privilégios</p>
       
       <table class="perms-table">
         <thead>
           <tr>
             <th>Módulo</th>
-            <th>Administrador</th>
+            <th colspan="3">Permissões</th>
+          </tr>
+          <tr>
+            <th>Ação</th>
+            <th>Admin</th>
             <th>Gerente</th>
             <th>Usuário</th>
           </tr>
         </thead>
-        <tbody>
-          <tr>
-            <td><strong>Dashboard</strong></td>
-            <td><input type="checkbox" checked disabled></td>
-            <td><input type="checkbox" checked disabled></td>
-            <td><input type="checkbox" checked disabled></td>
-          </tr>
-          <tr>
-            <td><strong>Extratos</strong> (Import)</td>
-            <td><input type="checkbox" checked disabled></td>
-            <td><input type="checkbox" checked disabled></td>
-            <td><input type="checkbox" disabled></td>
-          </tr>
-          <tr>
-            <td><strong>Configuração</strong></td>
-            <td><input type="checkbox" checked disabled></td>
-            <td><input type="checkbox" checked disabled></td>
-            <td><input type="checkbox" disabled></td>
-          </tr>
-          <tr>
-            <td><strong>Usuários</strong> (CRUD)</td>
-            <td><input type="checkbox" checked disabled></td>
-            <td><input type="checkbox" checked disabled></td>
-            <td><input type="checkbox" disabled></td>
-          </tr>
-        </tbody>
+        <tbody id="tbodyPrivilegios"></tbody>
       </table>
+      
+      <button class="btn-primary" id="btnSavePriv" style="display:none; margin-top: 20px;" onclick="salvarPrivilegios()">Salvar Privilégios</button>
     </div>
   </main>
   
   <footer class="footer">
-    <p>&copy; Gestão Financeira 2026 - v1.0.3 Desenvolvido por OliverStorage</p>
+    <p>&copy; Gestão Financeira 2026 - v1.1.0 Desenvolvido por OliverStorage</p>
   </footer>
   
   <script src="../js/auth.js"></script>
@@ -233,6 +242,7 @@
     
     loadUnidades();
     loadUsuarios();
+    loadPrivilegios();
     
     // Aplicar máscaras
     document.getElementById('inputCNPJ').addEventListener('input', (e) => {

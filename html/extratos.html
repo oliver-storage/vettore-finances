@@ -26,13 +26,47 @@
   </nav>
   
   <main class="container">
-    <h1>Importar Extratos</h1>
+    <h1>Financeiro</h1>
     
     <div class="form-section">
-      <h2>Upload de Arquivo XLS/XLSX</h2>
+      <h2>Importação de Extratos Bancários</h2>
+      
+      <div class="form-row-3">
+        <div class="form-group">
+          <label>Franquia *</label>
+          <select id="inputFranquiaFilt" onchange="aplicarFiltros()">
+            <option value="">Selecionar...</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Mês *</label>
+          <select id="inputMesFilt" onchange="aplicarFiltros()">
+            <option value="">Selecionar...</option>
+            <option value="01">Janeiro</option>
+            <option value="02">Fevereiro</option>
+            <option value="03">Março</option>
+            <option value="04">Abril</option>
+            <option value="05">Maio</option>
+            <option value="06">Junho</option>
+            <option value="07">Julho</option>
+            <option value="08">Agosto</option>
+            <option value="09">Setembro</option>
+            <option value="10">Outubro</option>
+            <option value="11">Novembro</option>
+            <option value="12">Dezembro</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Ano *</label>
+          <select id="inputAnoFilt" onchange="aplicarFiltros()">
+            <option value="">Selecionar...</option>
+          </select>
+        </div>
+      </div>
+      
       <div class="upload-area">
         <button class="btn-primary" onclick="document.getElementById('fileInput').click()">
-          📁 Selecionar Arquivo
+          📁 Selecionar Arquivo XLS/XLSX
         </button>
         <input type="file" id="fileInput" accept=".xls,.xlsx" style="display:none;" onchange="handleFileUpload(event)">
         <p id="fileName" style="margin-top: 10px; color: #666;"></p>
@@ -51,7 +85,7 @@
   </main>
   
   <footer class="footer">
-    <p>&copy; Gestão Financeira 2026 - v1.0.3 Desenvolvido por OliverStorage</p>
+    <p>&copy; Gestão Financeira 2026 - v1.1.0 Desenvolvido por OliverStorage</p>
   </footer>
   
   <script src="../js/auth.js"></script>
@@ -63,6 +97,36 @@
     const franquia = unidades.find(u => u.id === user.unidade_id);
     
     document.getElementById('userName').textContent = `${franquia?.nomeFranquia || franquia?.nome || 'N/A'} - ${user.nome}`;
+    
+    // Preencher dropdown de franquias
+    const selectFranquia = document.getElementById('inputFranquiaFilt');
+    if (user.perfil === 'administrador') {
+      unidades.forEach(u => {
+        const opt = document.createElement('option');
+        opt.value = u.id;
+        opt.textContent = u.nomeFranquia || u.nome;
+        selectFranquia.appendChild(opt);
+      });
+    } else {
+      // Gerente/Usuário: apenas sua franquia
+      const opt = document.createElement('option');
+      opt.value = user.unidade_id;
+      opt.textContent = franquia?.nomeFranquia || franquia?.nome;
+      opt.selected = true;
+      selectFranquia.appendChild(opt);
+      selectFranquia.disabled = true;
+    }
+    
+    // Preencher dropdown de anos (últimos 5 anos)
+    const selectAno = document.getElementById('inputAnoFilt');
+    const anoAtual = new Date().getFullYear();
+    for (let i = 0; i < 5; i++) {
+      const opt = document.createElement('option');
+      opt.value = anoAtual - i;
+      opt.textContent = anoAtual - i;
+      selectAno.appendChild(opt);
+    }
+    
     loadExtratos();
   </script>
 </body>

@@ -39,6 +39,15 @@ function handleFileUpload(e) {
 
 function processarExtratos(json) {
   const user = JSON.parse(localStorage.getItem('currentUser'));
+  const mes = document.getElementById('inputMesFilt').value;
+  const ano = document.getElementById('inputAnoFilt').value;
+  const franquiaId = document.getElementById('inputFranquiaFilt').value || user.unidade_id;
+  
+  if (!mes || !ano) {
+    alert('Selecione mês e ano antes de importar');
+    return [];
+  }
+  
   const extratos = [];
   let headerIdx = -1, colMap = {};
   
@@ -53,7 +62,10 @@ function processarExtratos(json) {
     }
   }
   
-  if (headerIdx === -1) return [];
+  if (headerIdx === -1) {
+    alert('Arquivo inválido: não encontrados campos DATA e VALOR');
+    return [];
+  }
   
   for (let i = headerIdx + 1; i < json.length; i++) {
     const row = json[i];
@@ -63,7 +75,9 @@ function processarExtratos(json) {
       const valor = parseFloat(String(row[colMap.valor] || 0).replace(/[^\d,-]/g, '').replace(',', '.'));
       extratos.push({
         id: Date.now() + extratos.length,
-        unidade_id: user.unidade_id,
+        unidade_id: parseInt(franquiaId),
+        mes: mes,
+        ano: ano,
         data: String(row[colMap.data]),
         descricao: String(row[colMap.descricao] || '').trim(),
         valor: valor,
@@ -71,7 +85,9 @@ function processarExtratos(json) {
         tipo_operacao: valor < 0 ? 'débito' : 'crédito',
         tipo_pagamento: detectarTipo(String(row[colMap.descricao] || ''))
       });
-    } catch (e) {}
+    } catch (e) {
+      console.error('Erro ao processar linha:', e);
+    }
   }
   
   return extratos;
@@ -101,9 +117,20 @@ function loadExtratos() {
   const user = JSON.parse(localStorage.getItem('currentUser'));
   let extratos = JSON.parse(localStorage.getItem('extratos') || '[]');
   
-  // Filtrar por unidade se não for admin
-  if (user.perfil !== 'administrador') {
+  const franquiaFilt = document.getElementById('inputFranquiaFilt')?.value;
+  const mesFilt = document.getElementById('inputMesFilt')?.value;
+  const anoFilt = document.getElementById('inputAnoFilt')?.value;
+  
+  // Filtrar por franquia
+  if (franquiaFilt) {
+    extratos = extratos.filter(e => e.unidade_id === parseInt(franquiaFilt));
+  } else if (user.perfil !== 'administrador') {
     extratos = extratos.filter(e => e.unidade_id === user.unidade_id);
+  }
+  
+  // Filtrar por mês e ano
+  if (mesFilt && anoFilt) {
+    extratos = extratos.filter(e => e.mes === mesFilt && e.ano === anoFilt);
   }
   
   const tbody = document.getElementById('tbodyExtratos');
@@ -186,4 +213,8 @@ function deleteExtrato(id) {
   localStorage.setItem('extratos', JSON.stringify(extratos));
   loadExtratos();
   alert('Lançamento deletado!');
+}
+
+function aplicarFiltros() {
+  loadExtratos();
 }
