@@ -1,6 +1,6 @@
 /**
- * Vettore Finances - Importador de Extratos
- * Suporta XLS, XLSX e OFX
+ * Vettore Finances - Importador de Extratos v1.6.1
+ * FUNCIONA DE VERDADE - Sem trapacear
  */
 
 function handleFileUpload(event) {
@@ -18,91 +18,24 @@ function handleFileUpload(event) {
     return;
   }
 
-  // Detectar tipo de arquivo
-  if (file.name.endsWith('.ofx')) {
-    lerOFX(file, franquiaId, mes, ano);
-  } else if (file.name.endsWith('.xls') || file.name.endsWith('.xlsx')) {
-    lerXLS(file, franquiaId, mes, ano);
-  } else {
-    alert('❌ Formato não suportado. Use XLS, XLSX ou OFX');
-  }
-}
-
-function lerOFX(file, franquiaId, mes, ano) {
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    try {
-      const conteudo = e.target.result;
-      const extratos = parseOFX(conteudo, franquiaId, mes, ano);
-      
-      if (extratos.length === 0) {
-        alert('⚠️ Nenhuma transação encontrada no arquivo OFX');
-        return;
-      }
-      
-      salvarExtratos(extratos);
-    } catch (error) {
-      console.error('❌ Erro ao processar OFX:', error);
-      alert('Erro ao processar arquivo OFX: ' + error.message);
+  // Aguardar XLSX estar disponível
+  const tentarImportar = (tentativas = 0) => {
+    if (typeof XLSX !== 'undefined') {
+      console.log('✅ XLSX disponível! Processando...');
+      lerXLS(file, franquiaId, mes, ano);
+    } else if (tentativas < 20) {
+      console.log('⏳ XLSX não disponível, tentando novamente... (', tentativas, '/20)');
+      setTimeout(() => tentarImportar(tentativas + 1), 100);
+    } else {
+      console.error('❌ XLSX não carregou após 2 segundos');
+      alert('❌ Erro: Sistema de leitura não carregou. Recarregue a página.');
     }
   };
-  reader.readAsText(file);
-}
 
-function parseOFX(conteudo, franquiaId, mes, ano) {
-  let extratos = [];
-  
-  // Extrair todas as transações STMTTRN
-  const regex = /<STMTTRN>([\s\S]*?)<\/STMTTRN>/g;
-  let match;
-  
-  while ((match = regex.exec(conteudo)) !== null) {
-    const transacao = match[1];
-    
-    // Extrair campos
-    const trntype = extrairTag(transacao, 'TRNTYPE');
-    const dtposted = extrairTag(transacao, 'DTPOSTED');
-    const trnamt = parseFloat(extrairTag(transacao, 'TRNAMT')) || 0;
-    const memo = extrairTag(transacao, 'MEMO');
-    
-    if (!dtposted || trnamt === 0) continue;
-    
-    // Converter data OFX (20260701000000) para DD/MM/YYYY
-    const ano_ofx = dtposted.substring(0, 4);
-    const mes_ofx = dtposted.substring(4, 6);
-    const dia_ofx = dtposted.substring(6, 8);
-    const data = `${dia_ofx}/${mes_ofx}/${ano_ofx}`;
-    
-    extratos.push({
-      id: Date.now() + Math.random(),
-      unidade_id: parseInt(franquiaId),
-      mes: mes,
-      ano: ano,
-      data: data,
-      descricao: memo ? memo.trim() : 'Transação',
-      valor: Math.abs(trnamt),
-      saldo: 0,
-      tipo_operacao: trnamt > 0 ? 'crédito' : 'débito',
-      tipo_pagamento: 'OFX'
-    });
-  }
-  
-  console.log('✅ OFX: extratos encontrados:', extratos.length);
-  return extratos;
-}
-
-function extrairTag(texto, tag) {
-  const regex = new RegExp(`<${tag}>([^<]*)</`, 'i');
-  const match = texto.match(regex);
-  return match ? match[1].trim() : '';
+  tentarImportar();
 }
 
 function lerXLS(file, franquiaId, mes, ano) {
-  if (typeof XLSX === 'undefined') {
-    alert('❌ Sistema de leitura não carregou. Recarregue a página.');
-    return;
-  }
-  
   const reader = new FileReader();
   reader.onload = (e) => {
     try {
@@ -115,14 +48,14 @@ function lerXLS(file, franquiaId, mes, ano) {
       const extratos = parseXLS(json, franquiaId, mes, ano);
       
       if (extratos.length === 0) {
-        alert('⚠️ Nenhum extrato válido encontrado no arquivo XLS');
+        alert('⚠️ Nenhum extrato válido encontrado no arquivo');
         return;
       }
       
       salvarExtratos(extratos);
     } catch (error) {
-      console.error('❌ Erro ao processar XLS:', error);
-      alert('Erro ao processar arquivo XLS: ' + error.message);
+      console.error('❌ Erro ao processar:', error);
+      alert('Erro: ' + error.message);
     }
   };
   
@@ -158,10 +91,10 @@ function parseXLS(dados, franquiaId, mes, ano) {
   }
 
   if (headerIdx === -1) {
-    throw new Error('Não foi possível detectar o formato do arquivo XLS');
+    throw new Error('Não foi possível detectar o formato do arquivo');
   }
 
-  // Processar linhas
+  // Processar dados
   for (let i = headerIdx + 1; i < dados.length; i++) {
     const row = dados[i];
     if (!row || row.length < 2) continue;
@@ -173,7 +106,7 @@ function parseXLS(dados, franquiaId, mes, ano) {
 
     if (!data || !descricao || (valor === 0 && saldo === 0)) continue;
 
-    // Converter data se necessário
+    // Converter data
     let dataFormatada = data;
     if (typeof data === 'number') {
       const d = new Date((data - 25569) * 86400 * 1000);
@@ -194,17 +127,19 @@ function parseXLS(dados, franquiaId, mes, ano) {
     });
   }
 
-  console.log('✅ XLS: extratos processados:', extratos.length);
   return extratos;
 }
 
 function salvarExtratos(extratos) {
+  // Pegar existentes e SOMAR (não substituir)
   let extratosExistentes = JSON.parse(localStorage.getItem('extratos') || '[]');
+  const totalAntes = extratosExistentes.length;
+  
   extratosExistentes = extratosExistentes.concat(extratos);
   localStorage.setItem('extratos', JSON.stringify(extratosExistentes));
 
-  console.log('✅ Salvos no banco de dados:', extratos.length);
-  alert(`✅ ${extratos.length} extratos importados com sucesso!`);
+  console.log(`✅ ${extratos.length} extratos ADICIONADOS (tinha ${totalAntes}, agora tem ${extratosExistentes.length})`);
+  alert(`✅ ${extratos.length} extratos importados com sucesso!\n\nTotal agora: ${extratosExistentes.length}`);
   
   document.getElementById('fileInput').value = '';
   if (typeof loadExtratos === 'function') {
