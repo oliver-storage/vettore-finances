@@ -6,6 +6,7 @@
   <title>Extratos - VA Business</title>
   <link rel="stylesheet" href="../css/styles.css">
   <link rel="stylesheet" href="../css/navbar.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
 </head>
 <body>
   <nav class="navbar">
@@ -28,16 +29,67 @@
   </nav>
   
   <main class="container">
-    <h1>Extratos</h1>
-    <input type="file" id="uploadExtrato" accept=".xlsx" onchange="importarExtrato(event)">
-    <table id="extratosTable">
+    <h1>Importar Extratos</h1>
+    
+    <div class="upload-area">
+      <input type="file" id="fileInput" accept=".xls,.xlsx" onchange="handleFileUpload(event)">
+      <label for="fileInput" class="upload-label">Clique para selecionar arquivo XLS</label>
+    </div>
+    
+    <table id="extratosTable" style="display:none;">
       <thead>
-        <tr><th>Data</th><th>Descrição</th><th>Valor</th><th>Tipo</th></tr>
+        <tr>
+          <th>Data</th>
+          <th>Descrição</th>
+          <th>Tipo</th>
+          <th>Valor</th>
+          <th>Saldo</th>
+        </tr>
       </thead>
       <tbody id="tbody-extratos"></tbody>
     </table>
+    
+    <div id="resultado" style="display:none; margin-top:20px;">
+      <p id="msg-resultado"></p>
+    </div>
   </main>
   
   <script src="../js/main.js"></script>
+  <script src="../js/importador.js"></script>
+  
+  <script>
+    function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      importarExtratoXLS(file).then(extratos => {
+        if (extratos && extratos.length > 0) {
+          renderizarTabela(extratos);
+          document.getElementById('resultado').style.display = 'block';
+          document.getElementById('msg-resultado').textContent = `${extratos.length} extratos importados com sucesso!`;
+        }
+      });
+    }
+    
+    function renderizarTabela(extratos) {
+      const tbody = document.getElementById('tbody-extratos');
+      tbody.innerHTML = '';
+      
+      extratos.forEach(e => {
+        const row = `
+          <tr>
+            <td>${new Date(e.data).toLocaleDateString('pt-BR')}</td>
+            <td>${e.descricao}</td>
+            <td><span class="badge ${e.tipo_pagamento}">${e.tipo_pagamento}</span></td>
+            <td class="${e.valor < 0 ? 'negativo' : 'positivo'}">R$ ${Math.abs(e.valor).toFixed(2)}</td>
+            <td>R$ ${e.saldo.toFixed(2)}</td>
+          </tr>
+        `;
+        tbody.innerHTML += row;
+      });
+      
+      document.getElementById('extratosTable').style.display = 'table';
+    }
+  </script>
 </body>
 </html>
