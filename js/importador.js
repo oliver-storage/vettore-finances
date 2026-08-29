@@ -118,6 +118,8 @@ function loadExtratos() {
   
   tbody.innerHTML = '';
   extratos.forEach(e => {
+    const podeEditar = user.perfil === 'administrador' || user.perfil === 'gerente';
+    
     const row = tbody.insertRow();
     row.innerHTML = `
       <td>${e.data}</td>
@@ -125,9 +127,63 @@ function loadExtratos() {
       <td><span class="badge">${e.tipo_pagamento}</span></td>
       <td class="${e.valor < 0 ? 'negativo' : 'positivo'}">R$ ${Math.abs(e.valor).toFixed(2)}</td>
       <td>R$ ${e.saldo.toFixed(2)}</td>
+      <td>
+        ${podeEditar ? `<button class="btn-edit" onclick="editarExtrato(${e.id})">Editar</button>` : ''}
+        ${podeEditar ? `<button class="btn-danger" onclick="deleteExtrato(${e.id})">Deletar</button>` : '-'}
+      </td>
     `;
   });
   
   empty.style.display = 'none';
   table.style.display = 'table';
+}
+
+function editarExtrato(id) {
+  const user = JSON.parse(localStorage.getItem('currentUser'));
+  
+  // Apenas admin e gerente podem editar
+  if (user.perfil !== 'administrador' && user.perfil !== 'gerente') {
+    alert('Sem permissão para editar');
+    return;
+  }
+  
+  const extratos = JSON.parse(localStorage.getItem('extratos') || '[]');
+  const extrato = extratos.find(e => e.id === id);
+  
+  if (!extrato) return;
+  
+  // Modal simples com prompt
+  const novaDescricao = prompt('Editar descrição:', extrato.descricao);
+  if (novaDescricao === null) return; // Cancelado
+  
+  if (!novaDescricao.trim()) {
+    alert('Descrição não pode estar vazia');
+    return;
+  }
+  
+  const idx = extratos.findIndex(e => e.id === id);
+  extratos[idx].descricao = novaDescricao.trim();
+  extratos[idx].data_atualizacao = new Date().toLocaleDateString('pt-BR');
+  
+  localStorage.setItem('extratos', JSON.stringify(extratos));
+  loadExtratos();
+  alert('Extrato atualizado!');
+}
+
+function deleteExtrato(id) {
+  const user = JSON.parse(localStorage.getItem('currentUser'));
+  
+  // Apenas admin e gerente podem deletar
+  if (user.perfil !== 'administrador' && user.perfil !== 'gerente') {
+    alert('Sem permissão para deletar');
+    return;
+  }
+  
+  if (!confirm('Deletar lançamento? Esta ação é irreversível.')) return;
+  
+  let extratos = JSON.parse(localStorage.getItem('extratos') || '[]');
+  extratos = extratos.filter(e => e.id !== id);
+  localStorage.setItem('extratos', JSON.stringify(extratos));
+  loadExtratos();
+  alert('Lançamento deletado!');
 }

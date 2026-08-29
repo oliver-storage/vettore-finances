@@ -39,33 +39,62 @@ function handleNovaUnidade(e) {
   }
   
   const unidades = JSON.parse(localStorage.getItem('unidades') || '[]');
-  if (unidades.find(u => u.cnpj.replace(/\D/g, '') === cnpj.replace(/\D/g, ''))) {
+  const editId = document.getElementById('inputNomeFranquia').dataset.editId;
+  
+  // Se for edição, remover CNPJ antigo da validação
+  if (!editId && unidades.find(u => u.cnpj.replace(/\D/g, '') === cnpj.replace(/\D/g, ''))) {
     alert('CNPJ já cadastrado');
     return;
   }
   
-  const novaUnidade = {
-    id: Date.now(),
-    nomeFranquia,
-    razaoSocial,
-    cnpj,
-    email,
-    telefone,
-    cep,
-    rua,
-    numero,
-    complemento,
-    bairro,
-    cidade,
-    estado,
-    endereco_completo: `${rua}, ${numero}${complemento ? ', ' + complemento : ''} - ${bairro}, ${cidade} - ${estado} ${cep}`,
-    data_criacao: new Date().toLocaleDateString('pt-BR')
-  };
+  if (editId) {
+    // EDITAR
+    const idx = unidades.findIndex(u => u.id === parseInt(editId));
+    unidades[idx] = {
+      ...unidades[idx],
+      nomeFranquia,
+      razaoSocial,
+      cnpj,
+      email,
+      telefone,
+      cep,
+      rua,
+      numero,
+      complemento,
+      bairro,
+      cidade,
+      estado,
+      endereco_completo: `${rua}, ${numero}${complemento ? ', ' + complemento : ''} - ${bairro}, ${cidade} - ${estado} ${cep}`,
+      data_atualizacao: new Date().toLocaleDateString('pt-BR')
+    };
+    alert('Franquia atualizada!');
+  } else {
+    // CRIAR
+    const novaUnidade = {
+      id: Date.now(),
+      nomeFranquia,
+      razaoSocial,
+      cnpj,
+      email,
+      telefone,
+      cep,
+      rua,
+      numero,
+      complemento,
+      bairro,
+      cidade,
+      estado,
+      endereco_completo: `${rua}, ${numero}${complemento ? ', ' + complemento : ''} - ${bairro}, ${cidade} - ${estado} ${cep}`,
+      data_criacao: new Date().toLocaleDateString('pt-BR')
+    };
+    unidades.push(novaUnidade);
+    alert('Franquia criada!');
+  }
   
-  unidades.push(novaUnidade);
   localStorage.setItem('unidades', JSON.stringify(unidades));
   
   // Limpar formulário
+  document.getElementById('inputNomeFranquia').dataset.editId = '';
   document.getElementById('inputNomeFranquia').value = '';
   document.getElementById('inputRazaoSocial').value = '';
   document.getElementById('inputCNPJ').value = '';
@@ -78,10 +107,41 @@ function handleNovaUnidade(e) {
   document.getElementById('inputBairro').value = '';
   document.getElementById('inputCidade').value = '';
   document.getElementById('inputEstado').value = '';
-  limparEndereco();
   
   loadUnidades();
-  alert('Franquia criada!');
+}
+
+function editarUnidade(id) {
+  const user = JSON.parse(localStorage.getItem('currentUser'));
+  
+  // Apenas admin pode editar
+  if (user.perfil !== 'administrador') {
+    alert('Sem permissão para editar');
+    return;
+  }
+  
+  const unidades = JSON.parse(localStorage.getItem('unidades') || '[]');
+  const unidade = unidades.find(u => u.id === id);
+  
+  if (!unidade) return;
+  
+  // Preencher formulário com dados
+  document.getElementById('inputNomeFranquia').dataset.editId = id;
+  document.getElementById('inputNomeFranquia').value = unidade.nomeFranquia;
+  document.getElementById('inputRazaoSocial').value = unidade.razaoSocial;
+  document.getElementById('inputCNPJ').value = unidade.cnpj;
+  document.getElementById('inputEmailUnidade').value = unidade.email || '';
+  document.getElementById('inputTelefone').value = unidade.telefone || '';
+  document.getElementById('inputCEP').value = unidade.cep || '';
+  document.getElementById('inputRua').value = unidade.rua || '';
+  document.getElementById('inputNumero').value = unidade.numero || '';
+  document.getElementById('inputComplemento').value = unidade.complemento || '';
+  document.getElementById('inputBairro').value = unidade.bairro || '';
+  document.getElementById('inputCidade').value = unidade.cidade || '';
+  document.getElementById('inputEstado').value = unidade.estado || '';
+  
+  // Scroll para formulário
+  document.querySelector('.form-section').scrollIntoView({ behavior: 'smooth' });
 }
 
 function loadUnidades() {
@@ -105,7 +165,10 @@ function loadUnidades() {
       <td>${u.cnpj || '-'}</td>
       <td>${u.telefone || '-'}</td>
       <td>${u.cidade || '-'}</td>
-      <td><button class="btn-danger" onclick="deleteUnidade(${u.id})">Deletar</button></td>
+      <td>
+        <button class="btn-edit" onclick="editarUnidade(${u.id})">Editar</button>
+        <button class="btn-danger" onclick="deleteUnidade(${u.id})">Deletar</button>
+      </td>
     `;
   });
   
@@ -124,11 +187,21 @@ function loadUnidades() {
 }
 
 function deleteUnidade(id) {
-  if (!confirm('Deletar unidade?')) return;
+  const user = JSON.parse(localStorage.getItem('currentUser'));
+  
+  // Apenas admin pode deletar
+  if (user.perfil !== 'administrador') {
+    alert('Sem permissão para deletar');
+    return;
+  }
+  
+  if (!confirm('Deletar franquia? Esta ação é irreversível.')) return;
+  
   let unidades = JSON.parse(localStorage.getItem('unidades') || '[]');
   unidades = unidades.filter(u => u.id !== id);
   localStorage.setItem('unidades', JSON.stringify(unidades));
   loadUnidades();
+  alert('Franquia deletada!');
 }
 
 // ===== USUÁRIOS =====
@@ -161,7 +234,9 @@ function handleNovoUsuario(e) {
     return;
   }
   
-  if (senha !== confirm) {
+  // Se não for edição, validar confirmação de senha
+  const editId = document.getElementById('inputNomeUser').dataset.editId;
+  if (!editId && senha !== confirm) {
     alert('Senhas não conferem');
     return;
   }
@@ -173,21 +248,52 @@ function handleNovoUsuario(e) {
   }
   
   const usuarios = JSON.parse(localStorage.getItem('usuarios') || '[]');
-  if (usuarios.find(u => u.email === email)) {
-    alert('Email já cadastrado');
-    return;
+  
+  if (editId) {
+    // EDITAR
+    const idx = usuarios.findIndex(u => u.id === parseInt(editId));
+    
+    // Validar email único (exceto o do usuário sendo editado)
+    if (usuarios.some(u => u.email === email && u.id !== parseInt(editId))) {
+      alert('Email já cadastrado');
+      return;
+    }
+    
+    usuarios[idx] = {
+      ...usuarios[idx],
+      nome,
+      email,
+      unidade_id: parseInt(unidade_id),
+      perfil,
+      ...(senha && { senha }),
+      data_atualizacao: new Date().toLocaleDateString('pt-BR')
+    };
+    alert('Usuário atualizado!');
+  } else {
+    // CRIAR
+    if (usuarios.find(u => u.email === email)) {
+      alert('Email já cadastrado');
+      return;
+    }
+    
+    const novoUsuario = {
+      id: Date.now(),
+      nome,
+      email,
+      unidade_id: parseInt(unidade_id),
+      perfil,
+      senha,
+      ativo: true,
+      data_criacao: new Date().toLocaleDateString('pt-BR')
+    };
+    usuarios.push(novoUsuario);
+    alert('Usuário criado!');
   }
   
-  const novoUsuario = {
-    id: Date.now(),
-    nome, email, unidade_id: parseInt(unidade_id), perfil, senha,
-    ativo: true,
-    data_criacao: new Date().toLocaleDateString('pt-BR')
-  };
-  
-  usuarios.push(novoUsuario);
   localStorage.setItem('usuarios', JSON.stringify(usuarios));
   
+  // Limpar formulário
+  document.getElementById('inputNomeUser').dataset.editId = '';
   document.getElementById('inputNomeUser').value = '';
   document.getElementById('inputEmailUser').value = '';
   document.getElementById('inputUnidadeUser').value = '';
@@ -196,7 +302,6 @@ function handleNovoUsuario(e) {
   document.getElementById('inputConfirmUser').value = '';
   
   loadUsuarios();
-  alert('Usuário criado!');
 }
 
 function loadUsuarios() {
@@ -223,13 +328,18 @@ function loadUsuarios() {
   tbody.innerHTML = '';
   filtered.forEach(u => {
     const unidade = unidades.find(ud => ud.id === u.unidade_id);
+    const podeEditar = user.perfil === 'administrador' || (user.perfil === 'gerente' && u.unidade_id === user.unidade_id);
+    
     const row = tbody.insertRow();
     row.innerHTML = `
       <td>${u.nome}</td>
       <td>${u.email}</td>
-      <td>${unidade?.nome || '-'}</td>
+      <td>${unidade?.nomeFranquia || unidade?.nome || '-'}</td>
       <td><span class="badge">${u.perfil}</span></td>
-      <td>${user.perfil !== 'usuario' ? `<button class="btn-danger" onclick="deleteUsuario(${u.id})">Deletar</button>` : '-'}</td>
+      <td>
+        ${podeEditar ? `<button class="btn-edit" onclick="editarUsuario(${u.id})">Editar</button>` : ''}
+        ${podeEditar ? `<button class="btn-danger" onclick="deleteUsuario(${u.id})">Deletar</button>` : '-'}
+      </td>
     `;
   });
   
@@ -237,10 +347,50 @@ function loadUsuarios() {
   table.style.display = 'table';
 }
 
+function editarUsuario(id) {
+  const user = JSON.parse(localStorage.getItem('currentUser'));
+  const usuarios = JSON.parse(localStorage.getItem('usuarios') || '[]');
+  const usuarioEditar = usuarios.find(u => u.id === id);
+  
+  if (!usuarioEditar) return;
+  
+  // Validar permissão
+  if (user.perfil !== 'administrador' && 
+      (user.perfil !== 'gerente' || usuarioEditar.unidade_id !== user.unidade_id)) {
+    alert('Sem permissão para editar');
+    return;
+  }
+  
+  // Preencher formulário
+  document.getElementById('inputNomeUser').dataset.editId = id;
+  document.getElementById('inputNomeUser').value = usuarioEditar.nome;
+  document.getElementById('inputEmailUser').value = usuarioEditar.email;
+  document.getElementById('inputUnidadeUser').value = usuarioEditar.unidade_id;
+  document.getElementById('inputPerfilUser').value = usuarioEditar.perfil;
+  document.getElementById('inputSenhaUser').value = '';
+  document.getElementById('inputConfirmUser').value = '';
+  
+  // Scroll para formulário
+  document.querySelector('.form-section').scrollIntoView({ behavior: 'smooth' });
+}
+
 function deleteUsuario(id) {
-  if (!confirm('Deletar usuário?')) return;
-  let usuarios = JSON.parse(localStorage.getItem('usuarios') || '[]');
-  usuarios = usuarios.filter(u => u.id !== id);
-  localStorage.setItem('usuarios', JSON.stringify(usuarios));
+  const user = JSON.parse(localStorage.getItem('currentUser'));
+  const usuarios = JSON.parse(localStorage.getItem('usuarios') || '[]');
+  const usuarioDelete = usuarios.find(u => u.id === id);
+  
+  // Validar permissão
+  if (user.perfil !== 'administrador' && 
+      (user.perfil !== 'gerente' || usuarioDelete.unidade_id !== user.unidade_id)) {
+    alert('Sem permissão para deletar');
+    return;
+  }
+  
+  if (!confirm('Deletar usuário? Esta ação é irreversível.')) return;
+  
+  let usuariosAtualizar = JSON.parse(localStorage.getItem('usuarios') || '[]');
+  usuariosAtualizar = usuariosAtualizar.filter(u => u.id !== id);
+  localStorage.setItem('usuarios', JSON.stringify(usuariosAtualizar));
   loadUsuarios();
+  alert('Usuário deletado!');
 }
