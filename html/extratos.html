@@ -85,21 +85,20 @@
   </main>
   
   <footer class="footer">
-    <p>&copy; Gestão Financeira 2026 - v1.1.3 Desenvolvido por OliverStorage</p>
+    <p>&copy; Gestão Financeira 2026 - v1.1.4 Desenvolvido por OliverStorage</p>
   </footer>
   
   <script src="../js/auth.js"></script>
   <script src="../js/importador.js"></script>
   <script>
-    // Timeout máximo para esperar XLSX
     let xlsxTimeout = 0;
     
     function inicializar() {
       try {
-        // Verificar XLSX com timeout
+        // Verificar XLSX
         if (typeof XLSX === 'undefined') {
           xlsxTimeout++;
-          if (xlsxTimeout > 50) { // 5 segundos de espera
+          if (xlsxTimeout > 50) {
             console.error('❌ XLSX não carregou após 5s. Continuando mesmo assim...');
             xlsxTimeout = 0;
           } else {
@@ -127,21 +126,41 @@
         }
         
         const user = JSON.parse(userStr);
-        console.log('✓ Usuário:', user.nome, 'Perfil:', user.perfil, 'Unidade:', user.unidade_id);
+        console.log('✓ Usuário:', user.nome, 'Perfil:', user.perfil, 'Unidade ID:', user.unidade_id);
+        console.log('User object:', JSON.stringify(user));
         
         const unidades = JSON.parse(localStorage.getItem('unidades') || '[]');
         console.log('✓ Unidades carregadas:', unidades.length);
         
         if (unidades.length === 0) {
           console.warn('⚠️ Nenhuma unidade cadastrada!');
+        } else {
+          console.log('Unidades:', unidades.map(u => `${u.id}:${u.nomeFranquia}`).join(', '));
         }
         
+        // Encontrar franquia
         const franquia = unidades.find(u => u.id === user.unidade_id);
-        console.log('✓ Franquia do usuário:', franquia?.nomeFranquia || 'não encontrada');
+        console.log('🔍 Procurando franquia com ID:', user.unidade_id);
         
-        // Atualizar navbar
-        document.getElementById('userName').textContent = `${franquia?.nomeFranquia || franquia?.nome || 'N/A'} - ${user.nome}`;
-        console.log('✓ Navbar atualizado');
+        if (franquia) {
+          console.log('✓ Franquia encontrada:', franquia.nomeFranquia);
+          console.log('   Completo:', JSON.stringify(franquia));
+        } else {
+          console.error('❌ Franquia NÃO encontrada!');
+          console.error('   Unidades disponíveis:', unidades.map(u => u.id).join(', '));
+        }
+        
+        // Atualizar navbar com FALLBACK robusto
+        const nomeFranquia = franquia?.nomeFranquia || franquia?.nome || 'Franquia Desconhecida';
+        const textoNavbar = `${nomeFranquia} - ${user.nome}`;
+        
+        const userNameEl = document.getElementById('userName');
+        if (userNameEl) {
+          userNameEl.textContent = textoNavbar;
+          console.log('✓ Navbar atualizado:', textoNavbar);
+        } else {
+          console.error('❌ Elemento userName não encontrado!');
+        }
         
         // Preencher dropdown de FRANQUIAS
         console.log('📋 Preenchendo dropdown de franquias...');
@@ -152,7 +171,7 @@
           return;
         }
         
-        // Limpar opções existentes (remover "Selecionar...")
+        // Limpar opções existentes
         selectFranquia.innerHTML = '<option value="">Selecionar...</option>';
         
         if (user.perfil === 'administrador') {
@@ -168,7 +187,7 @@
           console.log('  → Não-Admin: mostrando apenas sua franquia');
           const opt = document.createElement('option');
           opt.value = user.unidade_id;
-          opt.textContent = franquia?.nomeFranquia || franquia?.nome || `Unidade ${user.unidade_id}`;
+          opt.textContent = nomeFranquia;
           opt.selected = true;
           selectFranquia.appendChild(opt);
           selectFranquia.disabled = true;
@@ -186,7 +205,6 @@
           return;
         }
         
-        // Limpar opções
         selectAno.innerHTML = '<option value="">Selecionar...</option>';
         
         const anoAtual = new Date().getFullYear();
@@ -216,7 +234,6 @@
       }
     }
     
-    // Começar quando documento estiver pronto
     console.log('🚀 Aguardando DOMContentLoaded...');
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', inicializar);

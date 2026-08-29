@@ -1,5 +1,5 @@
 /**
- * VA Business - Sistema Financeiro v1.1.3
+ * VA Business - Sistema Financeiro v1.1.4
  * Desenvolvido por OliverStorage
  * Módulo: Importador de Extratos XLS/XLSX
  */

@@ -43,21 +43,47 @@
   </main>
   
   <footer class="footer">
-    <p>&copy; Gestão Financeira 2026 - v1.1.3 Desenvolvido por OliverStorage</p>
+    <p>&copy; Gestão Financeira 2026 - v1.1.4 Desenvolvido por OliverStorage</p>
   </footer>
   
   <script src="../js/auth.js"></script>
   <script>
-    checkAuth();
-    const user = JSON.parse(localStorage.getItem('currentUser'));
-    const unidades = JSON.parse(localStorage.getItem('unidades') || '[]');
-    const franquia = unidades.find(u => u.id === user.unidade_id);
-    
-    document.getElementById('userName').textContent = `${franquia?.nomeFranquia || franquia?.nome || 'N/A'} - ${user.nome}`;
-    
-    document.getElementById('countUnidades').textContent = JSON.parse(localStorage.getItem('unidades') || '[]').length;
-    document.getElementById('countUsers').textContent = JSON.parse(localStorage.getItem('usuarios') || '[]').length;
-    document.getElementById('countExtratos').textContent = JSON.parse(localStorage.getItem('extratos') || '[]').length;
+    try {
+      console.log('📊 Dashboard: Inicializando...');
+      checkAuth();
+      
+      const user = JSON.parse(localStorage.getItem('currentUser'));
+      console.log('✓ Usuário:', user.nome, 'Unidade:', user.unidade_id);
+      
+      const unidades = JSON.parse(localStorage.getItem('unidades') || '[]');
+      console.log('✓ Unidades:', unidades.length);
+      
+      const franquia = unidades.find(u => u.id === user.unidade_id);
+      const nomeFranquia = franquia?.nomeFranquia || franquia?.nome || 'Franquia Desconhecida';
+      
+      if (franquia) {
+        console.log('✓ Franquia encontrada:', nomeFranquia);
+      } else {
+        console.error('❌ Franquia não encontrada! ID buscado:', user.unidade_id);
+      }
+      
+      const userNameEl = document.getElementById('userName');
+      if (userNameEl) {
+        userNameEl.textContent = `${nomeFranquia} - ${user.nome}`;
+        console.log('✓ Navbar atualizado');
+      } else {
+        console.error('❌ Elemento userName não encontrado!');
+      }
+      
+      document.getElementById('countUnidades').textContent = unidades.length;
+      document.getElementById('countUsers').textContent = JSON.parse(localStorage.getItem('usuarios') || '[]').length;
+      document.getElementById('countExtratos').textContent = JSON.parse(localStorage.getItem('extratos') || '[]').length;
+      
+      console.log('✅ Dashboard pronto');
+    } catch (error) {
+      console.error('❌ Erro no dashboard:', error);
+      alert('Erro ao carregar dashboard: ' + error.message);
+    }
   </script>
 </body>
 </html>
