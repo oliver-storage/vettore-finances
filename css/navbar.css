@@ -7,7 +7,7 @@
   background: white;
   padding: 0 30px;
   height: 70px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
   border-bottom: 3px solid #1e40af;
   position: sticky;
   top: 0;
@@ -42,8 +42,7 @@
   transition: all 0.3s;
 }
 
-.menu-item:hover,
-.menu-item.active {
+.menu-item:hover, .menu-item.active {
   color: #1e40af;
   border-bottom-color: #1e40af;
 }
@@ -57,24 +56,8 @@
 }
 
 @media (max-width: 768px) {
-  .navbar {
-    padding: 0 15px;
-    height: 60px;
-  }
-  
-  .navbar-left {
-    gap: 20px;
-  }
-  
-  .menu {
-    gap: 20px;
-  }
-  
-  .menu-item {
-    font-size: 12px;
-  }
-  
-  .logo {
-    font-size: 18px;
-  }
+  .navbar { padding: 0 15px; }
+  .navbar-left { gap: 20px; }
+  .menu { gap: 20px; font-size: 12px; }
+  .logo { font-size: 18px; }
 }

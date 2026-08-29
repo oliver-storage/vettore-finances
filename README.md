@@ -1,166 +1,115 @@
 # VA Business - Sistema Financeiro v1.0.0
 
-## 🚀 Quick Start
+Desenvolvido por **OliverStorage**
 
-### 1. Abrir no Navegador
+## 🎯 Funcionalidades
+
+✅ **Autenticação** - Login com email/senha
+✅ **Controle de Acesso** - Admin > Gerente > Usuário
+✅ **Cadastro de Unidades** - Franquias/escritórios
+✅ **Gestão de Usuários** - Apenas Admin/Gerente podem criar
+✅ **Importação XLS** - Extratos bancários
+✅ **Dashboard** - Contadores e métricas
+
+## 🚀 Como Usar
+
+### 1. Extrair ZIP
 ```
-Abrir arquivo: index.html
-```
-
-### 2. Teste da Landing Page
-✅ Clique em "Entrar" ou "Novo Usuário"
-- Deve ir para página de login
-
-## 📝 TESTES - PASSO A PASSO
-
-### TESTE 1: Cadastro de Usuário
-1. **Vá para**: Configuração → Novo Registro de Usuário
-2. **Preencha**:
-   - Nome: João Silva
-   - Email: joao@email.com
-   - Perfil: Administrador
-   - Senha: 123456
-   - Confirmar: 123456
-3. **Clique**: "+ Adicionar Usuário"
-4. **Esperado**: Mensagem "Usuário cadastrado com sucesso!"
-5. **Verifique**: Lista abaixo mostra novo usuário
-
-### TESTE 2: Login com Usuário Criado
-1. **Clique**: Sair (logout)
-2. **Vá para**: Login
-3. **Preencha**:
-   - Email: joao@email.com
-   - Senha: 123456
-4. **Clique**: Entrar
-5. **Esperado**: Deve ir para Dashboard
-6. **Verifique**: Nome "João Silva" aparece na navbar
-
-### TESTE 3: Dashboard
-1. **Verificar contadores**:
-   - Usuários: Deve mostrar número de usuários cadastrados
-   - Extratos: Deve mostrar 0 (ainda não importou)
-
-### TESTE 4: Importação XLS
-1. **Vá para**: Extratos → Upload de Arquivo
-2. **Crie arquivo de teste**:
-   ```
-   Data       | Descrição           | Valor      | Saldo
-   01/01/2024 | PIX CLIENTE XYZ     | 1000,00    | 5000,00
-   02/01/2024 | BOLETO EMPRESA ABC  | 500,00     | 5500,00
-   03/01/2024 | TARIFA BANCO        | -50,00     | 5450,00
-   ```
-   - Salve como: `extratos.xlsx`
-
-3. **Importe o arquivo**:
-   - Clique: "📁 Selecionar Arquivo"
-   - Selecione: extratos.xlsx
-4. **Esperado**: 
-   - Mensagem: "✓ 3 extratos importados com sucesso!"
-   - Página recarrega
-   - Tabela mostra 3 linhas
-
-5. **Verifique dados**:
-   - Data está correta
-   - Descrição aparece
-   - Valores aparecem
-   - Tipos detectados (PIX, Boleto, etc)
-
-### TESTE 5: Dashboard Atualizado
-1. **Volte**: Dashboard
-2. **Verificar**:
-   - Contador "Extratos" deve mostrar 3
-
-### TESTE 6: Múltiplos Usuários
-1. **Vá para**: Configuração
-2. **Adicione mais usuários**:
-   - Maria Santos | maria@email.com | Gerente
-   - Pedro Costa | pedro@email.com | Usuário
-3. **Verifique**: Todos aparecem na tabela
-
-### TESTE 7: Deletar Usuário
-1. **Na tabela**, clique em "Deletar" para um usuário
-2. **Confirme** no popup
-3. **Esperado**: Usuário some da lista
-
-### TESTE 8: Validação de Formulário
-1. **Tente cadastrar sem preencher**:
-   - Deixe Nome vazio → Alerta: "Preencha todos os campos"
-2. **Tente senhas diferentes**:
-   - Senha: 123456
-   - Confirmar: 654321
-   - Esperado: "Senhas não conferem"
-3. **Tente senha muito curta**:
-   - Senha: 12
-   - Esperado: "Senha deve ter no mínimo 6 caracteres"
-4. **Tente email duplicado**:
-   - Email que já existe
-   - Esperado: "Email já cadastrado"
-
-## ✅ Checklist de Teste Completo
-
-- [ ] Landing page carrega corretamente
-- [ ] Login funciona com usuário cadastrado
-- [ ] Logout desconecta
-- [ ] Cadastro de usuário funciona
-- [ ] Usuários aparecem na tabela
-- [ ] Deletar usuário funciona
-- [ ] Validações funcionam
-- [ ] Importação de XLS funciona
-- [ ] Extratos aparecem na tabela
-- [ ] Dashboard mostra contadores corretos
-- [ ] Tipos de pagamento detectam corretamente (PIX, Boleto, etc)
-
-## 🔍 Dados Salvos (localStorage)
-
-Após testes, seu navegador terá:
-```
-localStorage.usuarios → Array de usuários cadastrados
-localStorage.currentUser → Usuário logado
-localStorage.extratos → Array de extratos importados
+Descompacte va-business-*.zip
 ```
 
-Para limpar tudo:
-```javascript
-// Abra console (F12) e execute:
-localStorage.clear();
+### 2. Abrir no Navegador
+```
+Abra arquivo: index.html
 ```
 
-## 📊 Estrutura de Dados
+### 3. Login Inicial
+- Email: admin@va.com
+- Senha: 123456
 
-### Usuário
-```javascript
-{
-  id: 1234567890,
-  nome: "João Silva",
-  email: "joao@email.com",
-  perfil: "administrador",
-  senha: "123456",
-  ativo: true,
-  data_criacao: "29/08/2026"
-}
+## 📝 Testes
+
+### TESTE 1: Criar Unidade
+1. Login com admin
+2. Configuração → Unidades
+3. Preencha: Nome, CNPJ
+4. Clique: + Adicionar Unidade
+5. ✓ Deve aparecer na tabela
+
+### TESTE 2: Criar Usuário
+1. Configuração → Usuários
+2. Selecione franquia
+3. Perfil: Gerente
+4. Preencha: Nome, Email, Senha
+5. Clique: + Criar Usuário
+6. ✓ Deve aparecer na tabela
+
+### TESTE 3: Login com Novo Usuário
+1. Clique: Sair
+2. Entre com novo email/senha
+3. ✓ Deve logar e ir para Dashboard
+
+### TESTE 4: Importar Extratos
+1. Extratos → Selecionar Arquivo
+2. Crie arquivo.xlsx com:
+   - Data | Descrição | Valor | Saldo
+   - 01/01/2024 | PIX XYZ | 1000 | 5000
+3. Importe
+4. ✓ Deve aparecer na tabela
+
+## 🔐 Hierarquia de Acesso
+
+| Ação | Admin | Gerente | Usuário |
+|------|-------|---------|---------|
+| Criar Unidade | ✅ | ❌ | ❌ |
+| Criar Usuário | ✅ | ✅* | ❌ |
+| Ver Usuários | ✅ Todas | ✅ Sua unidade | ❌ |
+| Importar Extratos | ✅ | ✅ | ❌ |
+| Dashboard | ✅ | ✅ | ✅ |
+
+*Gerente só cria usuários da sua franquia
+
+## 📂 Estrutura
+
+```
+va-business/
+├── index.html
+├── README.md
+├── html/
+│   ├── login.html
+│   ├── dashboard.html
+│   ├── extratos.html
+│   └── configuracao.html
+├── css/
+│   ├── styles.css
+│   ├── navbar.css
+│   └── auth.css
+├── js/
+│   ├── auth.js
+│   ├── configuracao.js
+│   └── importador.js
+└── sql/
+    └── schema.sql
 ```
 
-### Extrato
-```javascript
-{
-  id: 1234567890,
-  data: "01/01/2024",
-  descricao: "PIX CLIENTE XYZ",
-  valor: 1000.00,
-  saldo: 5000.00,
-  tipo_pagamento: "PIX",
-  tipo_operacao: "crédito"
-}
-```
+## ✅ Checklist de Testes
 
-## 🎯 Próximas Versões
+- [ ] Landing page abre
+- [ ] Login funciona (admin@va.com / 123456)
+- [ ] Criar unidade funciona
+- [ ] Criar usuário funciona
+- [ ] Login com novo usuário funciona
+- [ ] Importar XLS funciona
+- [ ] Dashboard mostra contadores
 
-- [ ] Conectar Supabase (trocar localStorage)
-- [ ] Relatórios PDF
-- [ ] APIs bancárias automáticas
-- [ ] Matching IA (Levenshtein)
+## 🔄 Próximas Versões
+
+- Conectar Supabase (trocar localStorage)
+- Matching Levenshtein
+- Relatórios PDF/Excel
+- APIs bancárias automáticas
 
 ---
 
-**Desenvolvido por OliverStorage**  
-**Versão**: 1.0.0
+**Versão**: 1.0.0  
+**Commit**: `git commit -m "v1.0.0 - MVP: Landing + Auth + Importação XLS + Matching"`

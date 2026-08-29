@@ -20,86 +20,43 @@
       </div>
     </div>
     <div class="navbar-right">
-      <span id="userDisplay">Usuário</span>
+      <span id="userName">Usuário</span>
       <button class="btn-logout" onclick="logout()">Sair</button>
     </div>
   </nav>
   
   <main class="container">
-    <h1>Importar Extratos Bancários</h1>
+    <h1>Importar Extratos</h1>
     
     <div class="form-section">
-      <h2>Upload de Arquivo</h2>
-      <p class="description">Selecione um arquivo XLS ou XLSX para importar</p>
-      
-      <div class="upload-area" id="uploadArea">
-        <input type="file" id="fileInput" accept=".xls,.xlsx" onchange="handleFileUpload(event)" style="display: none;">
+      <h2>Upload de Arquivo XLS/XLSX</h2>
+      <div class="upload-area">
         <button class="btn-primary" onclick="document.getElementById('fileInput').click()">
           📁 Selecionar Arquivo
         </button>
+        <input type="file" id="fileInput" accept=".xls,.xlsx" style="display:none;" onchange="handleFileUpload(event)">
         <p id="fileName" style="margin-top: 10px; color: #666;"></p>
       </div>
       
-      <div id="importResult" style="display: none; margin-top: 20px; padding: 15px; background: #e8f5e9; border-radius: 6px;">
-        <p id="resultMsg" style="color: #2e7d32;"></p>
-      </div>
+      <div id="resultMsg" style="display:none; margin-top: 20px; padding: 15px; background: #e8f5e9; border-radius: 6px; color: #2e7d32;"></div>
     </div>
     
-    <div class="form-section">
-      <h2>Extratos Importados</h2>
-      <table id="extratosTable" style="display: none;">
-        <thead>
-          <tr>
-            <th>Data</th>
-            <th>Descrição</th>
-            <th>Tipo</th>
-            <th>Valor</th>
-            <th>Saldo</th>
-          </tr>
-        </thead>
-        <tbody id="tbodyExtratos"></tbody>
-      </table>
-      <p id="emptyMsg" style="text-align: center; color: #999; padding: 20px;">Nenhum extrato importado</p>
-    </div>
+    <table id="extratosTable" style="display: none; margin-top: 30px;">
+      <thead>
+        <tr><th>Data</th><th>Descrição</th><th>Tipo</th><th>Valor</th><th>Saldo</th></tr>
+      </thead>
+      <tbody id="tbodyExtratos"></tbody>
+    </table>
+    <p id="extratosEmpty" style="text-align: center; color: #999; padding: 20px;">Nenhum extrato importado</p>
   </main>
   
   <script src="../js/auth.js"></script>
   <script src="../js/importador.js"></script>
   <script>
-    window.addEventListener('load', () => {
-      checkAuth();
-      const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
-      document.getElementById('userDisplay').textContent = user.nome || 'Usuário';
-      loadExtratos();
-    });
-    
-    function loadExtratos() {
-      const extratos = JSON.parse(localStorage.getItem('extratos') || '[]');
-      const tbody = document.getElementById('tbodyExtratos');
-      const table = document.getElementById('extratosTable');
-      const emptyMsg = document.getElementById('emptyMsg');
-      
-      if (extratos.length === 0) {
-        table.style.display = 'none';
-        emptyMsg.style.display = 'block';
-        return;
-      }
-      
-      tbody.innerHTML = '';
-      extratos.forEach(e => {
-        const row = tbody.insertRow();
-        row.innerHTML = `
-          <td>${e.data}</td>
-          <td>${e.descricao}</td>
-          <td><span class="badge">${e.tipo_pagamento}</span></td>
-          <td class="${e.valor < 0 ? 'negativo' : 'positivo'}">R$ ${Math.abs(e.valor).toFixed(2)}</td>
-          <td>R$ ${e.saldo.toFixed(2)}</td>
-        `;
-      });
-      
-      emptyMsg.style.display = 'none';
-      table.style.display = 'table';
-    }
+    checkAuth();
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+    document.getElementById('userName').textContent = user.nome;
+    loadExtratos();
   </script>
 </body>
 </html>

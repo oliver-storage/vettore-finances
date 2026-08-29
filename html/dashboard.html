@@ -19,15 +19,18 @@
       </div>
     </div>
     <div class="navbar-right">
-      <span id="userDisplay">Usuário</span>
+      <span id="userName">Usuário</span>
       <button class="btn-logout" onclick="logout()">Sair</button>
     </div>
   </nav>
   
   <main class="container">
     <h1>Dashboard</h1>
-    
-    <div class="grid-4">
+    <div class="grid-3">
+      <div class="card">
+        <h3>Franquias</h3>
+        <p class="metric" id="countUnidades">0</p>
+      </div>
       <div class="card">
         <h3>Usuários</h3>
         <p class="metric" id="countUsers">0</p>
@@ -36,29 +39,17 @@
         <h3>Extratos</h3>
         <p class="metric" id="countExtratos">0</p>
       </div>
-      <div class="card">
-        <h3>Faturamento</h3>
-        <p class="metric">R$ 0,00</p>
-      </div>
-      <div class="card">
-        <h3>Taxa Matching</h3>
-        <p class="metric">0%</p>
-      </div>
     </div>
   </main>
   
   <script src="../js/auth.js"></script>
   <script>
-    window.addEventListener('load', () => {
-      checkAuth();
-      const users = JSON.parse(localStorage.getItem('usuarios') || '[]');
-      const extratos = JSON.parse(localStorage.getItem('extratos') || '[]');
-      document.getElementById('countUsers').textContent = users.length;
-      document.getElementById('countExtratos').textContent = extratos.length;
-      
-      const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
-      document.getElementById('userDisplay').textContent = user.nome || 'Usuário';
-    });
+    checkAuth();
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+    document.getElementById('userName').textContent = user.nome;
+    document.getElementById('countUnidades').textContent = JSON.parse(localStorage.getItem('unidades') || '[]').length;
+    document.getElementById('countUsers').textContent = JSON.parse(localStorage.getItem('usuarios') || '[]').length;
+    document.getElementById('countExtratos').textContent = JSON.parse(localStorage.getItem('extratos') || '[]').length;
   </script>
 </body>
 </html>

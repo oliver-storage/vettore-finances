@@ -11,9 +11,9 @@ function handleFileUpload(e) {
   document.getElementById('fileName').textContent = `Arquivo: ${file.name}`;
   
   const reader = new FileReader();
-  reader.onload = (event) => {
+  reader.onload = (evt) => {
     try {
-      const data = event.target.result;
+      const data = evt.target.result;
       const workbook = XLSX.read(data, { type: 'array' });
       const worksheet = workbook.Sheets[workbook.SheetNames[0]];
       const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
@@ -21,17 +21,17 @@ function handleFileUpload(e) {
       const extratos = processarExtratos(json);
       
       if (extratos.length > 0) {
-        salvarExtratos(extratos);
-        document.getElementById('resultMsg').textContent = `✓ ${extratos.length} extratos importados com sucesso!`;
-        document.getElementById('importResult').style.display = 'block';
+        const existentes = JSON.parse(localStorage.getItem('extratos') || '[]');
+        const todos = [...existentes, ...extratos];
+        localStorage.setItem('extratos', JSON.stringify(todos));
         
-        // Reload tabela
-        setTimeout(() => {
-          location.reload();
-        }, 1500);
+        document.getElementById('resultMsg').textContent = `✓ ${extratos.length} extratos importados!`;
+        document.getElementById('resultMsg').style.display = 'block';
+        
+        setTimeout(() => location.reload(), 1500);
       }
     } catch (error) {
-      alert('Erro ao processar arquivo: ' + error.message);
+      alert('Erro: ' + error.message);
     }
   };
   reader.readAsArrayBuffer(file);
@@ -39,57 +39,45 @@ function handleFileUpload(e) {
 
 function processarExtratos(json) {
   const extratos = [];
-  let headerRow = -1;
-  let colMap = {};
+  let headerIdx = -1, colMap = {};
   
-  // Encontrar header
   for (let i = 0; i < json.length; i++) {
     const row = json[i];
     if (!row || row.length === 0) continue;
-    
     const rowStr = row.join('|').toUpperCase();
-    if (rowStr.includes('DATA') && (rowStr.includes('DESCRIÇÃO') || rowStr.includes('VALOR'))) {
-      headerRow = i;
+    if (rowStr.includes('DATA') && rowStr.includes('VALOR')) {
+      headerIdx = i;
       colMap = detectarColunas(row);
       break;
     }
   }
   
-  if (headerRow === -1 || Object.keys(colMap).length === 0) {
-    alert('Estrutura do arquivo não reconhecida. Certifique-se de ter colunas: Data, Descrição, Valor, Saldo');
-    return [];
-  }
+  if (headerIdx === -1) return [];
   
-  // Processar dados
-  for (let i = headerRow + 1; i < json.length; i++) {
+  for (let i = headerIdx + 1; i < json.length; i++) {
     const row = json[i];
-    if (!row || row.length === 0 || !row[colMap.data]) break;
+    if (!row || !row[colMap.data]) break;
     
     try {
       const valor = parseFloat(String(row[colMap.valor] || 0).replace(/[^\d,-]/g, '').replace(',', '.'));
-      const saldo = parseFloat(String(row[colMap.saldo] || 0).replace(/[^\d,-]/g, '').replace(',', '.'));
-      
       extratos.push({
         id: Date.now() + extratos.length,
-        data: formatarData(row[colMap.data]),
+        data: String(row[colMap.data]),
         descricao: String(row[colMap.descricao] || '').trim(),
         valor: valor,
-        saldo: saldo,
-        tipo_pagamento: detectarTipo(String(row[colMap.descricao] || '')),
-        tipo_operacao: valor < 0 ? 'débito' : 'crédito'
+        saldo: parseFloat(String(row[colMap.saldo] || 0).replace(/[^\d,-]/g, '').replace(',', '.')),
+        tipo_operacao: valor < 0 ? 'débito' : 'crédito',
+        tipo_pagamento: detectarTipo(String(row[colMap.descricao] || ''))
       });
-    } catch (e) {
-      console.warn('Erro ao processar linha:', e);
-    }
+    } catch (e) {}
   }
   
   return extratos;
 }
 
-function detectarColunas(headerRow) {
+function detectarColunas(row) {
   const map = {};
-  headerRow.forEach((col, idx) => {
-    if (!col) return;
+  row.forEach((col, idx) => {
     const upper = String(col).toUpperCase();
     if (upper.includes('DATA')) map.data = idx;
     if (upper.includes('DESCRIÇÃO') || upper.includes('DESCRICAO')) map.descricao = idx;
@@ -99,25 +87,38 @@ function detectarColunas(headerRow) {
   return map;
 }
 
-function formatarData(data) {
-  if (!data) return '';
-  if (typeof data === 'number') {
-    const epoch = new Date(1900, 0, data);
-    return epoch.toLocaleDateString('pt-BR');
-  }
-  return String(data);
-}
-
-function detectarTipo(descricao) {
-  const desc = descricao.toUpperCase();
-  if (desc.includes('PIX')) return 'PIX';
-  if (desc.includes('BOLETO') || desc.includes('COB')) return 'Boleto';
-  if (desc.includes('TRANSF') || desc.includes('DOC') || desc.includes('TED')) return 'Transferência';
+function detectarTipo(desc) {
+  const d = desc.toUpperCase();
+  if (d.includes('PIX')) return 'PIX';
+  if (d.includes('BOLETO')) return 'Boleto';
+  if (d.includes('TRANSF') || d.includes('TED')) return 'Transferência';
   return 'Outro';
 }
 
-function salvarExtratos(extratos) {
-  const existentes = JSON.parse(localStorage.getItem('extratos') || '[]');
-  const todos = [...existentes, ...extratos];
-  localStorage.setItem('extratos', JSON.stringify(todos));
+function loadExtratos() {
+  const extratos = JSON.parse(localStorage.getItem('extratos') || '[]');
+  const tbody = document.getElementById('tbodyExtratos');
+  const table = document.getElementById('extratosTable');
+  const empty = document.getElementById('extratosEmpty');
+  
+  if (extratos.length === 0) {
+    table.style.display = 'none';
+    empty.style.display = 'block';
+    return;
+  }
+  
+  tbody.innerHTML = '';
+  extratos.forEach(e => {
+    const row = tbody.insertRow();
+    row.innerHTML = `
+      <td>${e.data}</td>
+      <td>${e.descricao}</td>
+      <td><span class="badge">${e.tipo_pagamento}</span></td>
+      <td class="${e.valor < 0 ? 'negativo' : 'positivo'}">R$ ${Math.abs(e.valor).toFixed(2)}</td>
+      <td>R$ ${e.saldo.toFixed(2)}</td>
+    `;
+  });
+  
+  empty.style.display = 'none';
+  table.style.display = 'table';
 }
