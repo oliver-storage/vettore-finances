@@ -38,6 +38,7 @@ function handleFileUpload(e) {
 }
 
 function processarExtratos(json) {
+  const user = JSON.parse(localStorage.getItem('currentUser'));
   const extratos = [];
   let headerIdx = -1, colMap = {};
   
@@ -62,6 +63,7 @@ function processarExtratos(json) {
       const valor = parseFloat(String(row[colMap.valor] || 0).replace(/[^\d,-]/g, '').replace(',', '.'));
       extratos.push({
         id: Date.now() + extratos.length,
+        unidade_id: user.unidade_id,
         data: String(row[colMap.data]),
         descricao: String(row[colMap.descricao] || '').trim(),
         valor: valor,
@@ -96,7 +98,14 @@ function detectarTipo(desc) {
 }
 
 function loadExtratos() {
-  const extratos = JSON.parse(localStorage.getItem('extratos') || '[]');
+  const user = JSON.parse(localStorage.getItem('currentUser'));
+  let extratos = JSON.parse(localStorage.getItem('extratos') || '[]');
+  
+  // Filtrar por unidade se não for admin
+  if (user.perfil !== 'administrador') {
+    extratos = extratos.filter(e => e.unidade_id === user.unidade_id);
+  }
+  
   const tbody = document.getElementById('tbodyExtratos');
   const table = document.getElementById('extratosTable');
   const empty = document.getElementById('extratosEmpty');

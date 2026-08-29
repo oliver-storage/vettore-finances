@@ -51,7 +51,7 @@
   </main>
   
   <footer class="footer">
-    <p>&copy; 2026 VA Business • Desenvolvido por OliverStorage • v1.0.1</p>
+    <p id="footerInfo">&copy; 2026 VA Business • Desenvolvido por OliverStorage • v1.0.1</p>
   </footer>
   
   <script src="../js/auth.js"></script>
@@ -59,7 +59,13 @@
   <script>
     checkAuth();
     const user = JSON.parse(localStorage.getItem('currentUser'));
+    const unidades = JSON.parse(localStorage.getItem('unidades') || '[]');
+    const franquia = unidades.find(u => u.id === user.unidade_id);
+    
     document.getElementById('userName').textContent = user.nome;
+    document.getElementById('footerInfo').textContent = 
+      `© 2026 VA Business • Usuário: ${user.nome} | Franquia: ${franquia?.nomeFranquia || franquia?.nome || 'N/A'}`;
+    
     loadExtratos();
   </script>
 </body>
