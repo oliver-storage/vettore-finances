@@ -1,0 +1,43 @@
+<!-- VA Business - Sistema Financeiro v1.0.0 • Desenvolvido por OliverStorage -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VA Business - Sistema Financeiro</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/navbar.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-left">
+      <span class="logo">VA Business</span>
+      <div class="menu">
+        <a href="html/dashboard.html" class="menu-item">Dashboards</a>
+        <a href="html/clientes.html" class="menu-item">Clientes</a>
+        <a href="html/extratos.html" class="menu-item">Extratos</a>
+        <a href="html/pagamentos.html" class="menu-item">Pagamentos</a>
+        <a href="html/configuracao.html" class="menu-item">Configuração</a>
+      </div>
+    </div>
+    <div class="navbar-right">
+      <div class="user-info">
+        <div class="user-text">
+          <span class="user-name" id="userName">Usuário</span>
+          <span class="user-email" id="userEmail">email@example.com</span>
+        </div>
+        <div class="user-avatar" id="userAvatar">U</div>
+        <button class="logout-btn" onclick="logout()">Sair</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container">
+    <h1>VA Business - Sistema Financeiro</h1>
+    <p>Gestão de contas a receber para grupo de escritórios</p>
+    <a href="html/dashboard.html" class="btn-primary">Acessar Dashboard</a>
+  </main>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!-- VA Business - Sistema Financeiro v1.0.0 • Desenvolvido por OliverStorage -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Configuração - VA Business</title>
+  <link rel="stylesheet" href="../css/styles.css">
+  <link rel="stylesheet" href="../css/navbar.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-left">
+      <span class="logo">VA Business</span>
+      <div class="menu">
+        <a href="dashboard.html" class="menu-item">Dashboards</a>
+        <a href="clientes.html" class="menu-item">Clientes</a>
+        <a href="extratos.html" class="menu-item">Extratos</a>
+        <a href="pagamentos.html" class="menu-item">Pagamentos</a>
+        <a href="configuracao.html" class="menu-item active">Configuração</a>
+      </div>
+    </div>
+    <div class="navbar-right">
+      <div class="user-info">
+        <span class="user-name" id="userName">Usuário</span>
+        <button class="logout-btn" onclick="logout()">Sair</button>
+      </div>
+    </div>
+  </nav>
+  
+  <main class="container">
+    <h1>Configuração</h1>
+    
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('unidades')">Unidades</button>
+      <button class="tab-btn" onclick="switchTab('usuarios')">Usuários</button>
+      <button class="tab-btn" onclick="switchTab('permissoes')">Permissões</button>
+      <button class="tab-btn" onclick="switchTab('contas')">Contas Bancárias</button>
+    </div>
+    
+    <div id="unidades" class="tab-content active">
+      <h2>Unidades</h2>
+      <table id="unidadesTable">
+        <thead><tr><th>Nome</th><th>CNPJ</th><th>Ativa</th></tr></thead>
+        <tbody id="tbody-unidades"></tbody>
+      </table>
+    </div>
+    
+    <div id="usuarios" class="tab-content">
+      <h2>Usuários</h2>
+      <button class="btn-primary" onclick="novoUsuario()">+ Novo Usuário</button>
+      <table id="usuariosTable">
+        <thead><tr><th>Email</th><th>Nome</th><th>Perfil</th><th>Ações</th></tr></thead>
+        <tbody id="tbody-usuarios"></tbody>
+      </table>
+    </div>
+    
+    <div id="permissoes" class="tab-content">
+      <h2>Permissões por Perfil</h2>
+      <table id="permissoesTable">
+        <thead><tr><th>Módulo</th><th>Admin</th><th>Gerente</th><th>Usuário</th></tr></thead>
+        <tbody id="tbody-permissoes"></tbody>
+      </table>
+    </div>
+    
+    <div id="contas" class="tab-content">
+      <h2>Contas Bancárias</h2>
+      <table id="contasTable">
+        <thead><tr><th>Banco</th><th>Agência</th><th>Conta</th><th>Tipo</th></tr></thead>
+        <tbody id="tbody-contas"></tbody>
+      </table>
+    </div>
+  </main>
+  
+  <script src="../js/main.js"></script>
+</body>
+</html>

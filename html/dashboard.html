@@ -1,0 +1,68 @@
+<!-- VA Business - Sistema Financeiro v1.0.0 • Desenvolvido por OliverStorage -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - VA Business</title>
+  <link rel="stylesheet" href="../css/styles.css">
+  <link rel="stylesheet" href="../css/navbar.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-left">
+      <span class="logo">VA Business</span>
+      <div class="menu">
+        <a href="dashboard.html" class="menu-item active">Dashboards</a>
+        <a href="clientes.html" class="menu-item">Clientes</a>
+        <a href="extratos.html" class="menu-item">Extratos</a>
+        <a href="pagamentos.html" class="menu-item">Pagamentos</a>
+        <a href="configuracao.html" class="menu-item">Configuração</a>
+      </div>
+    </div>
+    <div class="navbar-right">
+      <div class="user-info">
+        <div class="user-text">
+          <span class="user-name" id="userName">Usuário</span>
+          <span class="user-email" id="userEmail">email@example.com</span>
+        </div>
+        <div class="user-avatar" id="userAvatar">U</div>
+        <button class="logout-btn" onclick="logout()">Sair</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container">
+    <h1>Dashboards</h1>
+    
+    <div class="dashboard-grid">
+      <div class="card">
+        <h3>Faturamento Total</h3>
+        <p class="metric">R$ 18.691,76</p>
+        <small>Período: Jul/2026</small>
+      </div>
+      
+      <div class="card">
+        <h3>Clientes Ativos</h3>
+        <p class="metric">43</p>
+        <small>Cadastrados</small>
+      </div>
+      
+      <div class="card">
+        <h3>Boletos Liquidados</h3>
+        <p class="metric">46</p>
+        <small>Período: Jul/2026</small>
+      </div>
+      
+      <div class="card">
+        <h3>Taxa Matching</h3>
+        <p class="metric">85%</p>
+        <small>Automático</small>
+      </div>
+    </div>
+  </main>
+
+  <script src="../js/main.js"></script>
+</body>
+</html>
