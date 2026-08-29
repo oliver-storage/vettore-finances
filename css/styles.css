@@ -201,6 +201,13 @@ h3 {
   margin-bottom: 20px;
 }
 
+.form-row-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
 .form-group {
   margin-bottom: 20px;
 }
@@ -330,7 +337,7 @@ tbody tr:hover {
 }
 
 @media (max-width: 768px) {
-  .form-row-3, .form-row-2 { grid-template-columns: 1fr; }
+  .form-row-3, .form-row-2, .form-row-4 { grid-template-columns: 1fr; }
   .grid-3 { grid-template-columns: repeat(2, 1fr); }
   .landing-box { padding: 20px; }
 }

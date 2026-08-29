@@ -20,40 +20,68 @@ function switchTab(e, tabName) {
 function handleNovaUnidade(e) {
   e.preventDefault();
   
-  const nome = document.getElementById('inputNomeUnidade').value.trim();
+  const nomeFranquia = document.getElementById('inputNomeFranquia').value.trim();
+  const razaoSocial = document.getElementById('inputRazaoSocial').value.trim();
   const cnpj = document.getElementById('inputCNPJ').value.trim();
   const email = document.getElementById('inputEmailUnidade').value.trim();
   const telefone = document.getElementById('inputTelefone').value.trim();
-  const endereco = document.getElementById('inputEndereco').value.trim();
+  const cep = document.getElementById('inputCEP').value.trim();
+  const rua = document.getElementById('inputRua').value.trim();
+  const numero = document.getElementById('inputNumero').value.trim();
+  const complemento = document.getElementById('inputComplemento').value.trim();
+  const bairro = document.getElementById('inputBairro').value.trim();
+  const cidade = document.getElementById('inputCidade').value.trim();
+  const estado = document.getElementById('inputEstado').value.trim();
   
-  if (!nome || !cnpj) {
-    alert('Nome e CNPJ são obrigatórios');
+  if (!nomeFranquia || !razaoSocial || !cnpj || !cep || !rua || !numero || !bairro || !cidade || !estado) {
+    alert('Preencha todos os campos obrigatórios (*)');
     return;
   }
   
   const unidades = JSON.parse(localStorage.getItem('unidades') || '[]');
-  if (unidades.find(u => u.cnpj === cnpj)) {
+  if (unidades.find(u => u.cnpj.replace(/\D/g, '') === cnpj.replace(/\D/g, ''))) {
     alert('CNPJ já cadastrado');
     return;
   }
   
   const novaUnidade = {
     id: Date.now(),
-    nome, cnpj, email, telefone, endereco,
+    nomeFranquia,
+    razaoSocial,
+    cnpj,
+    email,
+    telefone,
+    cep,
+    rua,
+    numero,
+    complemento,
+    bairro,
+    cidade,
+    estado,
+    endereco_completo: `${rua}, ${numero}${complemento ? ', ' + complemento : ''} - ${bairro}, ${cidade} - ${estado} ${cep}`,
     data_criacao: new Date().toLocaleDateString('pt-BR')
   };
   
   unidades.push(novaUnidade);
   localStorage.setItem('unidades', JSON.stringify(unidades));
   
-  document.getElementById('inputNomeUnidade').value = '';
+  // Limpar formulário
+  document.getElementById('inputNomeFranquia').value = '';
+  document.getElementById('inputRazaoSocial').value = '';
   document.getElementById('inputCNPJ').value = '';
   document.getElementById('inputEmailUnidade').value = '';
   document.getElementById('inputTelefone').value = '';
-  document.getElementById('inputEndereco').value = '';
+  document.getElementById('inputCEP').value = '';
+  document.getElementById('inputRua').value = '';
+  document.getElementById('inputNumero').value = '';
+  document.getElementById('inputComplemento').value = '';
+  document.getElementById('inputBairro').value = '';
+  document.getElementById('inputCidade').value = '';
+  document.getElementById('inputEstado').value = '';
+  limparEndereco();
   
   loadUnidades();
-  alert('Unidade criada!');
+  alert('Franquia criada!');
 }
 
 function loadUnidades() {
@@ -72,9 +100,11 @@ function loadUnidades() {
   unidades.forEach(u => {
     const row = tbody.insertRow();
     row.innerHTML = `
-      <td>${u.nome}</td>
-      <td>${u.cnpj}</td>
-      <td>${u.email || '-'}</td>
+      <td>${u.nomeFranquia || u.nome}</td>
+      <td>${u.razaoSocial || '-'}</td>
+      <td>${u.cnpj || '-'}</td>
+      <td>${u.telefone || '-'}</td>
+      <td>${u.cidade || '-'}</td>
       <td><button class="btn-danger" onclick="deleteUnidade(${u.id})">Deletar</button></td>
     `;
   });
@@ -88,7 +118,7 @@ function loadUnidades() {
   unidades.forEach(u => {
     const opt = document.createElement('option');
     opt.value = u.id;
-    opt.textContent = u.nome;
+    opt.textContent = u.nomeFranquia || u.nome;
     select.appendChild(opt);
   });
 }
