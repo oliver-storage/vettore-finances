@@ -85,61 +85,139 @@
   </main>
   
   <footer class="footer">
-    <p>&copy; Gestão Financeira 2026 - v1.1.2 Desenvolvido por OliverStorage</p>
+    <p>&copy; Gestão Financeira 2026 - v1.1.3 Desenvolvido por OliverStorage</p>
   </footer>
   
   <script src="../js/auth.js"></script>
   <script src="../js/importador.js"></script>
   <script>
-    // Esperar XLSX estar disponível
+    // Timeout máximo para esperar XLSX
+    let xlsxTimeout = 0;
+    
     function inicializar() {
-      if (typeof XLSX === 'undefined') {
-        console.log('Aguardando XLSX...');
-        setTimeout(inicializar, 100);
-        return;
-      }
-      
-      console.log('✓ XLSX carregado');
-      checkAuth();
-      const user = JSON.parse(localStorage.getItem('currentUser'));
-      const unidades = JSON.parse(localStorage.getItem('unidades') || '[]');
-      const franquia = unidades.find(u => u.id === user.unidade_id);
-      
-      document.getElementById('userName').textContent = `${franquia?.nomeFranquia || franquia?.nome || 'N/A'} - ${user.nome}`;
-      
-      // Preencher dropdown de franquias
-      const selectFranquia = document.getElementById('inputFranquiaFilt');
-      if (user.perfil === 'administrador') {
-        unidades.forEach(u => {
+      try {
+        // Verificar XLSX com timeout
+        if (typeof XLSX === 'undefined') {
+          xlsxTimeout++;
+          if (xlsxTimeout > 50) { // 5 segundos de espera
+            console.error('❌ XLSX não carregou após 5s. Continuando mesmo assim...');
+            xlsxTimeout = 0;
+          } else {
+            console.log(`⏳ Aguardando XLSX... (${xlsxTimeout})`);
+            setTimeout(inicializar, 100);
+            return;
+          }
+        } else {
+          console.log('✓ XLSX carregado');
+        }
+        
+        // Verificar auth
+        console.log('🔐 Verificando autenticação...');
+        checkAuth();
+        
+        // Obter dados
+        const userStr = localStorage.getItem('currentUser');
+        console.log('User localStorage:', userStr ? 'existe' : 'VAZIO');
+        
+        if (!userStr) {
+          console.error('❌ Nenhum usuário logado!');
+          alert('Erro: Usuário não logado. Faça login novamente.');
+          window.location.href = 'login.html';
+          return;
+        }
+        
+        const user = JSON.parse(userStr);
+        console.log('✓ Usuário:', user.nome, 'Perfil:', user.perfil, 'Unidade:', user.unidade_id);
+        
+        const unidades = JSON.parse(localStorage.getItem('unidades') || '[]');
+        console.log('✓ Unidades carregadas:', unidades.length);
+        
+        if (unidades.length === 0) {
+          console.warn('⚠️ Nenhuma unidade cadastrada!');
+        }
+        
+        const franquia = unidades.find(u => u.id === user.unidade_id);
+        console.log('✓ Franquia do usuário:', franquia?.nomeFranquia || 'não encontrada');
+        
+        // Atualizar navbar
+        document.getElementById('userName').textContent = `${franquia?.nomeFranquia || franquia?.nome || 'N/A'} - ${user.nome}`;
+        console.log('✓ Navbar atualizado');
+        
+        // Preencher dropdown de FRANQUIAS
+        console.log('📋 Preenchendo dropdown de franquias...');
+        const selectFranquia = document.getElementById('inputFranquiaFilt');
+        
+        if (!selectFranquia) {
+          console.error('❌ Elemento inputFranquiaFilt não encontrado!');
+          return;
+        }
+        
+        // Limpar opções existentes (remover "Selecionar...")
+        selectFranquia.innerHTML = '<option value="">Selecionar...</option>';
+        
+        if (user.perfil === 'administrador') {
+          console.log('  → Admin: mostrando todas as unidades');
+          unidades.forEach(u => {
+            const opt = document.createElement('option');
+            opt.value = u.id;
+            opt.textContent = u.nomeFranquia || u.nome || `Unidade ${u.id}`;
+            selectFranquia.appendChild(opt);
+            console.log(`    + ${opt.textContent} (ID: ${u.id})`);
+          });
+        } else {
+          console.log('  → Não-Admin: mostrando apenas sua franquia');
           const opt = document.createElement('option');
-          opt.value = u.id;
-          opt.textContent = u.nomeFranquia || u.nome;
+          opt.value = user.unidade_id;
+          opt.textContent = franquia?.nomeFranquia || franquia?.nome || `Unidade ${user.unidade_id}`;
+          opt.selected = true;
           selectFranquia.appendChild(opt);
-        });
-      } else {
-        // Gerente/Usuário: apenas sua franquia
-        const opt = document.createElement('option');
-        opt.value = user.unidade_id;
-        opt.textContent = franquia?.nomeFranquia || franquia?.nome;
-        opt.selected = true;
-        selectFranquia.appendChild(opt);
-        selectFranquia.disabled = true;
+          selectFranquia.disabled = true;
+          console.log(`    + ${opt.textContent} (ID: ${user.unidade_id}) [DISABLED]`);
+        }
+        
+        console.log(`✓ Dropdown de franquias: ${selectFranquia.options.length} opções`);
+        
+        // Preencher dropdown de ANOS
+        console.log('📋 Preenchendo dropdown de anos...');
+        const selectAno = document.getElementById('inputAnoFilt');
+        
+        if (!selectAno) {
+          console.error('❌ Elemento inputAnoFilt não encontrado!');
+          return;
+        }
+        
+        // Limpar opções
+        selectAno.innerHTML = '<option value="">Selecionar...</option>';
+        
+        const anoAtual = new Date().getFullYear();
+        console.log(`  → Ano atual: ${anoAtual}`);
+        
+        for (let i = 0; i < 5; i++) {
+          const ano = anoAtual - i;
+          const opt = document.createElement('option');
+          opt.value = ano;
+          opt.textContent = ano;
+          selectAno.appendChild(opt);
+          console.log(`    + ${ano}`);
+        }
+        
+        console.log(`✓ Dropdown de anos: ${selectAno.options.length} opções`);
+        
+        // Carregar extratos
+        console.log('📊 Carregando extratos...');
+        loadExtratos();
+        
+        console.log('✅ Inicialização completa!');
+        
+      } catch (error) {
+        console.error('❌ Erro na inicialização:', error);
+        console.error('Stack:', error.stack);
+        alert('Erro ao carregar página: ' + error.message);
       }
-      
-      // Preencher dropdown de anos (últimos 5 anos)
-      const selectAno = document.getElementById('inputAnoFilt');
-      const anoAtual = new Date().getFullYear();
-      for (let i = 0; i < 5; i++) {
-        const opt = document.createElement('option');
-        opt.value = anoAtual - i;
-        opt.textContent = anoAtual - i;
-        selectAno.appendChild(opt);
-      }
-      
-      loadExtratos();
     }
     
     // Começar quando documento estiver pronto
+    console.log('🚀 Aguardando DOMContentLoaded...');
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', inicializar);
     } else {

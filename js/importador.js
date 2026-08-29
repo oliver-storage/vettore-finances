@@ -1,5 +1,5 @@
 /**
- * VA Business - Sistema Financeiro v1.1.2
+ * VA Business - Sistema Financeiro v1.1.3
  * Desenvolvido por OliverStorage
  * Módulo: Importador de Extratos XLS/XLSX
  */
@@ -11,6 +11,27 @@ function handleFileUpload(e) {
   const fileName = document.getElementById('fileName');
   const resultMsg = document.getElementById('resultMsg');
   
+  console.log('📤 Iniciando upload:', file.name);
+  
+  // Validar filtros
+  const franquiaFilt = document.getElementById('inputFranquiaFilt')?.value;
+  const mesFilt = document.getElementById('inputMesFilt')?.value;
+  const anoFilt = document.getElementById('inputAnoFilt')?.value;
+  
+  console.log('🔍 Validando filtros:');
+  console.log('  Franquia:', franquiaFilt, franquiaFilt ? '✓' : '❌');
+  console.log('  Mês:', mesFilt, mesFilt ? '✓' : '❌');
+  console.log('  Ano:', anoFilt, anoFilt ? '✓' : '❌');
+  
+  if (!franquiaFilt || !mesFilt || !anoFilt) {
+    resultMsg.textContent = '❌ Erro: Preencha Franquia, Mês e Ano antes de importar!';
+    resultMsg.style.display = 'block';
+    resultMsg.style.background = '#ffebee';
+    resultMsg.style.color = '#c62828';
+    fileName.textContent = '✗ Preencha todos os filtros';
+    return;
+  }
+  
   fileName.textContent = `📂 ${file.name} (processando...)`;
   resultMsg.style.display = 'none';
   
@@ -18,46 +39,61 @@ function handleFileUpload(e) {
   reader.onload = (evt) => {
     try {
       console.log('=== IMPORTADOR XLS ===');
-      console.log('Arquivo:', file.name, 'Tamanho:', file.size);
+      console.log('Arquivo:', file.name);
+      console.log('Tamanho:', (file.size / 1024).toFixed(2), 'KB');
+      console.log('Filtros: Franquia=' + franquiaFilt + ', Mês=' + mesFilt + ', Ano=' + anoFilt);
+      
+      // Verificar XLSX
+      if (typeof XLSX === 'undefined') {
+        throw new Error('XLSX não disponível. Recarregue a página.');
+      }
       
       const data = evt.target.result;
       const workbook = XLSX.read(data, { type: 'array' });
       const worksheet = workbook.Sheets[workbook.SheetNames[0]];
       const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
       
-      console.log('Planilha:', workbook.SheetNames[0], 'Linhas:', json.length);
-      console.log('Primeiras 10 linhas:');
+      console.log('✓ Arquivo lido');
+      console.log('  Planilha:', workbook.SheetNames[0]);
+      console.log('  Linhas:', json.length);
+      console.log('  Primeiras 10 linhas:');
+      
       json.slice(0, 10).forEach((row, i) => {
-        console.log(`[${i}]`, row);
+        console.log(`    [${i}]`, row);
       });
       
       if (!json || json.length === 0) {
         throw new Error('Arquivo vazio ou sem dados');
       }
       
-      const extratos = processarExtratos(json);
+      // Processar com os filtros obtidos
+      const extratos = processarExtratos(json, franquiaFilt, mesFilt, anoFilt);
       
       if (extratos.length === 0) {
         throw new Error('Nenhum lançamento válido encontrado. Verifique se há colunas DATA e VALOR');
       }
       
+      // Salvar
       const existentes = JSON.parse(localStorage.getItem('extratos') || '[]');
       const todos = [...existentes, ...extratos];
       localStorage.setItem('extratos', JSON.stringify(todos));
       
+      // Feedback
       fileName.textContent = `✓ ${file.name} (${extratos.length} lançamentos)`;
       resultMsg.textContent = `✓ Importação concluída! ${extratos.length} lançamento(s) adicionado(s).`;
       resultMsg.style.display = 'block';
       resultMsg.style.background = '#e8f5e9';
       resultMsg.style.color = '#2e7d32';
       
-      console.log('✓ Importação OK:', extratos.length, 'extratos');
+      console.log('✓ Salvos na localStorage:', extratos.length, 'extratos');
       console.log('=== FIM ===\n');
       
-      setTimeout(() => loadExtratos(), 800);
+      // Recarregar tabela
+      setTimeout(() => loadExtratos(), 500);
       
     } catch (error) {
-      console.error('❌ Erro importação:', error);
+      console.error('❌ Erro na importação:', error.message);
+      console.error('Stack:', error.stack);
       
       fileName.textContent = `✗ ${file.name}`;
       resultMsg.textContent = `❌ Erro: ${error.message}`;
@@ -66,6 +102,16 @@ function handleFileUpload(e) {
       resultMsg.style.color = '#c62828';
     }
   };
+  
+  reader.onerror = () => {
+    console.error('❌ Erro ao ler arquivo');
+    fileName.textContent = `✗ Erro ao ler`;
+    resultMsg.textContent = '❌ Erro ao ler arquivo';
+    resultMsg.style.display = 'block';
+    resultMsg.style.background = '#ffebee';
+    resultMsg.style.color = '#c62828';
+  };
+  
   reader.readAsArrayBuffer(file);
 }
 
@@ -79,7 +125,7 @@ function detectarColunas(row) {
     
     const upper = String(col).toUpperCase().trim();
     
-    // Remover "(R$)" e caracteres especiais do texto
+    // Remover "(R$)" e caracteres especiais
     const limpo = upper
       .replace(/[\(\)R\$]/g, '')
       .replace(/\s+/g, ' ')
@@ -88,48 +134,39 @@ function detectarColunas(row) {
     // Detectar colunas
     if (limpo.includes('DATA')) {
       map.data = idx;
-      console.log(`✓ DATA detectada na coluna ${idx}`);
+      console.log(`  ✓ DATA detectada na coluna ${idx}`);
     }
     if (limpo.includes('DESCRIÇÃO') || limpo.includes('DESCRICAO') || limpo.includes('HISTÓRICO') || limpo.includes('HISTORICO')) {
       map.descricao = idx;
-      console.log(`✓ DESCRIÇÃO detectada na coluna ${idx}`);
+      console.log(`  ✓ DESCRIÇÃO detectada na coluna ${idx}`);
     }
     if (limpo.includes('VALOR') || limpo.includes('DÉBITO') || limpo.includes('CREDITO')) {
       map.valor = idx;
-      console.log(`✓ VALOR detectada na coluna ${idx}`);
+      console.log(`  ✓ VALOR detectada na coluna ${idx}`);
     }
     if (limpo.includes('SALDO')) {
       map.saldo = idx;
-      console.log(`✓ SALDO detectada na coluna ${idx}`);
+      console.log(`  ✓ SALDO detectada na coluna ${idx}`);
     }
     if (limpo.includes('DOCUMENTO')) {
       map.documento = idx;
-      console.log(`✓ DOCUMENTO detectada na coluna ${idx}`);
+      console.log(`  ℹ DOCUMENTO detectado na coluna ${idx}`);
     }
   });
   
   return map;
 }
 
-function processarExtratos(json) {
-  const user = JSON.parse(localStorage.getItem('currentUser'));
-  const mes = document.getElementById('inputMesFilt').value;
-  const ano = document.getElementById('inputAnoFilt').value;
-  const franquiaId = document.getElementById('inputFranquiaFilt').value || user.unidade_id;
+function processarExtratos(json, franquiaId, mes, ano) {
+  console.log('📋 Processando extratos...');
+  console.log('  Franquia ID:', franquiaId);
+  console.log('  Período:', mes + '/' + ano);
   
-  if (!mes || !ano) {
-    alert('Selecione mês e ano antes de importar');
-    return [];
-  }
-  
-  console.log(`Processando: mes=${mes}, ano=${ano}, franquia=${franquiaId}`);
-  
-  // Procurar header - permite múltiplas estratégias
+  // Procurar header
   let headerIdx = -1;
   let colMap = {};
   
-  // Estratégia 1: Procurar linha com "Data" e "Valor" detectados
-  console.log('Estratégia 1: Detectar com detectarColunas()');
+  console.log('🔍 Procurando header...');
   for (let i = 0; i < Math.min(json.length, 20); i++) {
     const row = json[i];
     if (!row || row.length < 2) continue;
@@ -138,34 +175,15 @@ function processarExtratos(json) {
     
     if (colMap.data !== undefined && colMap.valor !== undefined) {
       headerIdx = i;
-      console.log(`✓ Header encontrado na linha ${i}`, colMap);
+      console.log(`✓ Header encontrado na linha ${i}`);
       break;
     }
   }
   
-  // Estratégia 2: Se não encontrou, procurar por string "Data" na linha
   if (headerIdx === -1) {
-    console.log('Estratégia 2: Busca lenient');
-    for (let i = 0; i < Math.min(json.length, 20); i++) {
-      const row = json[i];
-      if (!row || row.length < 2) continue;
-      
-      const rowStr = row.map(r => String(r || '').toUpperCase()).join('|');
-      
-      if (rowStr.includes('DATA') && rowStr.includes('VALOR')) {
-        headerIdx = i;
-        colMap = detectarColunas(row);
-        console.log(`✓ Header (lenient) na linha ${i}`, colMap);
-        break;
-      }
-    }
-  }
-  
-  if (headerIdx === -1) {
-    console.error('❌ Header não encontrado');
+    console.error('❌ Header não encontrado!');
     console.error('Primeiras 10 linhas:', JSON.stringify(json.slice(0, 10)));
-    alert('❌ Arquivo inválido!\n\nNão encontrados campos DATA e VALOR.\n\nFormato esperado:\nData | Descrição | Valor (R$) | Saldo (R$)');
-    return [];
+    throw new Error('Arquivo inválido: não encontrados campos DATA e VALOR');
   }
   
   // Fallback se descrição não encontrada
@@ -182,12 +200,10 @@ function processarExtratos(json) {
   
   const extratos = [];
   
-  // Processar linhas de dados
-  console.log(`Processando linhas ${headerIdx + 1} a ${json.length}`);
+  console.log(`📊 Processando linhas ${headerIdx + 1} a ${json.length}...`);
   for (let i = headerIdx + 1; i < json.length; i++) {
     const row = json[i];
     
-    // Validar linha
     if (!row || row.length === 0) break;
     if (!row[colMap.data]) continue; // Skip linhas sem data
     
@@ -212,7 +228,7 @@ function processarExtratos(json) {
       const valor = parseFloat(valorStr || 0);
       const saldo = parseFloat(saldoStr || 0);
       
-      // Validar
+      // Validar linha
       if (dataStr && !isNaN(valor) && valor !== 0) {
         extratos.push({
           id: Date.now() + extratos.length,
@@ -232,7 +248,7 @@ function processarExtratos(json) {
     }
   }
   
-  console.log(`✓ Total importado: ${extratos.length} extratos`);
+  console.log(`✓ Total processado: ${extratos.length} extratos válidos`);
   return extratos;
 }
 
@@ -251,12 +267,17 @@ function detectarTipo(descricao) {
 }
 
 function loadExtratos() {
+  console.log('📊 Carregando extratos...');
+  
   const user = JSON.parse(localStorage.getItem('currentUser'));
   let extratos = JSON.parse(localStorage.getItem('extratos') || '[]');
   
   const franquiaFilt = document.getElementById('inputFranquiaFilt')?.value;
   const mesFilt = document.getElementById('inputMesFilt')?.value;
   const anoFilt = document.getElementById('inputAnoFilt')?.value;
+  
+  console.log('  Filtros: Franquia=' + franquiaFilt + ', Mês=' + mesFilt + ', Ano=' + anoFilt);
+  console.log('  Total antes de filtro:', extratos.length);
   
   // Filtrar por franquia
   if (franquiaFilt) {
@@ -265,10 +286,14 @@ function loadExtratos() {
     extratos = extratos.filter(e => e.unidade_id === user.unidade_id);
   }
   
+  console.log('  Após filtro franquia:', extratos.length);
+  
   // Filtrar por mês e ano
   if (mesFilt && anoFilt) {
     extratos = extratos.filter(e => e.mes === mesFilt && e.ano === anoFilt);
   }
+  
+  console.log('  Após filtro período:', extratos.length);
   
   const tbody = document.getElementById('tbodyExtratos');
   const table = document.getElementById('extratosTable');
@@ -277,6 +302,7 @@ function loadExtratos() {
   if (extratos.length === 0) {
     table.style.display = 'none';
     empty.style.display = 'block';
+    console.log('  Nenhum resultado');
     return;
   }
   
@@ -300,6 +326,7 @@ function loadExtratos() {
   
   empty.style.display = 'none';
   table.style.display = 'table';
+  console.log('✓ Tabela atualizada:', extratos.length, 'registros');
 }
 
 function editarExtrato(id) {
@@ -309,7 +336,6 @@ function editarExtrato(id) {
 function deleteExtrato(id) {
   const user = JSON.parse(localStorage.getItem('currentUser'));
   
-  // Apenas admin e gerente podem deletar
   if (user.perfil !== 'administrador' && user.perfil !== 'gerente') {
     alert('Sem permissão para deletar');
     return;
@@ -325,5 +351,6 @@ function deleteExtrato(id) {
 }
 
 function aplicarFiltros() {
+  console.log('🔄 Aplicando filtros...');
   loadExtratos();
 }
