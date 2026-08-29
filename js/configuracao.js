@@ -33,7 +33,7 @@ function handleNovaUnidade(e) {
   const cidade = document.getElementById('inputCidade').value.trim();
   const estado = document.getElementById('inputEstado').value.trim();
   
-  if (!nomeFranquia || !razaoSocial || !cnpj || !cep || !rua || !numero || !bairro || !cidade || !estado) {
+  if (!nomeFranquia || !razaoSocial || !cnpj || !cep || !rua || !numero || !cidade || !estado) {
     alert('Preencha todos os campos obrigatórios (*)');
     return;
   }
