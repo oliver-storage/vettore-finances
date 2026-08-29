@@ -1,0 +1,51 @@
+/* Paleta Vettore Finances */
+:root {
+  /* Cores principais Vettore */
+  --marca:      #1F55A5;  /* Azul Royal - ações */
+  --destaque:   #00A3E0;  /* Ciano - destaques */
+  --topo-bg:    #143A70;  /* Azul escuro - navbar */
+  --alerta:     #A8481B;  /* Laranja/marrom - avisos */
+  
+  /* Escala de cinzas fria */
+  --tinta:      #10243F;
+  --tinta-70:   #45566E;
+  --tinta-40:   #8593A6;
+  --papel:      #F4F6FA;
+  --papel-alto: #FFFFFF;
+  --linha:      #D9DFE8;
+  
+  /* Derivados */
+  --marca-suave:    color-mix(in srgb, var(--marca) 8%, white);
+  --destaque-suave: color-mix(in srgb, var(--destaque) 12%, white);
+  --marca-borda:    color-mix(in srgb, var(--marca) 35%, white);
+  
+  /* Espaçamento e efeitos */
+  --r: 3px;
+  --sombra: 0 1px 2px rgba(22,32,46,.06), 0 8px 24px rgba(22,32,46,.05);
+}
+
+/* Tipografia Vettore */
+html, body {
+  font-family: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, .titulo {
+  font-family: "IBM Plex Sans Condensed", "IBM Plex Sans", sans-serif;
+  font-weight: 600;
+  letter-spacing: -.01em;
+}
+
+.mono, .dado {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Melhor contraste para elementos do formulário */
+button, input, select, textarea {
+  font: inherit;
+  color: inherit;
+}
+

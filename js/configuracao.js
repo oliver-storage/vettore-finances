@@ -1,5 +1,5 @@
 /**
- * VA Business - Sistema Financeiro v1.0.0
+ * VA Business - Vettore Finances v1.0.0
  * Desenvolvido por OliverStorage
  * Módulo: Configuração (Unidades e Usuários)
  */

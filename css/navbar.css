@@ -1,63 +1,105 @@
-/* VA Business - Sistema Financeiro v1.0.0 • Desenvolvido por OliverStorage */
+/* Vettore Finances - Navbar */
+:root {
+  --marca:      #1F55A5;
+  --destaque:   #00A3E0;
+  --topo-bg:    #143A70;
+}
 
 .navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: white;
-  padding: 0 30px;
-  height: 70px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  border-bottom: 3px solid #1e40af;
-  position: sticky;
-  top: 0;
-  z-index: 100;
+  background: var(--topo-bg);
+  color: #fff;
+  padding: 12px 20px;
+  gap: 20px;
+  flex-wrap: wrap;
 }
 
 .navbar-left {
   display: flex;
   align-items: center;
-  gap: 50px;
-  flex: 1;
+  gap: 20px;
 }
 
-.logo {
-  font-size: 24px;
-  font-weight: 800;
-  color: #1e40af;
+.navbar-left .logo {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  font-family: "IBM Plex Sans Condensed", sans-serif;
 }
 
 .menu {
   display: flex;
-  gap: 40px;
+  gap: 20px;
 }
 
 .menu-item {
+  color: rgba(255,255,255,.8);
   text-decoration: none;
-  color: #666;
   font-size: 14px;
-  font-weight: 600;
-  padding: 8px 0;
-  border-bottom: 2px solid transparent;
-  transition: all 0.3s;
+  padding: 8px 12px;
+  border-radius: 3px;
+  transition: all .15s;
 }
 
-.menu-item:hover, .menu-item.active {
-  color: #1e40af;
-  border-bottom-color: #1e40af;
+.menu-item:hover {
+  background: rgba(255,255,255,.1);
+  color: #fff;
+}
+
+.menu-item.active {
+  background: var(--marca);
+  color: #fff;
 }
 
 .navbar-right {
   display: flex;
   align-items: center;
-  gap: 20px;
-  font-size: 14px;
-  font-weight: 600;
+  gap: 15px;
+}
+
+#userName {
+  font-size: 13px;
+  color: rgba(255,255,255,.9);
+  font-weight: 500;
+}
+
+.btn-logout {
+  padding: 7px 14px;
+  background: var(--alerta);
+  color: #fff;
+  border: 1px solid var(--alerta);
+  border-radius: 3px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: filter .15s;
+}
+
+.btn-logout:hover {
+  filter: brightness(1.1);
 }
 
 @media (max-width: 768px) {
-  .navbar { padding: 0 15px; }
-  .navbar-left { gap: 20px; }
-  .menu { gap: 20px; font-size: 12px; }
-  .logo { font-size: 18px; }
+  .navbar {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .navbar-left {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .menu {
+    gap: 10px;
+  }
+  
+  .menu-item {
+    font-size: 12px;
+  }
+  
+  .navbar-right {
+    width: 100%;
+  }
 }

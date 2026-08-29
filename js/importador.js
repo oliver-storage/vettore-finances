@@ -1,5 +1,5 @@
 /**
- * VA Business - Sistema Financeiro v1.1.4
+ * VA Business - Vettore Finances v1.3.0
  * Desenvolvido por OliverStorage
  * Módulo: Importador de Extratos XLS/XLSX
  */
