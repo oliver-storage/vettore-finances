@@ -336,6 +336,16 @@ tbody tr:hover {
   font-weight: 600;
 }
 
+.footer {
+  background-color: #f0f4f8;
+  border-top: 1px solid #e5e7eb;
+  padding: 20px;
+  text-align: center;
+  color: #666;
+  font-size: 12px;
+  margin-top: 50px;
+}
+
 @media (max-width: 768px) {
   .form-row-3, .form-row-2, .form-row-4 { grid-template-columns: 1fr; }
   .grid-3 { grid-template-columns: repeat(2, 1fr); }
