@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Extratos - VA Business</title>
+  <title>Financeiro - VA Business</title>
   <link rel="stylesheet" href="../css/styles.css">
   <link rel="stylesheet" href="../css/navbar.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
@@ -15,7 +15,7 @@
       <span class="logo">VA Business</span>
       <div class="menu">
         <a href="dashboard.html" class="menu-item">Dashboard</a>
-        <a href="extratos.html" class="menu-item active">Extratos</a>
+        <a href="extratos.html" class="menu-item active">Financeiro</a>
         <a href="configuracao.html" class="menu-item">Configuração</a>
       </div>
     </div>
@@ -85,49 +85,66 @@
   </main>
   
   <footer class="footer">
-    <p>&copy; Gestão Financeira 2026 - v1.1.1 Desenvolvido por OliverStorage</p>
+    <p>&copy; Gestão Financeira 2026 - v1.1.2 Desenvolvido por OliverStorage</p>
   </footer>
   
   <script src="../js/auth.js"></script>
   <script src="../js/importador.js"></script>
   <script>
-    checkAuth();
-    const user = JSON.parse(localStorage.getItem('currentUser'));
-    const unidades = JSON.parse(localStorage.getItem('unidades') || '[]');
-    const franquia = unidades.find(u => u.id === user.unidade_id);
-    
-    document.getElementById('userName').textContent = `${franquia?.nomeFranquia || franquia?.nome || 'N/A'} - ${user.nome}`;
-    
-    // Preencher dropdown de franquias
-    const selectFranquia = document.getElementById('inputFranquiaFilt');
-    if (user.perfil === 'administrador') {
-      unidades.forEach(u => {
+    // Esperar XLSX estar disponível
+    function inicializar() {
+      if (typeof XLSX === 'undefined') {
+        console.log('Aguardando XLSX...');
+        setTimeout(inicializar, 100);
+        return;
+      }
+      
+      console.log('✓ XLSX carregado');
+      checkAuth();
+      const user = JSON.parse(localStorage.getItem('currentUser'));
+      const unidades = JSON.parse(localStorage.getItem('unidades') || '[]');
+      const franquia = unidades.find(u => u.id === user.unidade_id);
+      
+      document.getElementById('userName').textContent = `${franquia?.nomeFranquia || franquia?.nome || 'N/A'} - ${user.nome}`;
+      
+      // Preencher dropdown de franquias
+      const selectFranquia = document.getElementById('inputFranquiaFilt');
+      if (user.perfil === 'administrador') {
+        unidades.forEach(u => {
+          const opt = document.createElement('option');
+          opt.value = u.id;
+          opt.textContent = u.nomeFranquia || u.nome;
+          selectFranquia.appendChild(opt);
+        });
+      } else {
+        // Gerente/Usuário: apenas sua franquia
         const opt = document.createElement('option');
-        opt.value = u.id;
-        opt.textContent = u.nomeFranquia || u.nome;
+        opt.value = user.unidade_id;
+        opt.textContent = franquia?.nomeFranquia || franquia?.nome;
+        opt.selected = true;
         selectFranquia.appendChild(opt);
-      });
+        selectFranquia.disabled = true;
+      }
+      
+      // Preencher dropdown de anos (últimos 5 anos)
+      const selectAno = document.getElementById('inputAnoFilt');
+      const anoAtual = new Date().getFullYear();
+      for (let i = 0; i < 5; i++) {
+        const opt = document.createElement('option');
+        opt.value = anoAtual - i;
+        opt.textContent = anoAtual - i;
+        selectAno.appendChild(opt);
+      }
+      
+      loadExtratos();
+    }
+    
+    // Começar quando documento estiver pronto
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', inicializar);
     } else {
-      // Gerente/Usuário: apenas sua franquia
-      const opt = document.createElement('option');
-      opt.value = user.unidade_id;
-      opt.textContent = franquia?.nomeFranquia || franquia?.nome;
-      opt.selected = true;
-      selectFranquia.appendChild(opt);
-      selectFranquia.disabled = true;
+      inicializar();
     }
-    
-    // Preencher dropdown de anos (últimos 5 anos)
-    const selectAno = document.getElementById('inputAnoFilt');
-    const anoAtual = new Date().getFullYear();
-    for (let i = 0; i < 5; i++) {
-      const opt = document.createElement('option');
-      opt.value = anoAtual - i;
-      opt.textContent = anoAtual - i;
-      selectAno.appendChild(opt);
-    }
-    
-    loadExtratos();
   </script>
 </body>
 </html>
