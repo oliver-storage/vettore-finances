@@ -1,4 +1,4 @@
-<!-- Vettore Finances v1.4.2 • Desenvolvido por OliverStorage -->
+<!-- Vettore Finances v1.4.3 • Desenvolvido por OliverStorage -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -203,7 +203,7 @@
   </div>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.4.2 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.4.3 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>
@@ -231,3 +231,179 @@
   </script>
 </body>
 </html>
+
+  <script>
+    function inicializar() {
+      try {
+        checkAuth();
+        
+        const user = JSON.parse(localStorage.getItem('currentUser'));
+        const unidades = JSON.parse(localStorage.getItem('unidades') || '[]');
+        const usuarios = JSON.parse(localStorage.getItem('usuarios') || '[]');
+        const privilegios = JSON.parse(localStorage.getItem('privilegios') || '{}');
+        
+        const franquia = unidades.find(u => u.id === user.unidade_id);
+        const nomeFranquia = franquia?.nomeFranquia || franquia?.nome || 'Franquia';
+        
+        document.getElementById('userName').textContent = `${nomeFranquia} - ${user.nome}`;
+        
+        // ABA 1: UNIDADES
+        carregarUnidades(unidades);
+        carregarFranquiasSelect(unidades);
+        
+        // ABA 2: USUÁRIOS
+        carregarUsuarios(usuarios, unidades);
+        
+        // ABA 3: PRIVILÉGIOS
+        carregarPrivilegios(privilegios);
+        
+      } catch (error) {
+        console.error('❌ Erro:', error);
+      }
+    }
+
+    function carregarUnidades(unidades) {
+      const tbody = document.getElementById('tbodyUnidades');
+      if (!tbody) return;
+      
+      tbody.innerHTML = '';
+      unidades.forEach(u => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${u.nomeFranquia || u.nome}</td>
+          <td>${u.cnpj || '-'}</td>
+          <td>${u.telefone || '-'}</td>
+          <td>
+            <button class="btn-edit" onclick="editarUnidade(${u.id})">Editar</button>
+            <button class="btn-danger" onclick="deletarUnidade(${u.id})">Deletar</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function carregarFranquiasSelect(unidades) {
+      const select = document.getElementById('selectFranquiaUsuario');
+      if (!select) return;
+      
+      select.innerHTML = '<option value="">Selecione...</option>';
+      unidades.forEach(u => {
+        const option = document.createElement('option');
+        option.value = u.id;
+        option.textContent = u.nomeFranquia || u.nome;
+        select.appendChild(option);
+      });
+    }
+
+    function carregarUsuarios(usuarios, unidades) {
+      const tbody = document.getElementById('tbodyUsuarios');
+      if (!tbody) return;
+      
+      tbody.innerHTML = '';
+      usuarios.forEach(u => {
+        const unidade = unidades.find(un => un.id === u.unidade_id);
+        const nomeUnidade = unidade?.nomeFranquia || unidade?.nome || '-';
+        
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${u.nome}</td>
+          <td>${u.email}</td>
+          <td>${nomeUnidade}</td>
+          <td><span class="badge">${u.perfil}</span></td>
+          <td>
+            <button class="btn-edit" onclick="editarUsuario(${u.id})">Editar</button>
+            <button class="btn-danger" onclick="deletarUsuario(${u.id})">Deletar</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function carregarPrivilegios(privilegios) {
+      const tbody = document.getElementById('tbodyPrivilegios');
+      if (!tbody) return;
+      
+      const funcionalidades = ['Dashboard', 'Financeiro', 'Configuração', 'Editar Unidades', 'Editar Usuários'];
+      const perfis = ['administrador', 'gerente', 'usuario'];
+      
+      tbody.innerHTML = '';
+      funcionalidades.forEach((func, idx) => {
+        const tr = document.createElement('tr');
+        let cells = `<td>${func}</td>`;
+        
+        perfis.forEach(perfil => {
+          const key = `${perfil}_${func.toLowerCase()}`;
+          const checked = privilegios[key] ? 'checked' : '';
+          cells += `<td><input type="checkbox" data-key="${key}" ${checked}></td>`;
+        });
+        
+        tr.innerHTML = cells;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function handleNovaUnidade(e) {
+      e.preventDefault();
+      
+      const unidades = JSON.parse(localStorage.getItem('unidades') || '[]');
+      const nova = {
+        id: Date.now(),
+        nomeFranquia: document.getElementById('inputNomeFranquia').value,
+        cnpj: document.getElementById('inputCNPJ').value,
+        telefone: document.getElementById('inputTelefone').value
+      };
+      
+      unidades.push(nova);
+      localStorage.setItem('unidades', JSON.stringify(unidades));
+      
+      alert('Unidade criada!');
+      e.target.reset();
+      carregarUnidades(unidades);
+      carregarFranquiasSelect(unidades);
+    }
+
+    function handleNovoUsuario(e) {
+      e.preventDefault();
+      
+      const usuarios = JSON.parse(localStorage.getItem('usuarios') || '[]');
+      const novo = {
+        id: Date.now(),
+        nome: document.getElementById('inputNomeUsuario').value,
+        email: document.getElementById('inputEmailUsuario').value,
+        unidade_id: parseInt(document.getElementById('selectFranquiaUsuario').value),
+        perfil: document.getElementById('selectPerfilUsuario').value,
+        senha: document.getElementById('inputSenhaUsuario').value
+      };
+      
+      usuarios.push(novo);
+      localStorage.setItem('usuarios', JSON.stringify(usuarios));
+      
+      alert('Usuário criado!');
+      e.target.reset();
+      
+      const unidades = JSON.parse(localStorage.getItem('unidades') || '[]');
+      carregarUsuarios(usuarios, unidades);
+      carregarFranquiasSelect(unidades);
+    }
+
+    function salvarPrivilegios() {
+      const privilegios = {};
+      document.querySelectorAll('input[type="checkbox"]').forEach(check => {
+        privilegios[check.dataset.key] = check.checked;
+      });
+      
+      localStorage.setItem('privilegios', JSON.stringify(privilegios));
+      alert('Privilégios salvos!');
+    }
+
+    function editarUnidade(id) { alert('Função será implementada'); }
+    function deletarUnidade(id) { alert('Função será implementada'); }
+    function editarUsuario(id) { alert('Função será implementada'); }
+    function deletarUsuario(id) { alert('Função será implementada'); }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', inicializar);
+    } else {
+      inicializar();
+    }
+  </script>

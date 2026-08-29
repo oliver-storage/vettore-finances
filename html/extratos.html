@@ -1,17 +1,19 @@
-<!-- VA Business - Vettore Finances v1.4.2 • Desenvolvido por OliverStorage -->
+<!-- Vettore Finances v1.4.3 • Desenvolvido por OliverStorage -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vettore Finances - Financeiro</title>
+  <title>Vettore Finances - Extratos</title>
+  <!-- XLSX PRIMEIRO -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js" defer></script>
+  
   <link rel="stylesheet" href="../css/styles.css">
   <link rel="stylesheet" href="../css/navbar.css">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
 </head>
 <body>
   <nav class="navbar">
@@ -31,8 +33,9 @@
 
   <div class="container">
     <h2>Extratos Bancários</h2>
+    <p class="subtitle">Importação e gestão de extratos financeiros</p>
     
-    <div class="form-section">
+    <div class="card">
       <div class="form-row-3">
         <div class="form-group">
           <label>Franquia</label>
@@ -74,24 +77,26 @@
 
     <div id="alertMsg" class="alert" style="display:none;"></div>
 
-    <table id="tabelaExtratos">
-      <thead>
-        <tr>
-          <th>Data</th>
-          <th>Descrição</th>
-          <th>Tipo</th>
-          <th>Valor</th>
-          <th>Saldo</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody id="tbody">
-      </tbody>
-    </table>
+    <div class="card">
+      <h3>Extratos</h3>
+      <table id="tabelaExtratos">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Descrição</th>
+            <th>Tipo</th>
+            <th>Valor</th>
+            <th>Saldo</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
   </div>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.4.2 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.4.3 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>
@@ -100,8 +105,7 @@
 
   <script>
     console.log('✅ Página extratos.html carregada');
-    console.log('📦 XLSX disponível?', typeof XLSX !== 'undefined');
-
+    
     function inicializar() {
       try {
         checkAuth();
@@ -109,12 +113,10 @@
         const user = JSON.parse(localStorage.getItem('currentUser'));
         const unidades = JSON.parse(localStorage.getItem('unidades') || '[]');
         const franquia = unidades.find(u => u.id === user.unidade_id);
-        const nomeFranquia = franquia?.nomeFranquia || franquia?.nome || 'Franquia Desconhecida';
+        const nomeFranquia = franquia?.nomeFranquia || franquia?.nome || 'Franquia';
         
         document.getElementById('userName').textContent = `${nomeFranquia} - ${user.nome}`;
         
-        // Carregar dropdown de franquias IMEDIATAMENTE
-        console.log('🔄 Carregando franquias...');
         const selectFranquia = document.getElementById('franquiaFilter');
         selectFranquia.innerHTML = '<option value="">Todas</option>';
         
@@ -125,9 +127,6 @@
           selectFranquia.appendChild(option);
         });
         
-        console.log('✅ Franquias carregadas:', unidades.length);
-        
-        // Carregar anos disponíveis
         const selectAno = document.getElementById('anoFilter');
         const anoAtual = new Date().getFullYear();
         for (let i = anoAtual - 5; i <= anoAtual; i++) {
@@ -139,92 +138,11 @@
         
         loadExtratos();
         
+        console.log('✅ Inicialização completa');
+        console.log('📦 XLSX disponível?', typeof XLSX !== 'undefined');
+        
       } catch (error) {
         console.error('❌ Erro:', error);
-        alert('Erro ao carregar: ' + error.message);
-      }
-    }
-
-    function loadExtratos() {
-      const franquiaId = document.getElementById('franquiaFilter').value;
-      const mes = document.getElementById('mesFilter').value;
-      const ano = document.getElementById('anoFilter').value;
-      
-      let extratos = JSON.parse(localStorage.getItem('extratos') || '[]');
-      
-      if (franquiaId) extratos = extratos.filter(e => e.unidade_id === parseInt(franquiaId));
-      if (mes) extratos = extratos.filter(e => e.mes === mes);
-      if (ano) extratos = extratos.filter(e => e.ano === ano.toString());
-      
-      const tbody = document.getElementById('tbody');
-      tbody.innerHTML = '';
-      
-      if (extratos.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px;">Nenhum extrato encontrado</td></tr>';
-        return;
-      }
-      
-      extratos.forEach(e => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${e.data}</td>
-          <td>${e.descricao}</td>
-          <td><span class="badge">${e.tipo_operacao}</span></td>
-          <td>R$ ${parseFloat(e.valor).toFixed(2)}</td>
-          <td>R$ ${parseFloat(e.saldo).toFixed(2)}</td>
-          <td>
-            <button class="btn-edit" onclick="editarExtrato(${e.id})">Editar</button>
-            <button class="btn-danger" onclick="deletarExtrato(${e.id})">Deletar</button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    function handleFileUpload(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      
-      if (typeof XLSX === 'undefined') {
-        alert('❌ Erro: XLSX não disponível. Aguarde um momento e tente novamente.');
-        console.error('XLSX não carregado');
-        return;
-      }
-      
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        try {
-          const data = e.target.result;
-          const workbook = XLSX.read(data, { type: 'array' });
-          const sheetName = workbook.SheetNames[0];
-          const worksheet = workbook.Sheets[sheetName];
-          const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-          
-          processarExtratos(json);
-        } catch (error) {
-          console.error('Erro ao processar arquivo:', error);
-          alert('Erro ao processar arquivo XLS');
-        }
-      };
-      reader.readAsArrayBuffer(file);
-    }
-
-    function processarExtratos(dados) {
-      // Implementar lógica de processamento
-      alert('Arquivo processado com sucesso!');
-      loadExtratos();
-    }
-
-    function editarExtrato(id) {
-      alert('Função de edição será implementada');
-    }
-
-    function deletarExtrato(id) {
-      if (confirm('Deletar este extrato?')) {
-        let extratos = JSON.parse(localStorage.getItem('extratos') || '[]');
-        extratos = extratos.filter(e => e.id !== id);
-        localStorage.setItem('extratos', JSON.stringify(extratos));
-        loadExtratos();
       }
     }
 

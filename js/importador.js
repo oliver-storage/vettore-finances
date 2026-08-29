@@ -1,42 +1,43 @@
 /**
  * Vettore Finances - Importador de Extratos
- * Processamento de XLS/XLSX via XLSX library
+ * Processamento de XLS/XLSX
  */
 
 function handleFileUpload(event) {
   const file = event.target.files[0];
   if (!file) return;
 
-  // Aguardar XLSX estar disponível
-  if (typeof XLSX === 'undefined') {
-    console.error('❌ XLSX não disponível');
-    alert('XLSX não carregou. Recarregue a página.');
-    return;
-  }
-
-  console.log('📤 Processando arquivo:', file.name);
+  console.log('📤 Upload iniciado:', file.name);
   
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    try {
-      const data = e.target.result;
-      const workbook = XLSX.read(data, { type: 'array' });
-      const sheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[sheetName];
-      
-      // Converter para JSON (array com headers)
-      const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-      
-      console.log('✅ Arquivo lido:', json.length, 'linhas');
-      
-      processarExtratos(json);
-    } catch (error) {
-      console.error('❌ Erro ao processar:', error);
-      alert('Erro ao processar arquivo: ' + error.message);
+  // Aguardar XLSX estar disponível
+  const tentarProcessar = () => {
+    if (typeof XLSX === 'undefined') {
+      console.warn('⏳ XLSX ainda não carregado, tentando novamente...');
+      setTimeout(tentarProcessar, 100);
+      return;
     }
+    
+    console.log('✅ XLSX disponível! Processando arquivo...');
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = e.target.result;
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+        
+        console.log('✅ Arquivo lido:', json.length, 'linhas');
+        processarExtratos(json);
+      } catch (error) {
+        console.error('❌ Erro:', error);
+        alert('Erro ao processar: ' + error.message);
+      }
+    };
+    reader.readAsArrayBuffer(file);
   };
   
-  reader.readAsArrayBuffer(file);
+  tentarProcessar();
 }
 
 function processarExtratos(dados) {
@@ -45,19 +46,16 @@ function processarExtratos(dados) {
   const ano = document.getElementById('anoFilter')?.value;
 
   if (!franquiaId || !mes || !ano) {
-    alert('⚠️ Selecione Franquia, Mês e Ano antes de importar!');
+    alert('⚠️ Selecione Franquia, Mês e Ano!');
     return;
   }
 
   let headerRow = null;
-  let extratos = [];
-
-  // Procurar header
   for (let i = 0; i < Math.min(20, dados.length); i++) {
     const row = dados[i];
-    if (!row || row.length === 0) continue;
+    if (!row || row.length < 2) continue;
     
-    const rowStr = row.join('').toLowerCase();
+    const rowStr = (row.join('') || '').toLowerCase();
     if (rowStr.includes('data') && rowStr.includes('descri') && rowStr.includes('valor')) {
       headerRow = i;
       break;
@@ -65,13 +63,13 @@ function processarExtratos(dados) {
   }
 
   if (headerRow === null) {
-    alert('❌ Header não encontrado no arquivo');
+    alert('❌ Header não encontrado');
     return;
   }
 
-  console.log('📋 Header encontrado na linha:', headerRow);
+  console.log('📋 Header na linha:', headerRow);
 
-  // Processar dados
+  let extratos = [];
   for (let i = headerRow + 1; i < dados.length; i++) {
     const row = dados[i];
     if (!row || row.length < 3) continue;
@@ -83,8 +81,6 @@ function processarExtratos(dados) {
 
     if (!data || !descricao || valor === 0) continue;
 
-    const tipo = valor > 0 ? 'crédito' : 'débito';
-
     extratos.push({
       id: Date.now() + Math.random(),
       unidade_id: parseInt(franquiaId),
@@ -94,25 +90,23 @@ function processarExtratos(dados) {
       descricao: descricao,
       valor: Math.abs(valor),
       saldo: saldo,
-      tipo_operacao: tipo,
-      tipo_pagamento: 'Importado'
+      tipo_operacao: valor > 0 ? 'crédito' : 'débito',
+      tipo_pagamento: 'XLS'
     });
   }
 
   if (extratos.length === 0) {
-    alert('⚠️ Nenhum extrato encontrado no arquivo');
+    alert('⚠️ Nenhum extrato encontrado');
     return;
   }
 
-  // Salvar
   let extratosExistentes = JSON.parse(localStorage.getItem('extratos') || '[]');
   extratosExistentes = extratosExistentes.concat(extratos);
   localStorage.setItem('extratos', JSON.stringify(extratosExistentes));
 
-  console.log('✅ Importados:', extratos.length, 'extratos');
-  alert(`✅ ${extratos.length} extratos importados com sucesso!`);
-
-  // Limpar input e recarregar
+  console.log('✅ Importados:', extratos.length);
+  alert(`✅ ${extratos.length} extratos importados!`);
+  
   document.getElementById('fileInput').value = '';
   if (typeof loadExtratos === 'function') {
     loadExtratos();
@@ -134,9 +128,8 @@ function loadExtratos() {
   if (!tbody) return;
 
   tbody.innerHTML = '';
-
   if (extratos.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;">Nenhum extrato encontrado</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;">Nenhum extrato</td></tr>';
     return;
   }
 
@@ -158,15 +151,13 @@ function loadExtratos() {
 }
 
 function deletarExtrato(id) {
-  if (!confirm('Deletar este extrato?')) return;
-  
+  if (!confirm('Deletar?')) return;
   let extratos = JSON.parse(localStorage.getItem('extratos') || '[]');
   extratos = extratos.filter(e => e.id !== id);
   localStorage.setItem('extratos', JSON.stringify(extratos));
-  
   if (typeof loadExtratos === 'function') loadExtratos();
 }
 
 function editarExtrato(id) {
-  alert('Função de edição será implementada');
+  alert('Função será implementada');
 }
