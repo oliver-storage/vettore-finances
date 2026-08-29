@@ -8,113 +8,149 @@
   --papel-alto: #FFFFFF;
   --linha:      #D9DFE8;
   --tinta:      #10243F;
+  --tinta-70:   #45566E;
 }
 
 body.auth-page {
-  background: #f5f5f5;
+  background: linear-gradient(135deg, #f5f5f5 0%, #f0f0f0 100%);
   padding: 40px 20px;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.login-container {
+.auth-container {
   width: 100%;
-  max-width: 400px;
-  margin: 0 auto;
+  max-width: 420px;
 }
 
-.login-box {
+.auth-box {
   background: var(--papel-alto);
-  padding: 40px 32px;
-  border-radius: 6px;
-  box-shadow: 0 10px 40px rgba(20,58,112,.15);
+  padding: 50px 40px;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(20, 58, 112, 0.15);
   border: 1px solid var(--linha);
 }
 
-.login-box h1 {
-  font-size: 28px;
+.auth-box h1 {
+  font-size: 36px;
+  font-weight: 700;
   color: var(--marca);
-  margin-bottom: 8px;
+  margin: 0 0 12px 0;
   text-align: center;
-  font-family: "IBM Plex Sans Condensed", sans-serif;
+  font-family: "IBM Plex Sans Condensed", "IBM Plex Sans", sans-serif;
+  letter-spacing: -0.02em;
 }
 
-.login-box p {
-  font-size: 12px;
-  color: #666;
+.auth-box > p {
+  font-size: 13px;
+  color: var(--tinta-70);
   text-align: center;
-  margin-bottom: 30px;
+  margin: 0 0 30px 0;
+  font-weight: 500;
 }
 
-.login-box .form-group {
+.form-group {
   margin-bottom: 16px;
 }
 
-.login-box .form-group label {
+.form-group label {
   display: block;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--tinta);
-  margin-bottom: 6px;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.login-box input {
+.form-group input {
   width: 100%;
-  padding: 10px 12px;
+  padding: 11px 13px;
+  background: var(--papel);
   border: 1px solid var(--linha);
   border-radius: 4px;
   font-size: 14px;
-  transition: border-color .15s;
+  color: var(--tinta);
+  transition: all 0.2s;
 }
 
-.login-box input:focus {
+.form-group input:focus {
   outline: none;
   border-color: var(--marca);
-  box-shadow: 0 0 0 3px rgba(31,85,165,.1);
+  background: var(--papel-alto);
+  box-shadow: 0 0 0 3px rgba(31, 85, 165, 0.1);
 }
 
-.login-box .btn-primary {
+.form-group input::placeholder {
+  color: #aaa;
+}
+
+.error {
+  display: block;
+  font-size: 11px;
+  color: var(--alerta);
+  margin-top: 4px;
+}
+
+.alert {
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  border-radius: 4px;
+  font-size: 13px;
+  background: color-mix(in srgb, var(--alerta) 10%, white);
+  border: 1px solid color-mix(in srgb, var(--alerta) 30%, white);
+  color: var(--alerta);
+}
+
+.btn-primary {
   width: 100%;
-  padding: 11px 16px;
-  margin-top: 20px;
+  padding: 12px 16px;
+  margin-top: 24px;
+  background: var(--marca);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
   font-size: 14px;
   font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
-.login-box .error-message {
-  color: var(--alerta);
-  font-size: 11px;
-  margin-top: 4px;
-  display: none;
+.btn-primary:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 2px 8px rgba(31, 85, 165, 0.3);
 }
 
-.login-box .error-message.show {
-  display: block;
+.btn-primary:active {
+  filter: brightness(0.95);
 }
 
-.login-footer {
+.auth-footer {
   text-align: center;
   margin-top: 20px;
-  font-size: 11px;
-  color: #999;
+  padding-top: 20px;
+  border-top: 1px solid var(--linha);
 }
 
-a.voltarLink {
-  display: inline-block;
-  margin-top: 15px;
+.auth-footer a {
   color: var(--marca);
   text-decoration: none;
   font-size: 13px;
+  font-weight: 500;
 }
 
-a.voltarLink:hover {
+.auth-footer a:hover {
   text-decoration: underline;
 }
 
 @media (max-width: 480px) {
-  .login-box {
-    padding: 30px 20px;
+  .auth-box {
+    padding: 40px 24px;
   }
   
-  .login-box h1 {
-    font-size: 24px;
+  .auth-box h1 {
+    font-size: 28px;
   }
 }
