@@ -7,7 +7,6 @@
   <title>Vettore Finances</title>
   <link rel="stylesheet" href="../css/styles.css">
   <link rel="stylesheet" href="../css/navbar.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="stylesheet" href="../css/styles.css">
   <link rel="stylesheet" href="../css/navbar.css">
@@ -91,7 +90,7 @@
   </main>
   
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.3.6 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.3.7 Desenvolvido por OliverStorage</p>
   </footer>
   
   <script src="../js/auth.js"></script>
@@ -241,6 +240,66 @@
     }
     
     console.log('🚀 Aguardando DOMContentLoaded...');
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', inicializar);
+    } else {
+      inicializar();
+    }
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/masks.js"></script>
+  <script src="../js/importador.js"></script>
+  
+  <script>
+    console.log('📦 XLSX disponível?', typeof XLSX !== 'undefined');
+    console.log('🚀 Aguardando DOMContentLoaded...');
+    
+    function inicializar() {
+      try {
+        checkAuth();
+        
+        // Aguardar XLSX estar pronto
+        let xlsxTimeout = 0;
+        const esperar = setInterval(() => {
+          if (typeof XLSX !== 'undefined') {
+            clearInterval(esperar);
+            console.log('✅ XLSX carregado!');
+            
+            // Carregar dados
+            const user = JSON.parse(localStorage.getItem('currentUser'));
+            const unidades = JSON.parse(localStorage.getItem('unidades') || '[]');
+            const franquia = unidades.find(u => u.id === user.unidade_id);
+            const nomeFranquia = franquia?.nomeFranquia || franquia?.nome || 'Franquia Desconhecida';
+            document.getElementById('userName').textContent = `${nomeFranquia} - ${user.nome}`;
+            
+            // Carregar dropdown de franquias
+            const selectFranquia = document.getElementById('franquiaFilter');
+            if (selectFranquia) {
+              unidades.forEach(u => {
+                const option = document.createElement('option');
+                option.value = u.id;
+                option.textContent = u.nomeFranquia || u.nome;
+                selectFranquia.appendChild(option);
+              });
+            }
+            
+            loadExtratos();
+          } else {
+            xlsxTimeout++;
+            if (xlsxTimeout > 100) {
+              clearInterval(esperar);
+              console.warn('⚠️ XLSX não carregou, continuando mesmo assim...');
+            }
+          }
+        }, 50);
+        
+      } catch (error) {
+        console.error('❌ Erro:', error);
+        alert('Erro ao carregar: ' + error.message);
+      }
+    }
+    
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', inicializar);
     } else {
