@@ -3,6 +3,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Clientes - VA Business</title>
   <link rel="stylesheet" href="../css/styles.css">
   <link rel="stylesheet" href="../css/navbar.css">
@@ -29,12 +30,23 @@
   
   <main class="container">
     <h1>Clientes</h1>
-    <button class="btn-primary" onclick="novoCliente()">+ Novo Cliente</button>
+    <button class="btn-primary" onclick="alert('Em desenvolvimento')">+ Novo Cliente</button>
+    
     <table id="clientesTable">
       <thead>
-        <tr><th>Nome</th><th>CNPJ</th><th>Situação</th></tr>
+        <tr>
+          <th>Nome</th>
+          <th>CNPJ</th>
+          <th>Status</th>
+          <th>Faturamento</th>
+          <th>Ações</th>
+        </tr>
       </thead>
-      <tbody id="tbody-clientes"></tbody>
+      <tbody id="tbody-clientes">
+        <tr>
+          <td colspan="5" style="text-align: center; padding: 20px; color: #999;">Nenhum cliente cadastrado</td>
+        </tr>
+      </tbody>
     </table>
   </main>
   

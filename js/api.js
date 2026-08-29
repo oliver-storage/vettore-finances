@@ -4,50 +4,81 @@
  * Módulo: API Supabase
  */
 
-const supabaseURL = 'YOUR_SUPABASE_URL';
-const supabaseKey = 'YOUR_SUPABASE_KEY';
+const SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co';
+const SUPABASE_KEY = 'YOUR_ANON_KEY';
 
-async function fetchClientes() {
-  try {
-    const response = await fetch(`${supabaseURL}/rest/v1/clientes`, {
-      headers: {
-        'apikey': supabaseKey,
-        'Authorization': `Bearer ${supabaseKey}`
-      }
-    });
-    return await response.json();
-  } catch (error) {
-    console.error('Erro ao buscar clientes:', error);
+class SupabaseAPI {
+  constructor() {
+    this.url = SUPABASE_URL;
+    this.key = SUPABASE_KEY;
+  }
+  
+  async fetch(table, options = {}) {
+    const url = `${this.url}/rest/v1/${table}`;
+    const headers = {
+      'apikey': this.key,
+      'Authorization': `Bearer ${this.key}`,
+      'Content-Type': 'application/json'
+    };
+    
+    try {
+      const response = await fetch(url, { headers, ...options });
+      return await response.json();
+    } catch (error) {
+      console.error(`Erro ao buscar ${table}:`, error);
+      return [];
+    }
+  }
+  
+  async getClientes(unidadeId) {
+    return this.fetch(`clientes?unidade_id=eq.${unidadeId}`);
+  }
+  
+  async getExtratos(contaId) {
+    return this.fetch(`extratos_movimentacoes?conta_bancaria_id=eq.${contaId}`);
+  }
+  
+  async insertExtrato(data) {
+    const url = `${this.url}/rest/v1/extratos_movimentacoes`;
+    const headers = {
+      'apikey': this.key,
+      'Authorization': `Bearer ${this.key}`,
+      'Content-Type': 'application/json'
+    };
+    
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(data)
+      });
+      return await response.json();
+    } catch (error) {
+      console.error('Erro ao inserir extrato:', error);
+      return null;
+    }
+  }
+  
+  async updatePagamento(pagamentoId, data) {
+    const url = `${this.url}/rest/v1/pagamentos_identificados?id=eq.${pagamentoId}`;
+    const headers = {
+      'apikey': this.key,
+      'Authorization': `Bearer ${this.key}`,
+      'Content-Type': 'application/json'
+    };
+    
+    try {
+      const response = await fetch(url, {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify(data)
+      });
+      return await response.json();
+    } catch (error) {
+      console.error('Erro ao atualizar pagamento:', error);
+      return null;
+    }
   }
 }
 
-async function fetchExtratos() {
-  try {
-    const response = await fetch(`${supabaseURL}/rest/v1/extratos_movimentacoes`, {
-      headers: {
-        'apikey': supabaseKey,
-        'Authorization': `Bearer ${supabaseKey}`
-      }
-    });
-    return await response.json();
-  } catch (error) {
-    console.error('Erro ao buscar extratos:', error);
-  }
-}
-
-async function insertExtrato(data) {
-  try {
-    const response = await fetch(`${supabaseURL}/rest/v1/extratos_movimentacoes`, {
-      method: 'POST',
-      headers: {
-        'apikey': supabaseKey,
-        'Authorization': `Bearer ${supabaseKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(data)
-    });
-    return await response.json();
-  } catch (error) {
-    console.error('Erro ao inserir extrato:', error);
-  }
-}
+const api = new SupabaseAPI();

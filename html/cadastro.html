@@ -1,0 +1,70 @@
+<!-- VA Business - Sistema Financeiro v1.0.0 • Desenvolvido por OliverStorage -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadastro - VA Business</title>
+  <link rel="stylesheet" href="../css/auth.css">
+</head>
+<body>
+  <div class="auth-container">
+    <div class="auth-box">
+      <div class="auth-header">
+        <h1>VA Business</h1>
+        <p>Criar Novo Usuário</p>
+      </div>
+      
+      <form onsubmit="handleCadastro(event)">
+        <div class="form-group">
+          <label>Nome Completo</label>
+          <input type="text" id="nome" placeholder="Seu nome" required>
+        </div>
+        
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="email" placeholder="seu@email.com" required>
+        </div>
+        
+        <div class="form-group">
+          <label>Senha</label>
+          <input type="password" id="password" placeholder="Crie uma senha" required>
+        </div>
+        
+        <div class="form-group">
+          <label>Confirmar Senha</label>
+          <input type="password" id="confirm" placeholder="Repita a senha" required>
+        </div>
+        
+        <button type="submit" class="btn-submit">Cadastrar</button>
+      </form>
+      
+      <div class="auth-footer">
+        <p>Já tem conta? <a href="login.html">Entre aqui</a></p>
+        <p><a href="../index.html">Voltar</a></p>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    function handleCadastro(e) {
+      e.preventDefault();
+      const pwd = document.getElementById('password').value;
+      const confirm = document.getElementById('confirm').value;
+      
+      if (pwd !== confirm) {
+        alert('Senhas não conferem!');
+        return;
+      }
+      
+      const user = {
+        name: document.getElementById('nome').value,
+        email: document.getElementById('email').value
+      };
+      
+      localStorage.setItem('user', JSON.stringify(user));
+      window.location.href = 'dashboard.html';
+    }
+  </script>
+</body>
+</html>

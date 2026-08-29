@@ -3,6 +3,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Configuração - VA Business</title>
   <link rel="stylesheet" href="../css/styles.css">
   <link rel="stylesheet" href="../css/navbar.css">
@@ -31,46 +32,162 @@
     <h1>Configuração</h1>
     
     <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab('unidades')">Unidades</button>
-      <button class="tab-btn" onclick="switchTab('usuarios')">Usuários</button>
-      <button class="tab-btn" onclick="switchTab('permissoes')">Permissões</button>
-      <button class="tab-btn" onclick="switchTab('contas')">Contas Bancárias</button>
+      <button class="tab-btn active" onclick="switchTab(event, 'unidades')">Unidades</button>
+      <button class="tab-btn" onclick="switchTab(event, 'usuarios')">Usuários</button>
+      <button class="tab-btn" onclick="switchTab(event, 'permissoes')">Permissões</button>
+      <button class="tab-btn" onclick="switchTab(event, 'tema')">Tema</button>
     </div>
     
+    <!-- ABA: UNIDADES -->
     <div id="unidades" class="tab-content active">
       <h2>Unidades</h2>
-      <table id="unidadesTable">
-        <thead><tr><th>Nome</th><th>CNPJ</th><th>Ativa</th></tr></thead>
-        <tbody id="tbody-unidades"></tbody>
+      <button class="btn-primary" onclick="alert('Em desenvolvimento')">+ Nova Unidade</button>
+      <table>
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>CNPJ</th>
+            <th>Status</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-unidades">
+          <tr>
+            <td colspan="4" style="text-align: center; color: #999;">Nenhuma unidade cadastrada</td>
+          </tr>
+        </tbody>
       </table>
     </div>
     
+    <!-- ABA: USUÁRIOS -->
     <div id="usuarios" class="tab-content">
       <h2>Usuários</h2>
-      <button class="btn-primary" onclick="novoUsuario()">+ Novo Usuário</button>
-      <table id="usuariosTable">
-        <thead><tr><th>Email</th><th>Nome</th><th>Perfil</th><th>Ações</th></tr></thead>
-        <tbody id="tbody-usuarios"></tbody>
+      <button class="btn-primary" onclick="alert('Em desenvolvimento')">+ Novo Usuário</button>
+      <table>
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th>Nome</th>
+            <th>Perfil</th>
+            <th>Status</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-usuarios">
+          <tr>
+            <td colspan="5" style="text-align: center; color: #999;">Nenhum usuário cadastrado</td>
+          </tr>
+        </tbody>
       </table>
     </div>
     
+    <!-- ABA: PERMISSÕES -->
     <div id="permissoes" class="tab-content">
       <h2>Permissões por Perfil</h2>
-      <table id="permissoesTable">
-        <thead><tr><th>Módulo</th><th>Admin</th><th>Gerente</th><th>Usuário</th></tr></thead>
-        <tbody id="tbody-permissoes"></tbody>
+      <table>
+        <thead>
+          <tr>
+            <th>Módulo</th>
+            <th>Admin</th>
+            <th>Gerente</th>
+            <th>Usuário</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Dashboards</td>
+            <td><input type="checkbox" checked disabled></td>
+            <td><input type="checkbox" checked disabled></td>
+            <td><input type="checkbox" checked disabled></td>
+          </tr>
+          <tr>
+            <td>Clientes</td>
+            <td><input type="checkbox" checked disabled></td>
+            <td><input type="checkbox" checked disabled></td>
+            <td><input type="checkbox" disabled></td>
+          </tr>
+          <tr>
+            <td>Extratos</td>
+            <td><input type="checkbox" checked disabled></td>
+            <td><input type="checkbox" checked disabled></td>
+            <td><input type="checkbox" disabled></td>
+          </tr>
+          <tr>
+            <td>Configuração</td>
+            <td><input type="checkbox" checked disabled></td>
+            <td><input type="checkbox" disabled></td>
+            <td><input type="checkbox" disabled></td>
+          </tr>
+        </tbody>
       </table>
     </div>
     
-    <div id="contas" class="tab-content">
-      <h2>Contas Bancárias</h2>
-      <table id="contasTable">
-        <thead><tr><th>Banco</th><th>Agência</th><th>Conta</th><th>Tipo</th></tr></thead>
-        <tbody id="tbody-contas"></tbody>
-      </table>
+    <!-- ABA: TEMA -->
+    <div id="tema" class="tab-content">
+      <h2>Tema da Landing Page</h2>
+      
+      <div class="config-section">
+        <h3>Cor de Fundo</h3>
+        <div class="config-group">
+          <input type="color" id="bgColor" value="#0f172a" onchange="previewBg()">
+          <button class="btn-primary" onclick="saveBg()">Salvar</button>
+        </div>
+      </div>
+      
+      <div class="config-section">
+        <h3>Imagem de Fundo (URL)</h3>
+        <div class="config-group">
+          <input type="text" id="bgImage" placeholder="https://example.com/image.jpg" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+          <button class="btn-primary" onclick="saveBg()" style="margin-top: 10px;">Salvar</button>
+        </div>
+      </div>
+      
+      <div class="config-section">
+        <h3>Preview</h3>
+        <div id="preview" style="width: 100%; height: 200px; border-radius: 8px; border: 2px solid #ddd; background: #0f172a;"></div>
+      </div>
     </div>
   </main>
   
   <script src="../js/main.js"></script>
+  <script>
+    function switchTab(e, tabName) {
+      const tabs = document.querySelectorAll('.tab-content');
+      const btns = document.querySelectorAll('.tab-btn');
+      
+      tabs.forEach(t => t.classList.remove('active'));
+      btns.forEach(b => b.classList.remove('active'));
+      
+      document.getElementById(tabName).classList.add('active');
+      e.target.classList.add('active');
+    }
+    
+    function previewBg() {
+      const color = document.getElementById('bgColor').value;
+      const image = document.getElementById('bgImage').value;
+      const preview = document.getElementById('preview');
+      
+      if (image) {
+        preview.style.backgroundImage = `url(${image})`;
+        preview.style.backgroundSize = 'cover';
+      } else {
+        preview.style.backgroundColor = color;
+        preview.style.backgroundImage = 'none';
+      }
+    }
+    
+    function saveBg() {
+      const color = document.getElementById('bgColor').value;
+      const image = document.getElementById('bgImage').value;
+      
+      let bg = color;
+      if (image) bg = `url(${image})`;
+      
+      localStorage.setItem('bg-landing', bg);
+      alert('Tema salvo com sucesso!');
+    }
+    
+    window.addEventListener('load', previewBg);
+  </script>
 </body>
 </html>

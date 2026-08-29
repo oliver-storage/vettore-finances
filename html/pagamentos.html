@@ -3,6 +3,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pagamentos - VA Business</title>
   <link rel="stylesheet" href="../css/styles.css">
   <link rel="stylesheet" href="../css/navbar.css">
@@ -29,11 +30,22 @@
   
   <main class="container">
     <h1>Pagamentos</h1>
+    
     <table id="pagamentosTable">
       <thead>
-        <tr><th>Cliente</th><th>Valor</th><th>Data Pagamento</th><th>Status</th></tr>
+        <tr>
+          <th>Cliente</th>
+          <th>Valor</th>
+          <th>Data Pagamento</th>
+          <th>Status</th>
+          <th>Ações</th>
+        </tr>
       </thead>
-      <tbody id="tbody-pagamentos"></tbody>
+      <tbody id="tbody-pagamentos">
+        <tr>
+          <td colspan="5" style="text-align: center; padding: 20px; color: #999;">Nenhum pagamento identificado</td>
+        </tr>
+      </tbody>
     </table>
   </main>
   

@@ -1,0 +1,51 @@
+<!-- VA Business - Sistema Financeiro v1.0.0 • Desenvolvido por OliverStorage -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - VA Business</title>
+  <link rel="stylesheet" href="../css/auth.css">
+</head>
+<body>
+  <div class="auth-container">
+    <div class="auth-box">
+      <div class="auth-header">
+        <h1>VA Business</h1>
+        <p>Sistema Financeiro</p>
+      </div>
+      
+      <form onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="email" placeholder="seu@email.com" required>
+        </div>
+        
+        <div class="form-group">
+          <label>Senha</label>
+          <input type="password" id="password" placeholder="Sua senha" required>
+        </div>
+        
+        <button type="submit" class="btn-submit">Entrar</button>
+      </form>
+      
+      <div class="auth-footer">
+        <p>Não tem conta? <a href="cadastro.html">Cadastre-se aqui</a></p>
+        <p><a href="../index.html">Voltar</a></p>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    function handleLogin(e) {
+      e.preventDefault();
+      const user = {
+        name: document.getElementById('email').value.split('@')[0],
+        email: document.getElementById('email').value
+      };
+      localStorage.setItem('user', JSON.stringify(user));
+      window.location.href = 'dashboard.html';
+    }
+  </script>
+</body>
+</html>

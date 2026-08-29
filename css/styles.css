@@ -1,4 +1,5 @@
 /* VA Business - Sistema Financeiro v1.0.0 • Desenvolvido por OliverStorage */
+
 * {
   margin: 0;
   padding: 0;
@@ -7,34 +8,52 @@
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  background-color: #f5f5f5;
+  background-color: #f5f7fa;
   color: #333;
 }
 
 .container {
   max-width: 1200px;
-  margin: 20px auto;
+  margin: 30px auto;
   padding: 0 20px;
 }
 
-h1, h2, h3 {
+h1 {
   color: #1e40af;
+  font-size: 32px;
+  margin-bottom: 30px;
+  font-weight: 700;
+}
+
+h2 {
+  color: #1e40af;
+  font-size: 24px;
   margin-bottom: 20px;
   font-weight: 600;
 }
 
+h3 {
+  color: #333;
+  font-size: 16px;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
 .btn-primary {
-  background-color: #1e40af;
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
   color: white;
   border: none;
-  padding: 10px 20px;
+  padding: 12px 24px;
   border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s;
 }
 
 .btn-primary:hover {
-  background-color: #1e3a8a;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(30, 64, 175, 0.2);
 }
 
 table {
@@ -43,52 +62,212 @@ table {
   background: white;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   margin-top: 20px;
 }
 
 thead {
   background-color: #f0f4f8;
-  font-weight: 600;
 }
 
-th, td {
-  padding: 12px;
+th {
+  padding: 14px;
   text-align: left;
-  border-bottom: 1px solid #e0e0e0;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 tbody tr:hover {
   background-color: #f9fafb;
 }
 
-input[type="file"] {
-  padding: 10px;
-  margin: 20px 0;
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-top: 30px;
 }
 
 .card {
   background: white;
-  padding: 20px;
+  padding: 24px;
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  margin-bottom: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s;
 }
 
-.card h3 {
-  font-size: 14px;
-  color: #666;
-  margin-bottom: 10px;
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
 }
 
 .metric {
   font-size: 32px;
   font-weight: bold;
   color: #1e40af;
-  margin: 10px 0;
+  margin: 12px 0;
 }
 
 .card small {
   color: #999;
   font-size: 12px;
+}
+
+.tabs {
+  display: flex;
+  gap: 10px;
+  border-bottom: 2px solid #e5e7eb;
+  margin-bottom: 30px;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  padding: 12px 20px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: #666;
+  border-bottom: 2px solid transparent;
+  transition: all 0.3s;
+}
+
+.tab-btn:hover {
+  color: #1e40af;
+}
+
+.tab-btn.active {
+  color: #1e40af;
+  border-bottom-color: #1e40af;
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.upload-box {
+  background: white;
+  border: 2px dashed #d0d5dd;
+  border-radius: 8px;
+  padding: 40px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin: 20px 0;
+}
+
+.upload-box:hover {
+  border-color: #1e40af;
+  background-color: #f0f4f8;
+}
+
+.upload-label {
+  display: block;
+  cursor: pointer;
+}
+
+.upload-label span {
+  font-size: 48px;
+  display: block;
+  margin-bottom: 10px;
+}
+
+#fileInput {
+  display: none;
+}
+
+.config-section {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.config-group {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.config-group input[type="color"] {
+  width: 100px;
+  height: 50px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.config-group input[type="text"] {
+  flex: 1;
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge.pix {
+  background-color: #e3f2fd;
+  color: #1e40af;
+}
+
+.badge.boleto {
+  background-color: #f3e5f5;
+  color: #6a1b9a;
+}
+
+.badge.transferencia {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.positivo {
+  color: #2e7d32;
+  font-weight: 600;
+}
+
+.negativo {
+  color: #c62828;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+  }
+  
+  .upload-box {
+    padding: 20px;
+  }
 }

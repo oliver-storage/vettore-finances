@@ -4,44 +4,41 @@
  * Módulo: Main
  */
 
-// Inicializar com dados do localStorage
 document.addEventListener('DOMContentLoaded', () => {
-  const user = JSON.parse(localStorage.getItem('user')) || { name: 'Usuário', email: 'email@example.com' };
-  document.getElementById('userName').textContent = user.name;
-  document.getElementById('userEmail').textContent = user.email;
-  document.getElementById('userAvatar').textContent = user.name.charAt(0).toUpperCase();
+  checkAuth();
+  loadUserInfo();
 });
+
+function checkAuth() {
+  const user = localStorage.getItem('user');
+  if (!user && !window.location.pathname.includes('login') && !window.location.pathname.includes('cadastro') && !window.location.pathname.endsWith('index.html') && window.location.pathname !== '/') {
+    window.location.href = '../html/login.html';
+  }
+}
+
+function loadUserInfo() {
+  const user = JSON.parse(localStorage.getItem('user')) || { name: 'Usuário', email: 'email@example.com' };
+  
+  const nameEl = document.getElementById('userName');
+  const emailEl = document.getElementById('userEmail');
+  const avatarEl = document.getElementById('userAvatar');
+  
+  if (nameEl) nameEl.textContent = user.name;
+  if (emailEl) emailEl.textContent = user.email;
+  if (avatarEl) avatarEl.textContent = user.name.charAt(0).toUpperCase();
+}
 
 function logout() {
   localStorage.removeItem('user');
-  window.location.href = '/';
+  window.location.href = '../index.html';
 }
 
 function goTo(url) {
   window.location.href = url;
 }
 
-function novoCliente() {
-  alert('Novo cliente - em desenvolvimento');
-}
-
-function novoUsuario() {
-  alert('Novo usuário - em desenvolvimento');
-}
-
-function importarExtrato(event) {
+function handleFileUpload(event) {
   const file = event.target.files[0];
   if (!file) return;
-  alert('Importação de ' + file.name + ' - em desenvolvimento');
-}
-
-function switchTab(tabName) {
-  const tabs = document.querySelectorAll('.tab-content');
-  const btns = document.querySelectorAll('.tab-btn');
-  
-  tabs.forEach(t => t.classList.remove('active'));
-  btns.forEach(b => b.classList.remove('active'));
-  
-  document.getElementById(tabName).classList.add('active');
-  event.target.classList.add('active');
+  importarExtratoXLS(file);
 }

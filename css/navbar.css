@@ -1,37 +1,46 @@
 /* VA Business - Sistema Financeiro v1.0.0 • Desenvolvido por OliverStorage */
+
 .navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
   background-color: white;
   padding: 0 30px;
-  height: 60px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  border-bottom: 2px solid #1e40af;
+  height: 70px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-bottom: 3px solid #1e40af;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 .navbar-left {
   display: flex;
   align-items: center;
-  gap: 40px;
+  gap: 50px;
   flex: 1;
 }
 
 .logo {
-  font-size: 20px;
-  font-weight: bold;
-  color: #1e40af;
+  font-size: 24px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -1px;
 }
 
 .menu {
   display: flex;
-  gap: 30px;
+  gap: 40px;
 }
 
 .menu-item {
   text-decoration: none;
   color: #666;
   font-size: 14px;
+  font-weight: 600;
   padding: 8px 0;
   border-bottom: 2px solid transparent;
   transition: all 0.3s;
@@ -62,7 +71,7 @@
 }
 
 .user-name {
-  font-weight: 600;
+  font-weight: 700;
   font-size: 14px;
   color: #333;
 }
@@ -76,12 +85,13 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background-color: #1e40af;
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
+  font-size: 16px;
 }
 
 .logout-btn {
@@ -89,11 +99,46 @@
   color: white;
   border: none;
   padding: 8px 16px;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.3s;
 }
 
 .logout-btn:hover {
   background-color: #b91c1c;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    padding: 0 15px;
+    height: 60px;
+  }
+  
+  .navbar-left {
+    gap: 20px;
+  }
+  
+  .menu {
+    gap: 20px;
+  }
+  
+  .menu-item {
+    font-size: 12px;
+  }
+  
+  .logo {
+    font-size: 18px;
+  }
+  
+  .user-text {
+    display: none;
+  }
+  
+  .navbar-right {
+    gap: 10px;
+  }
 }

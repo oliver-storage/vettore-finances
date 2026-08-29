@@ -4,40 +4,44 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VA Business - Sistema Financeiro</title>
-  <link rel="stylesheet" href="css/styles.css">
-  <link rel="stylesheet" href="css/navbar.css">
+  <title>VA Business - Gestão Financeira</title>
+  <link rel="stylesheet" href="css/landing.css">
 </head>
 <body>
-  <nav class="navbar">
-    <div class="navbar-left">
-      <span class="logo">VA Business</span>
-      <div class="menu">
-        <a href="html/dashboard.html" class="menu-item">Dashboards</a>
-        <a href="html/clientes.html" class="menu-item">Clientes</a>
-        <a href="html/extratos.html" class="menu-item">Extratos</a>
-        <a href="html/pagamentos.html" class="menu-item">Pagamentos</a>
-        <a href="html/configuracao.html" class="menu-item">Configuração</a>
+  <div class="landing-container">
+    <div class="landing-content">
+      <h1>VA Business</h1>
+      <p class="tagline">Sistema de Gestão de Contas a Receber</p>
+      <p class="subtitle">Controle seus recebimentos com inteligência artificial</p>
+      
+      <div class="action-buttons">
+        <button class="btn-login" onclick="goTo('html/login.html')">Entrar</button>
+        <button class="btn-signup" onclick="goTo('html/cadastro.html')">Criar Conta</button>
       </div>
-    </div>
-    <div class="navbar-right">
-      <div class="user-info">
-        <div class="user-text">
-          <span class="user-name" id="userName">Usuário</span>
-          <span class="user-email" id="userEmail">email@example.com</span>
+      
+      <div class="features">
+        <div class="feature">
+          <span>📊</span>
+          <p>Dashboards em Tempo Real</p>
         </div>
-        <div class="user-avatar" id="userAvatar">U</div>
-        <button class="logout-btn" onclick="logout()">Sair</button>
+        <div class="feature">
+          <span>🔄</span>
+          <p>Importação Automática</p>
+        </div>
+        <div class="feature">
+          <span>🤖</span>
+          <p>Matching Inteligente</p>
+        </div>
       </div>
     </div>
-  </nav>
-
-  <main class="container">
-    <h1>VA Business - Sistema Financeiro</h1>
-    <p>Gestão de contas a receber para grupo de escritórios</p>
-    <a href="html/dashboard.html" class="btn-primary">Acessar Dashboard</a>
-  </main>
-
-  <script src="js/main.js"></script>
+  </div>
+  
+  <script>
+    function goTo(url) { window.location.href = url; }
+    window.addEventListener('load', () => {
+      const bg = localStorage.getItem('bg-landing');
+      if (bg) document.body.style.background = bg;
+    });
+  </script>
 </body>
 </html>
