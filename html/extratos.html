@@ -54,7 +54,7 @@
             font-size: 14px;
         }
 
-        select, input[type="file"] {
+        select, input[type="file"], input[type="month"] {
             width: 100%;
             padding: 12px;
             border: 2px solid #ddd;
@@ -93,6 +93,10 @@
             box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
         }
 
+        button:active {
+            transform: translateY(0);
+        }
+
         button:disabled {
             background: #ccc;
             cursor: not-allowed;
@@ -128,6 +132,36 @@
             display: block;
         }
 
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid #004085;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 0.6s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .info-box {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 12px;
+            margin-top: 20px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #555;
+            line-height: 1.5;
+        }
+
+        .info-box strong {
+            color: #333;
+        }
+
         .grid-2 {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -141,18 +175,21 @@
         <p class="subtitle">Faça upload do arquivo XLS com os dados bancários</p>
 
         <form id="uploadForm">
+            <!-- Franquia -->
             <div class="form-group">
                 <label for="franquia">🏢 Franquia</label>
                 <select id="franquia" required>
-                    <option value="">Carregando...</option>
+                    <option value="">Carregando franquias...</option>
                 </select>
             </div>
 
+            <!-- Arquivo -->
             <div class="form-group">
                 <label for="arquivo">📁 Arquivo XLS/XLSX</label>
                 <input type="file" id="arquivo" accept=".xls,.xlsx" required>
             </div>
 
+            <!-- Mês e Ano -->
             <div class="grid-2">
                 <div class="form-group">
                     <label for="mes">📅 Mês</label>
@@ -186,15 +223,28 @@
                 </div>
             </div>
 
+            <!-- Botão -->
             <button type="submit">⬆️ IMPORTAR EXTRATOS</button>
         </form>
 
+        <!-- Status -->
         <div id="status" class="status"></div>
+
+        <!-- Info -->
+        <div class="info-box">
+            <strong>ℹ️ Como usar:</strong><br>
+            1. Selecione a franquia<br>
+            2. Escolha o arquivo XLS<br>
+            3. Defina o mês e ano<br>
+            4. Clique em "Importar Extratos"
+        </div>
     </div>
 
+    <!-- XLSX Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
 
     <script>
+        // Configurações Supabase
         const SUPABASE_URL = 'https://vjdtzesdabmbgnuhcifd.supabase.co/rest/v1';
         const SUPABASE_KEY = 'sb_publishable_GKc2bhpVTzbQdVhJVEQBUw_HE4bxwWD';
 
@@ -204,13 +254,23 @@
             'Content-Type': 'application/json'
         };
 
+        // Elementos
         const form = document.getElementById('uploadForm');
         const statusDiv = document.getElementById('status');
         const franquiaSelect = document.getElementById('franquia');
+        const arquivoInput = document.getElementById('arquivo');
+        const mesSelect = document.getElementById('mes');
+        const anoSelect = document.getElementById('ano');
 
+        // Carregar franquias ao iniciar
         window.addEventListener('load', carregarFranquias);
+
+        // Submit form
         form.addEventListener('submit', handleUpload);
 
+        /**
+         * Carregar lista de franquias
+         */
         async function carregarFranquias() {
             try {
                 const response = await fetch(
@@ -221,33 +281,52 @@
                 if (!response.ok) throw new Error(`Erro ${response.status}`);
 
                 const franquias = await response.json();
+
                 franquiaSelect.innerHTML = '<option value="">Selecione uma franquia</option>';
-                
                 franquias.forEach(f => {
                     const option = document.createElement('option');
                     option.value = f.id;
                     option.textContent = f.nome;
                     franquiaSelect.appendChild(option);
                 });
+
+                if (franquias.length === 0) {
+                    mostrarStatus('Nenhuma franquia encontrada', 'error');
+                }
             } catch (err) {
-                mostrarStatus('Erro ao carregar franquias', 'error');
+                console.error('Erro ao carregar franquias:', err);
+                mostrarStatus('Erro ao carregar franquias: ' + err.message, 'error');
             }
         }
 
+        /**
+         * Obter conta bancária da franquia
+         */
         async function obterContaBancaria(unidadeId) {
-            const response = await fetch(
-                `${SUPABASE_URL}/contas_bancarias?unidade_id=eq.${unidadeId}&ativa=eq.true&limit=1`,
-                { headers }
-            );
+            try {
+                const response = await fetch(
+                    `${SUPABASE_URL}/contas_bancarias?unidade_id=eq.${unidadeId}&ativa=eq.true&limit=1`,
+                    { headers }
+                );
 
-            if (!response.ok) throw new Error('Conta bancária não encontrada');
+                if (!response.ok) throw new Error(`Erro ${response.status}`);
 
-            const contas = await response.json();
-            if (contas.length === 0) throw new Error('Nenhuma conta para esta franquia');
+                const contas = await response.json();
 
-            return contas[0].id;
+                if (contas.length === 0) {
+                    throw new Error('Nenhuma conta bancária encontrada para esta franquia');
+                }
+
+                return contas[0].id;
+            } catch (err) {
+                console.error('Erro ao obter conta bancária:', err);
+                throw err;
+            }
         }
 
+        /**
+         * Processar arquivo XLS
+         */
         function processarXLS(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -256,13 +335,16 @@
                     try {
                         const data = e.target.result;
                         const workbook = XLSX.read(data, { type: 'array' });
-                        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                        const sheetName = workbook.SheetNames[0];
+                        const worksheet = workbook.Sheets[sheetName];
                         const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
+                        // Encontrar header
                         let headerIdx = -1;
                         for (let i = 0; i < Math.min(20, json.length); i++) {
                             const row = json[i];
                             if (!row) continue;
+
                             const rowStr = row.map(c => String(c || '').toLowerCase()).join('');
                             if (rowStr.includes('data') && rowStr.includes('descri') && rowStr.includes('valor')) {
                                 headerIdx = i;
@@ -270,23 +352,46 @@
                             }
                         }
 
-                        if (headerIdx === -1) throw new Error('Formato não reconhecido');
+                        if (headerIdx === -1) {
+                            throw new Error('Não foi possível detectar o formato do arquivo');
+                        }
 
+                        // Processar dados
                         const extratos = [];
                         const headerRow = json[headerIdx];
 
-                        let idxData = 0, idxDesc = 1, idxValor = 3, idxSaldo = 4;
+                        // Encontrar índices das colunas
+                        let idxData = -1, idxDesc = -1, idxValor = -1, idxSaldo = -1;
 
+                        headerRow.forEach((col, idx) => {
+                            const colLower = String(col || '').toLowerCase();
+                            if (colLower.includes('data')) idxData = idx;
+                            if (colLower.includes('descri')) idxDesc = idx;
+                            if (colLower.includes('valor')) idxValor = idx;
+                            if (colLower.includes('saldo')) idxSaldo = idx;
+                        });
+
+                        // Fallback
+                        if (idxData === -1) idxData = 0;
+                        if (idxDesc === -1) idxDesc = 1;
+                        if (idxValor === -1) idxValor = 3;
+                        if (idxSaldo === -1) idxSaldo = 4;
+
+                        // Extrair registros
                         for (let i = headerIdx + 1; i < json.length; i++) {
                             const row = json[i];
                             if (!row || row.length < 2) continue;
 
                             const data = row[idxData];
                             const descricao = row[idxDesc];
-                            const valor = parseValor(row[idxValor]);
-                            const saldo = parseValor(row[idxSaldo]);
+                            const valorRaw = row[idxValor];
+                            const saldoRaw = row[idxSaldo];
 
                             if (!data || !descricao) continue;
+
+                            const valor = parseValor(valorRaw);
+                            const saldo = parseValor(saldoRaw);
+
                             if (valor === 0 && saldo === 0) continue;
 
                             extratos.push({
@@ -312,16 +417,27 @@
             });
         }
 
+        /**
+         * Parse seguro de valores
+         */
         function parseValor(valor) {
             if (!valor) return 0;
-            if (typeof valor === 'number') return isNaN(valor) ? 0 : valor;
+
+            if (typeof valor === 'number') {
+                return isNaN(valor) ? 0 : valor;
+            }
 
             let str = String(valor).trim().replace(/\s/g, '');
 
             if (str.includes(',') && str.includes('.')) {
                 const lastDot = str.lastIndexOf('.');
                 const lastComma = str.lastIndexOf(',');
-                str = lastComma > lastDot ? str.replace(/\./g, '').replace(',', '.') : str.replace(/,/g, '');
+
+                if (lastComma > lastDot) {
+                    str = str.replace(/\./g, '').replace(',', '.');
+                } else {
+                    str = str.replace(/,/g, '');
+                }
             } else if (str.includes(',')) {
                 str = str.replace(',', '.');
             }
@@ -330,18 +446,24 @@
             return isNaN(num) ? 0 : num;
         }
 
+        /**
+         * Formatar data
+         */
         function formatarData(data) {
             if (!data) return new Date().toISOString().split('T')[0];
+
             if (typeof data === 'number') {
                 const d = new Date((data - 25569) * 86400 * 1000);
                 return d.toISOString().split('T')[0];
             }
 
             const str = String(data).trim();
+
             if (/^\d{2}\/\d{2}\/\d{4}$/.test(str)) {
                 const [dia, mes, ano] = str.split('/');
                 return `${ano}-${mes}-${dia}`;
             }
+
             if (/^\d{2}-\d{2}-\d{4}$/.test(str)) {
                 const [dia, mes, ano] = str.split('-');
                 return `${ano}-${mes}-${dia}`;
@@ -350,13 +472,16 @@
             return new Date().toISOString().split('T')[0];
         }
 
+        /**
+         * Fazer upload para Supabase
+         */
         async function handleUpload(e) {
             e.preventDefault();
 
             const franquiaId = franquiaSelect.value;
-            const arquivo = document.getElementById('arquivo').files[0];
-            const mes = document.getElementById('mes').value;
-            const ano = document.getElementById('ano').value;
+            const arquivo = arquivoInput.files[0];
+            const mes = mesSelect.value;
+            const ano = anoSelect.value;
 
             if (!franquiaId || !arquivo || !mes || !ano) {
                 mostrarStatus('❌ Preencha todos os campos', 'error');
@@ -366,19 +491,27 @@
             try {
                 mostrarStatus('⏳ Processando arquivo...', 'loading');
 
+                // Processar arquivo
                 const extratos = await processarXLS(arquivo);
-                if (extratos.length === 0) throw new Error('Nenhum extrato válido');
 
-                mostrarStatus('⏳ Buscando conta bancária...', 'loading');
+                if (extratos.length === 0) {
+                    throw new Error('Nenhum extrato válido encontrado no arquivo');
+                }
+
+                mostrarStatus(`⏳ Buscando conta bancária...`, 'loading');
+
+                // Obter conta bancária
                 const contaBancariaId = await obterContaBancaria(franquiaId);
 
-                mostrarStatus(`⏳ Enviando ${extratos.length} extratos...`, 'loading');
+                mostrarStatus(`⏳ Enviando ${extratos.length} extratos para o banco...`, 'loading');
 
+                // Adicionar conta_bancaria_id a cada extrato
                 const extratosComConta = extratos.map(e => ({
                     ...e,
                     conta_bancaria_id: contaBancariaId
                 }));
 
+                // Enviar para Supabase
                 const response = await fetch(
                     `${SUPABASE_URL}/extratos_movimentacoes`,
                     {
@@ -388,19 +521,31 @@
                     }
                 );
 
-                if (!response.ok) throw new Error(`Erro ${response.status}`);
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || `Erro ${response.status}`);
+                }
 
-                mostrarStatus(`✅ ${extratos.length} extratos importados para ${mes}/${ano}!`, 'success');
+                mostrarStatus(`✅ ${extratos.length} extratos importados com sucesso para ${mes}/${ano}!`, 'success');
+
+                // Limpar form
                 form.reset();
+                carregarFranquias();
 
             } catch (err) {
-                mostrarStatus(`❌ ${err.message}`, 'error');
+                console.error('Erro:', err);
+                mostrarStatus(`❌ Erro: ${err.message}`, 'error');
             }
         }
 
+        /**
+         * Mostrar mensagem de status
+         */
         function mostrarStatus(msg, tipo) {
             statusDiv.className = `status ${tipo}`;
-            statusDiv.innerHTML = msg;
+            statusDiv.innerHTML = tipo === 'loading' 
+                ? `<span class="spinner"></span>${msg}` 
+                : msg;
         }
     </script>
 </body>
