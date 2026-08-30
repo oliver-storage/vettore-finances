@@ -1,156 +1,552 @@
-<!-- Vettore Finances v1.6.1 • Desenvolvido por OliverStorage -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vettore Finances - Extratos</title>
-  
-  <!-- XLSX - CARREGAMENTO CRÍTICO -->
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  
-  <link rel="stylesheet" href="../css/styles.css">
-  <link rel="stylesheet" href="../css/navbar.css">
-  <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Importar Extratos - Vettore Finances</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 500px;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #999;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #555;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        select, input[type="file"], input[type="month"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        input[type="file"] {
+            padding: 8px;
+            cursor: pointer;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        .status.loading {
+            background: #cce5ff;
+            color: #004085;
+            border: 1px solid #b8daff;
+            display: block;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid #004085;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 0.6s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .info-box {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 12px;
+            margin-top: 20px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #555;
+            line-height: 1.5;
+        }
+
+        .info-box strong {
+            color: #333;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+    </style>
 </head>
 <body>
-  <nav class="navbar">
-    <div class="navbar-left">
-      <span class="logo">Vettore</span>
-      <div class="menu">
-        <a href="dashboard.html" class="menu-item">Dashboard</a>
-        <a href="extratos.html" class="menu-item active">Financeiro</a>
-        <a href="configuracao.html" class="menu-item">Configuração</a>
-      </div>
-    </div>
-    <div class="navbar-right">
-      <span id="userName">Usuário</span>
-      <button class="btn-logout" onclick="logout()">Sair</button>
-    </div>
-  </nav>
+    <div class="container">
+        <h1>📊 Importar Extratos</h1>
+        <p class="subtitle">Faça upload do arquivo XLS com os dados bancários</p>
 
-  <div class="container">
-    <h2>Extratos Bancários</h2>
-    <p class="subtitle">Importação e gestão de extratos financeiros</p>
-    
-    <div class="card">
-      <div class="form-row-3">
-        <div class="form-group">
-          <label>Franquia</label>
-          <select id="franquiaFilter" onchange="loadExtratos()">
-            <option value="">Todas</option>
-          </select>
+        <form id="uploadForm">
+            <!-- Franquia -->
+            <div class="form-group">
+                <label for="franquia">🏢 Franquia</label>
+                <select id="franquia" required>
+                    <option value="">Carregando franquias...</option>
+                </select>
+            </div>
+
+            <!-- Arquivo -->
+            <div class="form-group">
+                <label for="arquivo">📁 Arquivo XLS/XLSX</label>
+                <input type="file" id="arquivo" accept=".xls,.xlsx" required>
+            </div>
+
+            <!-- Mês e Ano -->
+            <div class="grid-2">
+                <div class="form-group">
+                    <label for="mes">📅 Mês</label>
+                    <select id="mes" required>
+                        <option value="">--</option>
+                        <option value="01">Janeiro</option>
+                        <option value="02">Fevereiro</option>
+                        <option value="03">Março</option>
+                        <option value="04">Abril</option>
+                        <option value="05">Maio</option>
+                        <option value="06">Junho</option>
+                        <option value="07">Julho</option>
+                        <option value="08">Agosto</option>
+                        <option value="09">Setembro</option>
+                        <option value="10">Outubro</option>
+                        <option value="11">Novembro</option>
+                        <option value="12">Dezembro</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="ano">📆 Ano</label>
+                    <select id="ano" required>
+                        <option value="">--</option>
+                        <option value="2023">2023</option>
+                        <option value="2024">2024</option>
+                        <option value="2025">2025</option>
+                        <option value="2026">2026</option>
+                        <option value="2027">2027</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Botão -->
+            <button type="submit">⬆️ IMPORTAR EXTRATOS</button>
+        </form>
+
+        <!-- Status -->
+        <div id="status" class="status"></div>
+
+        <!-- Info -->
+        <div class="info-box">
+            <strong>ℹ️ Como usar:</strong><br>
+            1. Selecione a franquia<br>
+            2. Escolha o arquivo XLS<br>
+            3. Defina o mês e ano<br>
+            4. Clique em "Importar Extratos"
         </div>
-        <div class="form-group">
-          <label>Mês</label>
-          <select id="mesFilter" onchange="loadExtratos()">
-            <option value="">Todos</option>
-            <option value="01">Janeiro</option>
-            <option value="02">Fevereiro</option>
-            <option value="03">Março</option>
-            <option value="04">Abril</option>
-            <option value="05">Maio</option>
-            <option value="06">Junho</option>
-            <option value="07">Julho</option>
-            <option value="08">Agosto</option>
-            <option value="09">Setembro</option>
-            <option value="10">Outubro</option>
-            <option value="11">Novembro</option>
-            <option value="12">Dezembro</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Ano</label>
-          <select id="anoFilter" onchange="loadExtratos()">
-            <option value="">Todos</option>
-          </select>
-        </div>
-      </div>
-      
-      <button class="btn-primary" onclick="document.getElementById('fileInput').click()">
-        📤 Importar XLS/XLSX
-      </button>
-      <input type="file" id="fileInput" accept=".xls,.xlsx" style="display:none;" onchange="handleFileUpload(event)">
     </div>
 
-    <div id="alertMsg" class="alert" style="display:none;"></div>
+    <!-- XLSX Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
 
-    <div class="card">
-      <h3>Extratos</h3>
-      <table id="tabelaExtratos">
-        <thead>
-          <tr>
-            <th>Data</th>
-            <th>Descrição</th>
-            <th>Tipo</th>
-            <th>Valor</th>
-            <th>Saldo</th>
-            <th>Ações</th>
-          </tr>
-        </thead>
-        <tbody id="tbody"></tbody>
-      </table>
-    </div>
-  </div>
+    <script>
+        // Configurações Supabase
+        const SUPABASE_URL = 'https://vjdtzesdabmbgnuhcifd.supabase.co/rest/v1';
+        const SUPABASE_KEY = 'sb_publishable_GKc2bhpVTzbQdVhJVEQBUw_HE4bxwWD';
 
-  <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.6.1 Desenvolvido por OliverStorage</p>
-  </footer>
+        const headers = {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'Content-Type': 'application/json'
+        };
 
-  <script src="../js/auth.js"></script>
-  <script src="../js/masks.js"></script>
-  <script src="../js/importador.js"></script>
+        // Elementos
+        const form = document.getElementById('uploadForm');
+        const statusDiv = document.getElementById('status');
+        const franquiaSelect = document.getElementById('franquia');
+        const arquivoInput = document.getElementById('arquivo');
+        const mesSelect = document.getElementById('mes');
+        const anoSelect = document.getElementById('ano');
 
-  <script>
-    function inicializar() {
-      try {
-        checkAuth();
-        
-        const user = JSON.parse(localStorage.getItem('currentUser'));
-        const unidades = JSON.parse(localStorage.getItem('unidades') || '[]');
-        const franquia = unidades.find(u => u.id === user.unidade_id);
-        const nomeFranquia = franquia?.nomeFranquia || franquia?.nome || 'Franquia';
-        
-        document.getElementById('userName').textContent = `${nomeFranquia} - ${user.nome}`;
-        
-        const selectFranquia = document.getElementById('franquiaFilter');
-        selectFranquia.innerHTML = '<option value="">Todas</option>';
-        
-        unidades.forEach(u => {
-          const option = document.createElement('option');
-          option.value = u.id;
-          option.textContent = u.nomeFranquia || u.nome;
-          selectFranquia.appendChild(option);
-        });
-        
-        const selectAno = document.getElementById('anoFilter');
-        const anoAtual = new Date().getFullYear();
-        for (let i = anoAtual - 5; i <= anoAtual; i++) {
-          const option = document.createElement('option');
-          option.value = i;
-          option.textContent = i;
-          selectAno.appendChild(option);
+        // Carregar franquias ao iniciar
+        window.addEventListener('load', carregarFranquias);
+
+        // Submit form
+        form.addEventListener('submit', handleUpload);
+
+        /**
+         * Carregar lista de franquias
+         */
+        async function carregarFranquias() {
+            try {
+                const response = await fetch(
+                    `${SUPABASE_URL}/unidades?select=id,nome&ativa=eq.true`,
+                    { headers }
+                );
+
+                if (!response.ok) throw new Error(`Erro ${response.status}`);
+
+                const franquias = await response.json();
+
+                franquiaSelect.innerHTML = '<option value="">Selecione uma franquia</option>';
+                franquias.forEach(f => {
+                    const option = document.createElement('option');
+                    option.value = f.id;
+                    option.textContent = f.nome;
+                    franquiaSelect.appendChild(option);
+                });
+
+                if (franquias.length === 0) {
+                    mostrarStatus('Nenhuma franquia encontrada', 'error');
+                }
+            } catch (err) {
+                console.error('Erro ao carregar franquias:', err);
+                mostrarStatus('Erro ao carregar franquias: ' + err.message, 'error');
+            }
         }
-        
-        loadExtratos();
-        
-        console.log('✅ Inicialização completa');
-        console.log('📦 XLSX disponível?', typeof XLSX !== 'undefined' ? 'TRUE' : 'FALSE');
-        
-      } catch (error) {
-        console.error('❌ Erro:', error);
-      }
-    }
 
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', inicializar);
-    } else {
-      inicializar();
-    }
-  </script>
-  <script src="../js/inicializador.js"></script>
+        /**
+         * Obter conta bancária da franquia
+         */
+        async function obterContaBancaria(unidadeId) {
+            try {
+                const response = await fetch(
+                    `${SUPABASE_URL}/contas_bancarias?unidade_id=eq.${unidadeId}&ativa=eq.true&limit=1`,
+                    { headers }
+                );
+
+                if (!response.ok) throw new Error(`Erro ${response.status}`);
+
+                const contas = await response.json();
+
+                if (contas.length === 0) {
+                    throw new Error('Nenhuma conta bancária encontrada para esta franquia');
+                }
+
+                return contas[0].id;
+            } catch (err) {
+                console.error('Erro ao obter conta bancária:', err);
+                throw err;
+            }
+        }
+
+        /**
+         * Processar arquivo XLS
+         */
+        function processarXLS(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+
+                reader.onload = (e) => {
+                    try {
+                        const data = e.target.result;
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        const sheetName = workbook.SheetNames[0];
+                        const worksheet = workbook.Sheets[sheetName];
+                        const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+                        // Encontrar header
+                        let headerIdx = -1;
+                        for (let i = 0; i < Math.min(20, json.length); i++) {
+                            const row = json[i];
+                            if (!row) continue;
+
+                            const rowStr = row.map(c => String(c || '').toLowerCase()).join('');
+                            if (rowStr.includes('data') && rowStr.includes('descri') && rowStr.includes('valor')) {
+                                headerIdx = i;
+                                break;
+                            }
+                        }
+
+                        if (headerIdx === -1) {
+                            throw new Error('Não foi possível detectar o formato do arquivo');
+                        }
+
+                        // Processar dados
+                        const extratos = [];
+                        const headerRow = json[headerIdx];
+
+                        // Encontrar índices das colunas
+                        let idxData = -1, idxDesc = -1, idxValor = -1, idxSaldo = -1;
+
+                        headerRow.forEach((col, idx) => {
+                            const colLower = String(col || '').toLowerCase();
+                            if (colLower.includes('data')) idxData = idx;
+                            if (colLower.includes('descri')) idxDesc = idx;
+                            if (colLower.includes('valor')) idxValor = idx;
+                            if (colLower.includes('saldo')) idxSaldo = idx;
+                        });
+
+                        // Fallback
+                        if (idxData === -1) idxData = 0;
+                        if (idxDesc === -1) idxDesc = 1;
+                        if (idxValor === -1) idxValor = 3;
+                        if (idxSaldo === -1) idxSaldo = 4;
+
+                        // Extrair registros
+                        for (let i = headerIdx + 1; i < json.length; i++) {
+                            const row = json[i];
+                            if (!row || row.length < 2) continue;
+
+                            const data = row[idxData];
+                            const descricao = row[idxDesc];
+                            const valorRaw = row[idxValor];
+                            const saldoRaw = row[idxSaldo];
+
+                            if (!data || !descricao) continue;
+
+                            const valor = parseValor(valorRaw);
+                            const saldo = parseValor(saldoRaw);
+
+                            if (valor === 0 && saldo === 0) continue;
+
+                            extratos.push({
+                                data_movimento: formatarData(data),
+                                descricao_banco: String(descricao).trim().substring(0, 255),
+                                tipo_operacao: valor > 0 ? 'crédito' : 'débito',
+                                valor: Math.abs(valor),
+                                saldo_pos_operacao: saldo,
+                                tipo_pagamento: 'XLS',
+                                conciliado: false,
+                                flag_revisar: false
+                            });
+                        }
+
+                        resolve(extratos);
+                    } catch (err) {
+                        reject(err);
+                    }
+                };
+
+                reader.onerror = () => reject(new Error('Erro ao ler arquivo'));
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        /**
+         * Parse seguro de valores
+         */
+        function parseValor(valor) {
+            if (!valor) return 0;
+
+            if (typeof valor === 'number') {
+                return isNaN(valor) ? 0 : valor;
+            }
+
+            let str = String(valor).trim().replace(/\s/g, '');
+
+            if (str.includes(',') && str.includes('.')) {
+                const lastDot = str.lastIndexOf('.');
+                const lastComma = str.lastIndexOf(',');
+
+                if (lastComma > lastDot) {
+                    str = str.replace(/\./g, '').replace(',', '.');
+                } else {
+                    str = str.replace(/,/g, '');
+                }
+            } else if (str.includes(',')) {
+                str = str.replace(',', '.');
+            }
+
+            const num = parseFloat(str);
+            return isNaN(num) ? 0 : num;
+        }
+
+        /**
+         * Formatar data
+         */
+        function formatarData(data) {
+            if (!data) return new Date().toISOString().split('T')[0];
+
+            if (typeof data === 'number') {
+                const d = new Date((data - 25569) * 86400 * 1000);
+                return d.toISOString().split('T')[0];
+            }
+
+            const str = String(data).trim();
+
+            if (/^\d{2}\/\d{2}\/\d{4}$/.test(str)) {
+                const [dia, mes, ano] = str.split('/');
+                return `${ano}-${mes}-${dia}`;
+            }
+
+            if (/^\d{2}-\d{2}-\d{4}$/.test(str)) {
+                const [dia, mes, ano] = str.split('-');
+                return `${ano}-${mes}-${dia}`;
+            }
+
+            return new Date().toISOString().split('T')[0];
+        }
+
+        /**
+         * Fazer upload para Supabase
+         */
+        async function handleUpload(e) {
+            e.preventDefault();
+
+            const franquiaId = franquiaSelect.value;
+            const arquivo = arquivoInput.files[0];
+            const mes = mesSelect.value;
+            const ano = anoSelect.value;
+
+            if (!franquiaId || !arquivo || !mes || !ano) {
+                mostrarStatus('❌ Preencha todos os campos', 'error');
+                return;
+            }
+
+            try {
+                mostrarStatus('⏳ Processando arquivo...', 'loading');
+
+                // Processar arquivo
+                const extratos = await processarXLS(arquivo);
+
+                if (extratos.length === 0) {
+                    throw new Error('Nenhum extrato válido encontrado no arquivo');
+                }
+
+                mostrarStatus(`⏳ Buscando conta bancária...`, 'loading');
+
+                // Obter conta bancária
+                const contaBancariaId = await obterContaBancaria(franquiaId);
+
+                mostrarStatus(`⏳ Enviando ${extratos.length} extratos para o banco...`, 'loading');
+
+                // Adicionar conta_bancaria_id a cada extrato
+                const extratosComConta = extratos.map(e => ({
+                    ...e,
+                    conta_bancaria_id: contaBancariaId
+                }));
+
+                // Enviar para Supabase
+                const response = await fetch(
+                    `${SUPABASE_URL}/extratos_movimentacoes`,
+                    {
+                        method: 'POST',
+                        headers,
+                        body: JSON.stringify(extratosComConta)
+                    }
+                );
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || `Erro ${response.status}`);
+                }
+
+                mostrarStatus(`✅ ${extratos.length} extratos importados com sucesso para ${mes}/${ano}!`, 'success');
+
+                // Limpar form
+                form.reset();
+                carregarFranquias();
+
+            } catch (err) {
+                console.error('Erro:', err);
+                mostrarStatus(`❌ Erro: ${err.message}`, 'error');
+            }
+        }
+
+        /**
+         * Mostrar mensagem de status
+         */
+        function mostrarStatus(msg, tipo) {
+            statusDiv.className = `status ${tipo}`;
+            statusDiv.innerHTML = tipo === 'loading' 
+                ? `<span class="spinner"></span>${msg}` 
+                : msg;
+        }
+    </script>
 </body>
 </html>
