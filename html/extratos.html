@@ -1,15 +1,16 @@
-<!-- Vettore Finances v1.5.2 - Extratos com Classificação -->
+<!-- Vettore Finances v1.6.1 • Desenvolvido por OliverStorage -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vettore Finances - Extratos</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js" defer></script>
+  
+  <!-- XLSX - CARREGAMENTO CRÍTICO -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   
   <link rel="stylesheet" href="../css/styles.css">
   <link rel="stylesheet" href="../css/navbar.css">
-  <link rel="stylesheet" href="../css/revisao.css">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -32,12 +33,10 @@
   </nav>
 
   <div class="container">
-    <h2>💰 Extratos Bancários</h2>
-    <p class="subtitle">Importação e gestão de extratos financeiros com classificação automática</p>
+    <h2>Extratos Bancários</h2>
+    <p class="subtitle">Importação e gestão de extratos financeiros</p>
     
-    <!-- Filtros -->
     <div class="card">
-      <h3>Filtros</h3>
       <div class="form-row-3">
         <div class="form-group">
           <label>Franquia</label>
@@ -74,14 +73,13 @@
       <button class="btn-primary" onclick="document.getElementById('fileInput').click()">
         📤 Importar XLS/XLSX
       </button>
-      <input type="file" id="fileInput" accept=".xls,.xlsx,.ofx" style="display:none;" onchange="handleFileUpload(event)">
+      <input type="file" id="fileInput" accept=".xls,.xlsx" style="display:none;" onchange="handleFileUpload(event)">
     </div>
 
     <div id="alertMsg" class="alert" style="display:none;"></div>
 
-    <!-- Tabela de Extratos -->
     <div class="card">
-      <h3>Lançamentos</h3>
+      <h3>Extratos</h3>
       <table id="tabelaExtratos">
         <thead>
           <tr>
@@ -90,8 +88,6 @@
             <th>Tipo</th>
             <th>Valor</th>
             <th>Saldo</th>
-            <th>Categoria</th>
-            <th>Cliente</th>
             <th>Ações</th>
           </tr>
         </thead>
@@ -101,16 +97,14 @@
   </div>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.5.2 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.6.1 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>
   <script src="../js/masks.js"></script>
-  <script src="../js/importador-melhorado.js"></script>
+  <script src="../js/importador.js"></script>
 
   <script>
-    console.log('✅ Página extratos.html carregada');
-    
     function inicializar() {
       try {
         checkAuth();
@@ -144,7 +138,7 @@
         loadExtratos();
         
         console.log('✅ Inicialização completa');
-        console.log('📦 XLSX disponível?', typeof XLSX !== 'undefined');
+        console.log('📦 XLSX disponível?', typeof XLSX !== 'undefined' ? 'TRUE' : 'FALSE');
         
       } catch (error) {
         console.error('❌ Erro:', error);
@@ -157,5 +151,6 @@
       inicializar();
     }
   </script>
+  <script src="../js/inicializador.js"></script>
 </body>
 </html>

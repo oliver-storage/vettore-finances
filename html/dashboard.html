@@ -1,0 +1,95 @@
+<!-- VA Business - Vettore Finances v1.0.0 • Desenvolvido por OliverStorage -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vettore Finances</title>
+  <link rel="stylesheet" href="../css/styles.css">
+  <link rel="stylesheet" href="../css/navbar.css">
+  <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
+  <link rel="stylesheet" href="../css/styles.css">
+  <link rel="stylesheet" href="../css/navbar.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-left">
+      <span class="logo">Vettore</span>
+      <div class="menu">
+        <a href="dashboard.html" class="menu-item active">Dashboard</a>
+        <a href="extratos.html" class="menu-item">Financeiro</a>
+        <a href="configuracao.html" class="menu-item">Configuração</a>
+      </div>
+    </div>
+    <div class="navbar-right">
+      <span id="userName">Usuário</span>
+      <button class="btn-logout" onclick="logout()">Sair</button>
+    </div>
+  </nav>
+  
+  <main class="container">
+    <h1>Dashboard</h1>
+    <div class="grid-3">
+      <div class="card">
+        <h3>Franquias</h3>
+        <p class="metric" id="countUnidades">0</p>
+      </div>
+      <div class="card">
+        <h3>Usuários</h3>
+        <p class="metric" id="countUsers">0</p>
+      </div>
+      <div class="card">
+        <h3>Extratos</h3>
+        <p class="metric" id="countExtratos">0</p>
+      </div>
+    </div>
+  </main>
+  
+  <footer class="footer">
+    <p>&copy; Vettore Finances 2026 - v1.6.1 Desenvolvido por OliverStorage</p>
+  </footer>
+  
+  <script src="../js/auth.js"></script>
+  <script>
+    try {
+      console.log('📊 Dashboard: Inicializando...');
+      checkAuth();
+      
+      const user = JSON.parse(localStorage.getItem('currentUser'));
+      console.log('✓ Usuário:', user.nome, 'Unidade:', user.unidade_id);
+      
+      const unidades = JSON.parse(localStorage.getItem('unidades') || '[]');
+      console.log('✓ Unidades:', unidades.length);
+      
+      const franquia = unidades.find(u => u.id === user.unidade_id);
+      const nomeFranquia = franquia?.nomeFranquia || franquia?.nome || 'Franquia Desconhecida';
+      
+      if (franquia) {
+        console.log('✓ Franquia encontrada:', nomeFranquia);
+      } else {
+        console.error('❌ Franquia não encontrada! ID buscado:', user.unidade_id);
+      }
+      
+      const userNameEl = document.getElementById('userName');
+      if (userNameEl) {
+        userNameEl.textContent = `${nomeFranquia} - ${user.nome}`;
+        console.log('✓ Navbar atualizado');
+      } else {
+        console.error('❌ Elemento userName não encontrado!');
+      }
+      
+      document.getElementById('countUnidades').textContent = unidades.length;
+      document.getElementById('countUsers').textContent = JSON.parse(localStorage.getItem('usuarios') || '[]').length;
+      document.getElementById('countExtratos').textContent = JSON.parse(localStorage.getItem('extratos') || '[]').length;
+      
+      console.log('✅ Dashboard pronto');
+    } catch (error) {
+      console.error('❌ Erro no dashboard:', error);
+      alert('Erro ao carregar dashboard: ' + error.message);
+    }
+  </script>
+</body>
+</html>
