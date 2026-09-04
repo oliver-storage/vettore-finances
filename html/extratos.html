@@ -1,4 +1,4 @@
-<!-- Vettore Finances v1.9.1 • Desenvolvido por OliverStorage -->
+<!-- Vettore Finances v1.9.0 • Desenvolvido por OliverStorage -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -298,47 +298,7 @@
       color: var(--alerta);
       border-color: var(--alerta);
     }
-
-    .btn-menu {
-      background: none;
-      border: none;
-      cursor: pointer;
-      font-size: 18px;
-      padding: 4px 8px;
-      color: var(--tinta-70);
-      transition: color 0.2s;
-    }
-
-    .btn-menu:hover {
-      color: var(--marca);
-    }
-
-    .menu-acoes {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .menu-item {
-      background: none;
-      border: none;
-      padding: 10px 12px;
-      text-align: left;
-      cursor: pointer;
-      font-size: 12px;
-      color: var(--tinta);
-      border-bottom: 1px solid var(--linha);
-      transition: background 0.15s;
-      white-space: nowrap;
-    }
-
-    .menu-item:last-child {
-      border-bottom: none;
-    }
-
-    .menu-item:hover {
-      background: var(--papel);
-      color: var(--marca);
-    }
+  </style>
 </head>
 <body>
   <nav class="navbar">
@@ -383,56 +343,8 @@
     <!-- RESUMO POR CATEGORIA -->
     <div id="resumoCategorias" class="resumo-categorias" style="display:none;"></div>
 
-    <!-- INSERIR LANÇAMENTO MANUAL -->
+    <!-- IMPORTAR EXTRATO -->
     <div class="card">
-      <h3>📝 Inserir Lançamento Manual</h3>
-      <form onsubmit="salvarLancamentoManual(event)">
-        <div class="form-row-3">
-          <div class="form-group">
-            <label>Data *</label>
-            <input type="date" id="inputDataManual" required>
-          </div>
-          <div class="form-group">
-            <label>Histórico/Descrição *</label>
-            <input type="text" id="inputHistoricoManual" placeholder="Ex: Pagamento PIX" required>
-          </div>
-          <div class="form-group">
-            <label>Valor *</label>
-            <input type="number" id="inputValorManual" placeholder="0,00" step="0.01" required>
-          </div>
-        </div>
-
-        <div class="form-row-3">
-          <div class="form-group">
-            <label>Data Referência</label>
-            <input type="date" id="inputDataRefManual">
-          </div>
-          <div class="form-group">
-            <label>Categoria</label>
-            <select id="selectCategoriaManual">
-              <option value="">Selecione...</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Serviço</label>
-            <input type="text" id="inputServicoManual" placeholder="Ex: Consultoria">
-          </div>
-        </div>
-
-        <div class="form-row-2">
-          <div class="form-group">
-            <label>Cliente</label>
-            <input type="text" id="inputClienteManual" placeholder="Ex: Empresa X">
-          </div>
-          <div class="form-group">
-            <label>Observação</label>
-            <input type="text" id="inputObservacaoManual" placeholder="Notas adicionais">
-          </div>
-        </div>
-
-        <button type="submit" class="btn-primary">✅ Salvar Lançamento</button>
-      </form>
-    </div>
       <h3>Importar Extrato</h3>
       <div class="form-row-3">
         <div class="form-group">
@@ -509,7 +421,7 @@
   </div>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.1 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.0 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>
@@ -587,18 +499,6 @@
           selectAno.appendChild(option);
         }
 
-        // Preencher select de categoria manual
-        const selectCategoriaManual = document.getElementById('selectCategoriaManual');
-        CATEGORIAS.forEach(cat => {
-          const option = document.createElement('option');
-          option.value = cat;
-          option.textContent = cat;
-          selectCategoriaManual.appendChild(option);
-        });
-
-        // Pré-preencher data manual com hoje
-        document.getElementById('inputDataManual').valueAsDate = new Date();
-
         // Carregar dados
         await loadExtratos(user);
         
@@ -653,14 +553,7 @@
             <td><input type="text" placeholder="Ex: Consultoria" value="${e.servicos || ''}" onchange="atualizarCampo(${e.id}, 'servicos', this.value)"></td>
             <td><input type="text" placeholder="Ex: Empresa X" value="${e.cliente || ''}" onchange="atualizarCampo(${e.id}, 'cliente', this.value)"></td>
             <td><input type="text" placeholder="Observações" value="${e.observacao || ''}" onchange="atualizarCampo(${e.id}, 'observacao', this.value)"></td>
-            <td style="position:relative;">
-              <button class="btn-menu" onclick="abrirMenuAcoes(event, ${e.id})">⋮</button>
-              <div class="menu-acoes" id="menu-${e.id}" style="display:none; position:absolute; top:30px; right:0; background:white; border:1px solid var(--linha); border-radius:6px; z-index:100; min-width:160px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
-                <button type="button" class="menu-item" onclick="abrirEdicaoRapida(${e.id}, 'categoria')">📋 Editar Categoria</button>
-                <button type="button" class="menu-item" onclick="abrirEdicaoRapida(${e.id}, 'servicos')">🔧 Editar Serviço</button>
-                <button type="button" class="menu-item" onclick="fecharMenuAcoes(); deletarExtrato(${e.id})">🗑️ Deletar</button>
-              </div>
-            </td>
+            <td><button class="btn-danger" onclick="deletarExtrato(${e.id})">×</button></td>
           `;
           tbody.appendChild(tr);
         });
@@ -736,94 +629,6 @@
     } else {
       inicializar();
     }
-
-    // LANÇAMENTO MANUAL
-    async function salvarLancamentoManual(e) {
-      e.preventDefault();
-
-      const user = JSON.parse(localStorage.getItem('currentUser'));
-      const banco = document.getElementById('inputBanco').value;
-      const agencia = document.getElementById('inputAgencia').value;
-      const conta = document.getElementById('inputConta').value;
-
-      const data = document.getElementById('inputDataManual').value;
-      const [ano, mes, dia] = data.split('-');
-
-      const novoLancamento = {
-        unidade_id: user.unidade_id,
-        banco: banco,
-        agencia: agencia,
-        conta: conta,
-        mes: mes,
-        ano: ano,
-        data: data,
-        descricao: document.getElementById('inputHistoricoManual').value,
-        codigo: '',
-        valor: parseFloat(document.getElementById('inputValorManual').value),
-        historico_correcao: null,
-        data_referencia: document.getElementById('inputDataRefManual').value || null,
-        categoria: document.getElementById('selectCategoriaManual').value || null,
-        servicos: document.getElementById('inputServicoManual').value || null,
-        cliente: document.getElementById('inputClienteManual').value || null,
-        observacao: document.getElementById('inputObservacaoManual').value || null
-      };
-
-      try {
-        await SupabaseAPI.insert('extratos', novoLancamento);
-        alert('✅ Lançamento salvo com sucesso!');
-        e.target.reset();
-        document.getElementById('inputDataManual').valueAsDate = new Date();
-        await loadExtratos(user);
-      } catch (error) {
-        alert('❌ Erro: ' + error.message);
-        console.error(error);
-      }
-    }
-
-    // MENU DE AÇÕES
-    function abrirMenuAcoes(event, id) {
-      event.stopPropagation();
-      
-      // Fechar outros menus
-      document.querySelectorAll('.menu-acoes').forEach(menu => {
-        if (menu.id !== `menu-${id}`) menu.style.display = 'none';
-      });
-
-      const menu = document.getElementById(`menu-${id}`);
-      menu.style.display = menu.style.display === 'none' ? 'flex' : 'none';
-    }
-
-    function fecharMenuAcoes() {
-      document.querySelectorAll('.menu-acoes').forEach(menu => {
-        menu.style.display = 'none';
-      });
-    }
-
-    function abrirEdicaoRapida(id, campo) {
-      const extratos = document.querySelectorAll('#tbody tr');
-      let valor = '';
-
-      if (campo === 'categoria') {
-        const categoria = prompt('Editar Categoria:', '');
-        if (categoria !== null) {
-          atualizarCampo(id, 'categoria', categoria);
-        }
-      } else if (campo === 'servicos') {
-        const servico = prompt('Editar Serviço:', '');
-        if (servico !== null) {
-          atualizarCampo(id, 'servicos', servico);
-        }
-      }
-
-      fecharMenuAcoes();
-    }
-
-    // Fechar menu ao clicar fora
-    document.addEventListener('click', function(event) {
-      if (!event.target.closest('.btn-menu') && !event.target.closest('.menu-acoes')) {
-        fecharMenuAcoes();
-      }
-    });
   </script>
 </body>
 </html>
