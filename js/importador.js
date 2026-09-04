@@ -85,6 +85,39 @@ function detectarMesAno(dados, nomeArquivo) {
   return { mes, ano };
 }
 
+function parseValorBR(valor) {
+  if (typeof valor === 'number') {
+    return valor;
+  }
+  
+  if (!valor || typeof valor !== 'string') {
+    return 0;
+  }
+
+  // Detectar se valor está entre parênteses (negativo)
+  const isNegativo = valor.trim().startsWith('(') && valor.trim().endsWith(')');
+  
+  // Remover parênteses, R$, espaços
+  let cleaned = valor.trim()
+    .replace(/[()]/g, '')
+    .replace(/R\$\s*/g, '')
+    .trim();
+  
+  // Converter formato BR (1.234,56) para internacional (1234.56)
+  cleaned = cleaned
+    .replace(/\./g, '')  // Remove pontos de milhar
+    .replace(',', '.');  // Substitui vírgula por ponto
+  
+  let num = parseFloat(cleaned) || 0;
+  
+  // Aplicar sinal negativo se estava entre parênteses
+  if (isNegativo && num > 0) {
+    num = -num;
+  }
+  
+  return num;
+}
+
 function parseXLS(dados, unidadeId, mes, ano, banco, agencia, conta) {
   let extratos = [];
   
@@ -123,7 +156,7 @@ function parseXLS(dados, unidadeId, mes, ano, banco, agencia, conta) {
     const data = row[0];
     const descricao = row[1];
     const codigo = row[2] || '';
-    const valor = parseFloat(row[3]) || 0;
+    const valor = parseValorBR(row[3]);
 
     if (!data || !descricao || valor === 0) continue;
 
@@ -150,7 +183,7 @@ function parseXLS(dados, unidadeId, mes, ano, banco, agencia, conta) {
       data: dataFormatada,
       descricao: String(descricao).trim(),
       codigo: String(codigo).trim(),
-      valor: Math.abs(valor),
+      valor: valor,
       historico_correcao: null,
       data_referencia: null,
       categoria: null,
