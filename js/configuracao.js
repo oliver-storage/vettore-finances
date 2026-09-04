@@ -9,9 +9,9 @@ async function inicializar() {
     const user = JSON.parse(localStorage.getItem('currentUser'));
     const unidades = await SupabaseAPI.get('unidades');
     const franquia = unidades.find(u => u.id === user.unidade_id);
-    const nomefranquia = franquia?.nomefranquia || 'Franquia';
+    const nomefranquia = franquia?.nomefranquia || 'Sistema';
     
-    document.getElementById('userName').textContent = `${nomefranquia} - ${user.nome}`;
+    document.getElementById('userName').textContent = `${nomefranquia} - ${user.nome} (${user.perfil})`;
     
     // Máscara CPF na aba usuários (criar)
     const inputCPF = document.getElementById('inputCPFUsuario');
@@ -29,10 +29,10 @@ async function inicializar() {
       });
     }
     
-    // Carregar dados
-    await carregarUnidades();
-    await carregarFranquiasSelect(unidades);
-    await carregarUsuarios();
+    // Carregar dados com filtros de permissão
+    await carregarUnidades(user);
+    await carregarFranquiasSelect(unidades, user);
+    await carregarUsuarios(user);
     await carregarPrivilegios();
     
   } catch (error) {
@@ -48,12 +48,20 @@ function aplicarMascaraCPF(valor) {
   return clean.slice(0, 3) + '.' + clean.slice(3, 6) + '.' + clean.slice(6, 9) + '-' + clean.slice(9, 11);
 }
 
-async function carregarUnidades() {
+async function carregarUnidades(user) {
   const unidades = await SupabaseAPI.get('unidades');
   const tbody = document.getElementById('tbodyUnidades');
   
   tbody.innerHTML = '';
-  unidades.forEach(u => {
+  
+  let unidadesFiltradas = unidades;
+  
+  // Gestor/Usuário vê apenas sua franquia
+  if (user && user.perfil !== 'administrador' && user.unidade_id) {
+    unidadesFiltradas = unidades.filter(u => u.id === user.unidade_id);
+  }
+  
+  unidadesFiltradas.forEach(u => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${u.nomefranquia}</td>
@@ -61,18 +69,26 @@ async function carregarUnidades() {
       <td>${u.telefone || '-'}</td>
       <td>
         <button class="btn-edit" onclick="editarUnidade(${u.id})">Editar</button>
-        <button class="btn-danger" onclick="deletarUnidade(${u.id})">Deletar</button>
+        ${user && user.perfil === 'administrador' ? `<button class="btn-danger" onclick="deletarUnidade(${u.id})">Deletar</button>` : ''}
       </td>
     `;
     tbody.appendChild(tr);
   });
 }
 
-async function carregarFranquiasSelect(unidades) {
+async function carregarFranquiasSelect(unidades, user) {
   const select = document.getElementById('selectFranquiaUsuario');
   
   select.innerHTML = '<option value="">Selecione...</option>';
-  unidades.forEach(u => {
+  
+  let unidadesFiltradas = unidades;
+  
+  // Gestor vê apenas sua franquia
+  if (user && user.perfil === 'gestor' && user.unidade_id) {
+    unidadesFiltradas = unidades.filter(u => u.id === user.unidade_id);
+  }
+  
+  unidadesFiltradas.forEach(u => {
     const option = document.createElement('option');
     option.value = u.id;
     option.textContent = u.nomefranquia;
@@ -80,13 +96,21 @@ async function carregarFranquiasSelect(unidades) {
   });
 }
 
-async function carregarUsuarios() {
+async function carregarUsuarios(user) {
   const usuarios = await SupabaseAPI.get('usuarios');
   const unidades = await SupabaseAPI.get('unidades');
   const tbody = document.getElementById('tbodyUsuarios');
   
   tbody.innerHTML = '';
-  usuarios.forEach(u => {
+  
+  let usuariosFiltrados = usuarios;
+  
+  // Gestor vê apenas usuários de sua franquia
+  if (user && user.perfil === 'gestor' && user.unidade_id) {
+    usuariosFiltrados = usuarios.filter(u => u.unidade_id === user.unidade_id);
+  }
+  
+  usuariosFiltrados.forEach(u => {
     const unidade = unidades.find(un => un.id === u.unidade_id);
     const nomeUnidade = unidade?.nomefranquia || '-';
     const cpfFormatado = u.cpf ? formatarCPF(u.cpf) : '-';
