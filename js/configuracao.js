@@ -1,5 +1,5 @@
 /**
- * Vettore Finances - Configuração com Supabase v1.9.4
+ * Vettore Finances - Configuração com Supabase v1.9.1
  */
 
 const CATEGORIAS_PADRAO = [
@@ -50,8 +50,8 @@ async function inicializar() {
     await carregarFranquiasSelect(unidades, user);
     await carregarUsuarios(user);
     await carregarPrivilegios();
-    carregarCategorias();
-    carregarServicos();
+    await carregarCategorias();
+    await carregarServicos();
     
   } catch (error) {
     console.error('❌ Erro:', error);
@@ -460,9 +460,6 @@ async function adicionarCategoria() {
 }
 
 function carregarCategorias() {
-  const categoriasSalvas = JSON.parse(localStorage.getItem('categorias') || JSON.stringify(CATEGORIAS));
-  CATEGORIAS = categoriasSalvas;
-  
   const tbody = document.getElementById('tbodyCategorias');
   tbody.innerHTML = '';
   
