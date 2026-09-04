@@ -213,6 +213,13 @@
       padding-right: 16px;
     }
 
+    #tabelaExtratos th:nth-child(5),
+    #tabelaExtratos td:nth-child(5) {
+      text-align: center;
+      color: var(--tinta-40);
+      font-size: 12px;
+    }
+
     #tabelaExtratos thead th {
       background: var(--marca);
       color: white;
@@ -638,6 +645,9 @@
           return;
         }
 
+        // Aplicar parâmetros de auto-preenchimento
+        extratos = aplicarParametrosAuto(extratos);
+
         extratos.forEach(e => {
           const tr = document.createElement('tr');
           const valorFormatado = formatarValorComSinal(e.valor);
@@ -655,7 +665,7 @@
             <td><input type="date" value="${dataRef}" onchange="atualizarCampo(${e.id}, 'data_referencia', this.value)"></td>
             <td><input type="text" placeholder="Descrição do lançamento" value="${historicoCorrecao}" onchange="atualizarCampo(${e.id}, 'historico_correcao', this.value)"></td>
             <td>
-              <select onchange="atualizarCampo(${e.id}, 'categoria', this.value)">
+              <select onchange="atualizarCampo(${e.id}, 'categoria', this.value)" style="${e._autoPreenchido ? 'background-color: #FFFACD;' : ''}">
                 <option value="">Selecione...</option>
                 ${CATEGORIAS.map(c => `<option value="${c}" ${e.categoria === c ? 'selected' : ''}>${c}</option>`).join('')}
               </select>
@@ -680,6 +690,14 @@
       try {
         await SupabaseAPI.update('extratos', id, { [campo]: valor || null });
         console.log(`✅ ${campo} atualizado`);
+        
+        // Se alterou categoria, remover destaque amarelo
+        if (campo === 'categoria') {
+          const select = event.target;
+          if (select) {
+            select.style.backgroundColor = '';
+          }
+        }
       } catch (error) {
         console.error('❌ Erro:', error);
       }
@@ -843,6 +861,33 @@
       });
     }
     // ========== FIM AÇÕES EM MASSA ==========
+
+    // ========== PARÂMETROS AUTO-PREENCHIMENTO ==========
+    function aplicarParametrosAuto(extratos) {
+      const parametros = JSON.parse(localStorage.getItem('parametros_auto') || '[]');
+      if (parametros.length === 0) return extratos;
+
+      return extratos.map(extrato => {
+        const param = parametros.find(p => extrato.descricao.toUpperCase().includes(p.descricao));
+        if (param) {
+          extrato.categoria = param.categoria;
+          extrato.subcategoria = param.subcategoria || '';
+          extrato._autoPreenchido = true;  // Marcar para destaque
+        }
+        return extrato;
+      });
+    }
+
+    function destacarAutoPreenchidos() {
+      const inputs = document.querySelectorAll('select[onchange*="atualizarCampo"]');
+      inputs.forEach(input => {
+        const row = input.closest('tr');
+        if (row && row._autoPreenchido) {
+          input.style.backgroundColor = '#FFFACD';  // Amarelo claro
+        }
+      });
+    }
+    // ========== FIM PARÂMETROS ==========
 
     function atualizarResumoCategorias(extratos) {
       const resumo = {};
