@@ -13,6 +13,14 @@ async function inicializar() {
     
     document.getElementById('userName').textContent = `${nomeFranquia} - ${user.nome}`;
     
+    // Máscara CPF na aba usuários
+    const inputCPF = document.getElementById('inputCPFUsuario');
+    if (inputCPF) {
+      inputCPF.addEventListener('input', (e) => {
+        e.target.value = aplicarMascaraCPF(e.target.value);
+      });
+    }
+    
     // Carregar dados
     await carregarUnidades();
     await carregarFranquiasSelect(unidades);
@@ -22,6 +30,14 @@ async function inicializar() {
   } catch (error) {
     console.error('❌ Erro:', error);
   }
+}
+
+function aplicarMascaraCPF(valor) {
+  const clean = valor.replace(/\D/g, '');
+  if (clean.length <= 3) return clean;
+  if (clean.length <= 6) return clean.slice(0, 3) + '.' + clean.slice(3);
+  if (clean.length <= 9) return clean.slice(0, 3) + '.' + clean.slice(3, 6) + '.' + clean.slice(6);
+  return clean.slice(0, 3) + '.' + clean.slice(3, 6) + '.' + clean.slice(6, 9) + '-' + clean.slice(9, 11);
 }
 
 async function carregarUnidades() {
@@ -65,11 +81,13 @@ async function carregarUsuarios() {
   usuarios.forEach(u => {
     const unidade = unidades.find(un => un.id === u.unidade_id);
     const nomeUnidade = unidade?.nomeFranquia || '-';
+    const cpfFormatado = u.cpf ? formatarCPF(u.cpf) : '-';
     
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${u.nome}</td>
       <td>${u.email}</td>
+      <td>${cpfFormatado}</td>
       <td>${nomeUnidade}</td>
       <td><span class="badge">${u.perfil}</span></td>
       <td>
@@ -79,6 +97,12 @@ async function carregarUsuarios() {
     `;
     tbody.appendChild(tr);
   });
+}
+
+function formatarCPF(cpf) {
+  if (!cpf) return '';
+  const clean = cpf.replace(/\D/g, '');
+  return clean.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
 }
 
 async function carregarPrivilegios() {
@@ -141,9 +165,12 @@ async function handleNovaUnidade(e) {
 async function handleNovoUsuario(e) {
   e.preventDefault();
   
+  const cpfRaw = document.getElementById('inputCPFUsuario').value.replace(/\D/g, '');
+  
   const novo = {
     nome: document.getElementById('inputNomeUsuario').value,
     email: document.getElementById('inputEmailUsuario').value,
+    cpf: cpfRaw || null,
     unidade_id: parseInt(document.getElementById('selectFranquiaUsuario').value),
     perfil: document.getElementById('selectPerfilUsuario').value,
     senha: document.getElementById('inputSenhaUsuario').value,
@@ -189,10 +216,93 @@ async function salvarPrivilegios() {
   alert('✅ Privilégios salvos!');
 }
 
-function editarUnidade(id) { alert('Função será implementada'); }
-function deletarUnidade(id) { alert('Função será implementada'); }
-function editarUsuario(id) { alert('Função será implementada'); }
-function deletarUsuario(id) { alert('Função será implementada'); }
+async function editarUnidade(id) {
+  const unidades = await SupabaseAPI.get('unidades');
+  const unidade = unidades.find(u => u.id === id);
+  
+  if (!unidade) {
+    alert('❌ Unidade não encontrada');
+    return;
+  }
+  
+  const novoNome = prompt('Nome Franquia:', unidade.nomeFranquia);
+  if (novoNome === null) return;
+  
+  const updateData = { nomeFranquia: novoNome };
+  
+  try {
+    await SupabaseAPI.update('unidades', id, updateData);
+    alert('✅ Unidade atualizada!');
+    await carregarUnidades();
+  } catch (error) {
+    alert('❌ Erro: ' + error.message);
+  }
+}
+
+async function deletarUnidade(id) {
+  if (!confirm('Deletar esta unidade?')) return;
+  
+  try {
+    await SupabaseAPI.delete('unidades', id);
+    alert('✅ Unidade deletada!');
+    await carregarUnidades();
+    const unidades = await SupabaseAPI.get('unidades');
+    await carregarFranquiasSelect(unidades);
+  } catch (error) {
+    alert('❌ Erro: ' + error.message);
+  }
+}
+async function editarUsuario(id) {
+  const usuarios = await SupabaseAPI.get('usuarios');
+  const user = usuarios.find(u => u.id === id);
+  
+  if (!user) {
+    alert('❌ Usuário não encontrado');
+    return;
+  }
+  
+  const novoNome = prompt('Nome:', user.nome);
+  if (novoNome === null) return;
+  
+  const novoEmail = prompt('Email:', user.email);
+  if (novoEmail === null) return;
+  
+  const novoCPF = prompt('CPF (apenas números):', user.cpf || '');
+  if (novoCPF === null) return;
+  
+  const novaSenha = prompt('Senha (deixe vazio para manter):', '');
+  if (novaSenha === null) return;
+  
+  const updateData = {
+    nome: novoNome,
+    email: novoEmail,
+    cpf: novoCPF
+  };
+  
+  if (novaSenha) {
+    updateData.senha = novaSenha;
+  }
+  
+  try {
+    await SupabaseAPI.update('usuarios', id, updateData);
+    alert('✅ Usuário atualizado!');
+    await carregarUsuarios();
+  } catch (error) {
+    alert('❌ Erro: ' + error.message);
+  }
+}
+
+async function deletarUsuario(id) {
+  if (!confirm('Deletar este usuário?')) return;
+  
+  try {
+    await SupabaseAPI.delete('usuarios', id);
+    alert('✅ Usuário deletado!');
+    await carregarUsuarios();
+  } catch (error) {
+    alert('❌ Erro: ' + error.message);
+  }
+}
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', inicializar);
