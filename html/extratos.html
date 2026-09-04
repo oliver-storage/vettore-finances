@@ -1,10 +1,10 @@
-<!-- Vettore Finances v1.8.0 • Desenvolvido por OliverStorage -->
+<!-- Vettore Finances v1.8.1 • Desenvolvido por OliverStorage -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vettore Finances - Extratos</title>
+  <title>Vettore Finances - Financeiro</title>
   
   <!-- XLSX -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -15,6 +15,76 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600&display=swap" rel="stylesheet">
+  <style>
+    .conta-info {
+      background: var(--papel);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 20px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    
+    .conta-item {
+      border-left: 3px solid var(--marca);
+      padding-left: 12px;
+    }
+    
+    .conta-item label {
+      font-size: 11px;
+      color: var(--tinta-70);
+      text-transform: uppercase;
+      font-weight: 600;
+      display: block;
+      margin-bottom: 4px;
+    }
+    
+    .conta-item value {
+      font-size: 16px;
+      color: var(--tinta);
+      font-weight: 500;
+      display: block;
+    }
+
+    .resumo-categorias {
+      background: var(--papel);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 20px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+    }
+
+    .categoria-box {
+      text-align: center;
+      padding: 12px;
+      background: var(--papel-alto);
+      border-radius: 6px;
+      border-top: 2px solid var(--marca);
+    }
+
+    .categoria-box label {
+      font-size: 11px;
+      color: var(--tinta-70);
+      text-transform: uppercase;
+      font-weight: 600;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .categoria-box value {
+      font-size: 14px;
+      color: var(--marca);
+      font-weight: 600;
+      display: block;
+    }
+
+    table input, table select {
+      font-size: 12px;
+    }
+  </style>
 </head>
 <body>
   <nav class="navbar">
@@ -33,17 +103,60 @@
   </nav>
 
   <div class="container">
-    <h2>Extratos Bancários</h2>
-    <p class="subtitle">Importação e gestão de extratos financeiros</p>
-    
+    <h2>Financeiro</h2>
+    <p class="subtitle">Gestão de extratos bancários por categoria</p>
+
+    <!-- INFORMAÇÕES DA CONTA -->
+    <div class="conta-info">
+      <div class="conta-item">
+        <label>Franquia</label>
+        <value id="infoFranquia">-</value>
+      </div>
+      <div class="conta-item">
+        <label>Banco</label>
+        <value id="infoBanco">-</value>
+      </div>
+      <div class="conta-item">
+        <label>Agência</label>
+        <value id="infoAgencia">-</value>
+      </div>
+      <div class="conta-item">
+        <label>Conta</label>
+        <value id="infoConta">-</value>
+      </div>
+    </div>
+
+    <!-- RESUMO POR CATEGORIA -->
+    <div id="resumoCategorias" class="resumo-categorias" style="display:none;"></div>
+
+    <!-- IMPORTAR EXTRATO -->
     <div class="card">
+      <h3>Importar Extrato</h3>
       <div class="form-row-3">
         <div class="form-group">
-          <label>Franquia</label>
-          <select id="franquiaFilter" onchange="loadExtratos()">
-            <option value="">Todas</option>
-          </select>
+          <label>Banco</label>
+          <input type="text" id="inputBanco" placeholder="Ex: Sicredi, Bradesco">
         </div>
+        <div class="form-group">
+          <label>Agência</label>
+          <input type="text" id="inputAgencia" placeholder="Ex: 2301">
+        </div>
+        <div class="form-group">
+          <label>Conta</label>
+          <input type="text" id="inputConta" placeholder="Ex: 53058-1">
+        </div>
+      </div>
+      
+      <button class="btn-primary" onclick="document.getElementById('fileInput').click()">
+        📤 Importar XLS/XLSX
+      </button>
+      <input type="file" id="fileInput" accept=".xls,.xlsx" style="display:none;" onchange="handleFileUpload(event)">
+    </div>
+
+    <!-- TABELA DE EXTRATOS -->
+    <div class="card">
+      <h3>Extratos</h3>
+      <div class="form-row-3" style="margin-bottom: 16px;">
         <div class="form-group">
           <label>Mês</label>
           <select id="mesFilter" onchange="loadExtratos()">
@@ -69,23 +182,20 @@
           </select>
         </div>
       </div>
-      
-      <button class="btn-primary" onclick="document.getElementById('fileInput').click()">
-        📤 Importar XLS/XLSX
-      </button>
-      <input type="file" id="fileInput" accept=".xls,.xlsx" style="display:none;" onchange="handleFileUpload(event)">
-    </div>
 
-    <div class="card">
-      <h3>Extratos</h3>
       <table id="tabelaExtratos">
         <thead>
           <tr>
             <th>Data</th>
-            <th>Descrição</th>
-            <th>Tipo</th>
+            <th>Histórico Banco</th>
+            <th>Histórico Correção</th>
+            <th>CÓD</th>
             <th>Valor</th>
-            <th>Saldo</th>
+            <th>Data Ref.</th>
+            <th>Categoria</th>
+            <th>Serviços</th>
+            <th>Cliente</th>
+            <th>Observação</th>
             <th>Ações</th>
           </tr>
         </thead>
@@ -95,15 +205,19 @@
   </div>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.8.0 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.8.1 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>
-  <script src="../js/masks.js"></script>
   <script src="../js/supabase-utils.js"></script>
   <script src="../js/importador.js"></script>
 
   <script>
+    const CATEGORIAS = [
+      'BOLETOS', 'CUSTEIO', 'DAE CLIENTE', 'ENDEREÇO FISCAL',
+      'HONORÁRIOS', 'NEGOCIAÇÃO', 'PARCEIROS', 'SERVIÇOS', 'TARIFAS', 'SALDO ANTERIOR'
+    ];
+
     async function inicializar() {
       try {
         checkAuth();
@@ -111,20 +225,21 @@
         const user = JSON.parse(localStorage.getItem('currentUser'));
         const unidades = await SupabaseAPI.get('unidades');
         const franquia = unidades.find(u => u.id === user.unidade_id);
-        const nomeFranquia = franquia?.nomeFranquia || 'Franquia';
         
-        document.getElementById('userName').textContent = `${nomeFranquia} - ${user.nome}`;
+        document.getElementById('userName').textContent = `${franquia?.nomefranquia} - ${user.nome}`;
         
-        const selectFranquia = document.getElementById('franquiaFilter');
-        selectFranquia.innerHTML = '<option value="">Todas</option>';
-        
-        unidades.forEach(u => {
-          const option = document.createElement('option');
-          option.value = u.id;
-          option.textContent = u.nomeFranquia;
-          selectFranquia.appendChild(option);
-        });
-        
+        // Preencher informações da conta
+        document.getElementById('infoFranquia').textContent = franquia?.nomefranquia || '-';
+        document.getElementById('infoBanco').textContent = franquia?.banco || '-';
+        document.getElementById('infoAgencia').textContent = franquia?.agencia || '-';
+        document.getElementById('infoConta').textContent = franquia?.conta || '-';
+
+        // Pré-preencher dados do formulário
+        document.getElementById('inputBanco').value = franquia?.banco || '';
+        document.getElementById('inputAgencia').value = franquia?.agencia || '';
+        document.getElementById('inputConta').value = franquia?.conta || '';
+
+        // Preencher anos
         const selectAno = document.getElementById('anoFilter');
         const anoAtual = new Date().getFullYear();
         for (let i = anoAtual - 5; i <= anoAtual; i++) {
@@ -133,13 +248,121 @@
           option.textContent = i;
           selectAno.appendChild(option);
         }
-        
-        loadExtratos();
-        
-        console.log('✅ Inicialização completa');
+
+        // Carregar dados
+        await loadExtratos(user);
         
       } catch (error) {
         console.error('❌ Erro:', error);
+      }
+    }
+
+    async function loadExtratos(user) {
+      const userCurrent = user || JSON.parse(localStorage.getItem('currentUser'));
+      const mes = document.getElementById('mesFilter').value;
+      const ano = document.getElementById('anoFilter').value;
+
+      try {
+        let extratos = await SupabaseAPI.get('extratos');
+
+        // Filtrar por unidade
+        extratos = extratos.filter(e => e.unidade_id === userCurrent.unidade_id);
+
+        if (mes) extratos = extratos.filter(e => e.mes === mes);
+        if (ano) extratos = extratos.filter(e => e.ano === ano);
+
+        const tbody = document.getElementById('tbody');
+        tbody.innerHTML = '';
+
+        if (extratos.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:20px;">Nenhum extrato</td></tr>';
+          return;
+        }
+
+        extratos.forEach(e => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${e.data}</td>
+            <td>${e.descricao}</td>
+            <td><input type="text" value="${e.historico_correcao || ''}" onchange="atualizarCampo(${e.id}, 'historico_correcao', this.value)" style="width:100%; padding:4px;"></td>
+            <td>${e.codigo || '-'}</td>
+            <td>R$ ${parseFloat(e.valor).toFixed(2)}</td>
+            <td><input type="date" value="${e.data_referencia || ''}" onchange="atualizarCampo(${e.id}, 'data_referencia', this.value)" style="width:100%; padding:4px;"></td>
+            <td>
+              <select onchange="atualizarCampo(${e.id}, 'categoria', this.value)" style="width:100%; padding:4px;">
+                <option value="">-</option>
+                ${CATEGORIAS.map(c => `<option value="${c}" ${e.categoria === c ? 'selected' : ''}>${c}</option>`).join('')}
+              </select>
+            </td>
+            <td><input type="text" value="${e.servicos || ''}" onchange="atualizarCampo(${e.id}, 'servicos', this.value)" style="width:100%; padding:4px;"></td>
+            <td><input type="text" value="${e.cliente || ''}" onchange="atualizarCampo(${e.id}, 'cliente', this.value)" style="width:100%; padding:4px;"></td>
+            <td><input type="text" value="${e.observacao || ''}" onchange="atualizarCampo(${e.id}, 'observacao', this.value)" style="width:100%; padding:4px;"></td>
+            <td><button class="btn-danger" onclick="deletarExtrato(${e.id})">Deletar</button></td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+        // Atualizar resumo de categorias
+        atualizarResumoCategorias(extratos);
+
+      } catch (error) {
+        console.error('❌ Erro ao carregar:', error);
+      }
+    }
+
+    async function atualizarCampo(id, campo, valor) {
+      try {
+        await SupabaseAPI.update('extratos', id, { [campo]: valor || null });
+        console.log(`✅ ${campo} atualizado`);
+      } catch (error) {
+        console.error('❌ Erro:', error);
+      }
+    }
+
+    async function deletarExtrato(id) {
+      if (!confirm('Deletar este extrato?')) return;
+      
+      try {
+        await SupabaseAPI.delete('extratos', id);
+        const user = JSON.parse(localStorage.getItem('currentUser'));
+        await loadExtratos(user);
+      } catch (error) {
+        console.error('❌ Erro:', error);
+      }
+    }
+
+    function atualizarResumoCategorias(extratos) {
+      const resumo = {};
+      
+      CATEGORIAS.forEach(cat => {
+        resumo[cat] = 0;
+      });
+
+      extratos.forEach(e => {
+        if (e.categoria && resumo.hasOwnProperty(e.categoria)) {
+          resumo[e.categoria] += parseFloat(e.valor) || 0;
+        }
+      });
+
+      const resumoDiv = document.getElementById('resumoCategorias');
+      let html = '';
+
+      Object.entries(resumo).forEach(([cat, valor]) => {
+        if (valor !== 0) {
+          html += `
+            <div class="categoria-box">
+              <label>${cat}</label>
+              <value>R$ ${valor.toFixed(2)}</value>
+            </div>
+          `;
+        }
+      });
+
+      if (html) {
+        resumoDiv.innerHTML = html;
+        resumoDiv.style.display = 'grid';
+      } else {
+        resumoDiv.style.display = 'none';
       }
     }
 

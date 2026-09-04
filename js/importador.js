@@ -1,5 +1,5 @@
 /**
- * Vettore Finances - Importador de Extratos v1.7.0
+ * Vettore Finances - Importador de Extratos v1.8.1
  * Salva em Supabase com suporte a edição
  */
 
@@ -9,12 +9,13 @@ function handleFileUpload(event) {
 
   console.log('📤 Upload iniciado:', file.name);
   
-  const franquiaId = document.getElementById('franquiaFilter')?.value;
-  const mes = document.getElementById('mesFilter')?.value;
-  const ano = document.getElementById('anoFilter')?.value;
+  const user = JSON.parse(localStorage.getItem('currentUser'));
+  const banco = document.getElementById('inputBanco').value;
+  const agencia = document.getElementById('inputAgencia').value;
+  const conta = document.getElementById('inputConta').value;
 
-  if (!franquiaId || !mes || !ano) {
-    alert('⚠️ Selecione Franquia, Mês e Ano!');
+  if (!banco || !agencia || !conta) {
+    alert('⚠️ Preencha Banco, Agência e Conta!');
     return;
   }
 
@@ -32,7 +33,12 @@ function handleFileUpload(event) {
       const worksheet = workbook.Sheets[sheetName];
       const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
       
-      const extratos = parseXLS(json, franquiaId, mes, ano);
+      // Detectar mês e ano do arquivo
+      const { mes, ano } = detectarMesAno(json, file.name);
+      
+      console.log(`📅 Detectado: ${mes}/${ano}`);
+      
+      const extratos = parseXLS(json, user.unidade_id, mes, ano, banco, agencia, conta);
       
       if (extratos.length === 0) {
         alert('⚠️ Nenhum extrato válido encontrado');
@@ -49,7 +55,37 @@ function handleFileUpload(event) {
   reader.readAsArrayBuffer(file);
 }
 
-function parseXLS(dados, franquiaId, mes, ano) {
+function detectarMesAno(dados, nomeArquivo) {
+  let mes = String(new Date().getMonth() + 1).padStart(2, '0');
+  let ano = new Date().getFullYear();
+
+  // Tentar extrair do nome do arquivo (ex: extrato_07_2026.xlsx)
+  const regexFileName = /(\d{1,2})[-_](\d{4})/;
+  const matchFileName = nomeArquivo.match(regexFileName);
+  if (matchFileName) {
+    mes = String(parseInt(matchFileName[1])).padStart(2, '0');
+    ano = parseInt(matchFileName[2]);
+    return { mes, ano };
+  }
+
+  // Tentar extrair da primeira data da planilha
+  for (let i = 0; i < Math.min(30, dados.length); i++) {
+    const row = dados[i];
+    if (row && row[0]) {
+      const dateStr = String(row[0]);
+      const dateMatch = dateStr.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+      if (dateMatch) {
+        mes = String(parseInt(dateMatch[2])).padStart(2, '0');
+        ano = parseInt(dateMatch[3]);
+        return { mes, ano };
+      }
+    }
+  }
+
+  return { mes, ano };
+}
+
+function parseXLS(dados, unidadeId, mes, ano, banco, agencia, conta) {
   let extratos = [];
   
   let headerIdx = -1;
@@ -59,7 +95,7 @@ function parseXLS(dados, franquiaId, mes, ano) {
     
     const str = (row.join('') || '').toLowerCase();
     if ((str.includes('data') || str.includes('date')) && 
-        (str.includes('descri') || str.includes('detail')) && 
+        (str.includes('descri') || str.includes('histórico') || str.includes('detail')) && 
         str.includes('valor')) {
       headerIdx = i;
       break;
@@ -69,7 +105,7 @@ function parseXLS(dados, franquiaId, mes, ano) {
   if (headerIdx === -1) {
     for (let i = 0; i < Math.min(20, dados.length); i++) {
       const row = dados[i];
-      if (row && row.filter(cell => cell !== null && cell !== undefined && cell !== '').length >= 4) {
+      if (row && row.filter(cell => cell !== null && cell !== undefined && cell !== '').length >= 3) {
         headerIdx = i;
         break;
       }
@@ -86,28 +122,41 @@ function parseXLS(dados, franquiaId, mes, ano) {
 
     const data = row[0];
     const descricao = row[1];
+    const codigo = row[2] || '';
     const valor = parseFloat(row[3]) || 0;
-    const saldo = parseFloat(row[4]) || 0;
 
-    if (!data || !descricao || (valor === 0 && saldo === 0)) continue;
+    if (!data || !descricao || valor === 0) continue;
 
     let dataFormatada = data;
     if (typeof data === 'number') {
       const d = new Date((data - 25569) * 86400 * 1000);
-      dataFormatada = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+      dataFormatada = String(d.getFullYear()) + '-' + 
+                      String(d.getMonth() + 1).padStart(2, '0') + '-' + 
+                      String(d.getDate()).padStart(2, '0');
+    } else if (typeof data === 'string') {
+      const parts = data.split('/');
+      if (parts.length === 3) {
+        dataFormatada = `${parts[2]}-${parts[1]}-${parts[0]}`;
+      }
     }
 
     extratos.push({
-      unidade_id: parseInt(franquiaId),
+      unidade_id: unidadeId,
+      banco: banco,
+      agencia: agencia,
+      conta: conta,
       mes: mes,
       ano: ano,
       data: dataFormatada,
       descricao: String(descricao).trim(),
-      descricao_editada: null,
+      codigo: String(codigo).trim(),
       valor: Math.abs(valor),
-      saldo: saldo,
-      tipo_operacao: valor > 0 ? 'crédito' : 'débito',
-      tipo_pagamento: 'XLS'
+      historico_correcao: null,
+      data_referencia: null,
+      categoria: null,
+      servicos: null,
+      cliente: null,
+      observacao: null
     });
   }
 
@@ -130,70 +179,5 @@ async function salvarExtratosSupabase(extratos) {
   } catch (error) {
     console.error('❌ Erro ao salvar:', error);
     alert('Erro ao salvar: ' + error.message);
-  }
-}
-
-async function loadExtratos() {
-  const franquiaId = document.getElementById('franquiaFilter')?.value;
-  const mes = document.getElementById('mesFilter')?.value;
-  const ano = document.getElementById('anoFilter')?.value;
-
-  try {
-    let extratos = await SupabaseAPI.get('extratos');
-
-    if (franquiaId) extratos = extratos.filter(e => e.unidade_id === parseInt(franquiaId));
-    if (mes) extratos = extratos.filter(e => e.mes === mes);
-    if (ano) extratos = extratos.filter(e => e.ano === ano);
-
-    const tbody = document.getElementById('tbody');
-    if (!tbody) return;
-
-    tbody.innerHTML = '';
-    if (extratos.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;">Nenhum extrato</td></tr>';
-      return;
-    }
-
-    extratos.forEach(e => {
-      const tr = document.createElement('tr');
-      const descricaoExibir = e.descricao_editada || e.descricao;
-      
-      tr.innerHTML = `
-        <td>${e.data}</td>
-        <td title="${e.descricao}">${descricaoExibir}</td>
-        <td><span class="badge">${e.tipo_operacao}</span></td>
-        <td>R$ ${parseFloat(e.valor).toFixed(2)}</td>
-        <td>R$ ${parseFloat(e.saldo).toFixed(2)}</td>
-        <td>
-          <button class="btn-edit" onclick="abrirEdicao(${e.id}, '${e.descricao}', '${e.descricao_editada || e.descricao}')">Editar</button>
-          <button class="btn-danger" onclick="deletarExtrato(${e.id})">Deletar</button>
-        </td>
-      `;
-      tbody.appendChild(tr);
-    });
-  } catch (error) {
-    console.error('❌ Erro ao carregar:', error);
-  }
-}
-
-async function abrirEdicao(id, descricaoOriginal, descricaoEditada) {
-  const novaDescricao = prompt(`Editar descrição:\n\nOriginal: ${descricaoOriginal}\n\nNova:`, descricaoEditada);
-  
-  if (novaDescricao !== null && novaDescricao !== descricaoEditada) {
-    await SupabaseAPI.update('extratos', id, { descricao_editada: novaDescricao });
-    loadExtratos();
-    alert('✅ Descrição atualizada!');
-  }
-}
-
-async function deletarExtrato(id) {
-  if (!confirm('Deletar este extrato?')) return;
-  
-  try {
-    await SupabaseAPI.delete('extratos', id);
-    loadExtratos();
-  } catch (error) {
-    console.error('❌ Erro:', error);
-    alert('Erro ao deletar: ' + error.message);
   }
 }
