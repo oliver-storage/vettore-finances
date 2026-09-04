@@ -1,4 +1,4 @@
-<!-- Vettore Finances v1.8.7 • Desenvolvido por OliverStorage -->
+<!-- Vettore Finances v1.8.8 • Desenvolvido por OliverStorage -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -16,6 +16,38 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600&display=swap" rel="stylesheet">
   <style>
+    /* Barra de progresso no topo */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, var(--marca), var(--destaque), var(--marca));
+      animation: progresso 2s infinite;
+      z-index: 9999;
+    }
+
+    @keyframes progresso {
+      0% { left: -100%; }
+      50% { left: 100%; }
+      100% { left: 100%; }
+    }
+
+    footer.footer {
+      background: var(--topo-bg);
+      color: rgba(255, 255, 255, 0.8);
+      text-align: center;
+      padding: 16px 20px;
+      margin-top: 40px;
+      border-top: 1px solid var(--linha);
+      font-size: 12px;
+    }
+
+    footer.footer p {
+      margin: 0;
+    }
     /* 
     ═══════════════════════════════════════════════════════════════
     ANÁLISE SEMIÓTICA DA TABELA FINANCEIRA
@@ -389,7 +421,7 @@
   </div>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.8.7 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.8.8 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>
@@ -407,6 +439,20 @@
         style: 'currency',
         currency: 'BRL'
       });
+    }
+
+    function formatarDataBR(data) {
+      if (!data) return '';
+      const [ano, mes, dia] = data.split('-');
+      const anoAbrev = ano.slice(-2);
+      return `${dia}/${mes}/${anoAbrev}`;
+    }
+
+    function formatarDataISO(dataBR) {
+      if (!dataBR || dataBR.length !== 10) return '';
+      const [dia, mes, anoAbrev] = dataBR.split('/');
+      const ano = anoAbrev.length === 2 ? '20' + anoAbrev : anoAbrev;
+      return `${ano}-${mes}-${dia}`;
     }
 
     async function inicializar() {
@@ -473,14 +519,15 @@
         extratos.forEach(e => {
           const tr = document.createElement('tr');
           const valorFormatado = formatarMoedaBR(e.valor);
+          const dataFormatada = formatarDataBR(e.data);
           const dataRef = e.data_referencia || e.data;
           const historicoCorrecao = e.historico_correcao || e.descricao;
           
           tr.innerHTML = `
-            <td style="font-weight:500; color:var(--tinta);">${e.data}</td>
+            <td style="font-weight:400; color:var(--tinta); font-size:13px;">${dataFormatada}</td>
             <td style="font-size:13px; color:var(--tinta);">${e.descricao}</td>
             <td style="font-weight:600; color:var(--marca); font-size:14px;">${valorFormatado}</td>
-            <td style="text-align:center; color:var(--tinta-40);">${e.codigo || '-'}</td>
+            <td style="text-align:center; color:var(--tinta-40); font-size:12px;">${e.codigo || '-'}</td>
             <td><input type="date" value="${dataRef}" onchange="atualizarCampo(${e.id}, 'data_referencia', this.value)"></td>
             <td><input type="text" placeholder="Descrição do lançamento" value="${historicoCorrecao}" onchange="atualizarCampo(${e.id}, 'historico_correcao', this.value)"></td>
             <td>
