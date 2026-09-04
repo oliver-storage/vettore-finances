@@ -153,6 +153,16 @@ textarea {
   border: 1px solid var(--linha);
   border-radius: 4px;
   font-size: 14px;
+  font-family: inherit;
+  color: var(--tinta);
+}
+
+/* Selects de filtro mais compactos */
+#mesFilter,
+#anoFilter {
+  padding: 8px 10px;
+  font-size: 13px;
+}
   color: var(--tinta);
   transition: all 0.15s;
 }
