@@ -1,13 +1,13 @@
 /**
- * Vettore Finances - Importador de Extratos v1.6.1
- * FUNCIONA DE VERDADE - Sem trapacear
+ * Vettore Finances - Importador de Extratos v1.7.0
+ * Salva em Supabase com suporte a edição
  */
 
 function handleFileUpload(event) {
   const file = event.target.files[0];
   if (!file) return;
 
-  console.log('📤 Upload iniciado:', file.name, 'Tamanho:', file.size);
+  console.log('📤 Upload iniciado:', file.name);
   
   const franquiaId = document.getElementById('franquiaFilter')?.value;
   const mes = document.getElementById('mesFilter')?.value;
@@ -18,24 +18,11 @@ function handleFileUpload(event) {
     return;
   }
 
-  // Aguardar XLSX estar disponível
-  const tentarImportar = (tentativas = 0) => {
-    if (typeof XLSX !== 'undefined') {
-      console.log('✅ XLSX disponível! Processando...');
-      lerXLS(file, franquiaId, mes, ano);
-    } else if (tentativas < 20) {
-      console.log('⏳ XLSX não disponível, tentando novamente... (', tentativas, '/20)');
-      setTimeout(() => tentarImportar(tentativas + 1), 100);
-    } else {
-      console.error('❌ XLSX não carregou após 2 segundos');
-      alert('❌ Erro: Sistema de leitura não carregou. Recarregue a página.');
-    }
-  };
-
-  tentarImportar();
-}
-
-function lerXLS(file, franquiaId, mes, ano) {
+  if (typeof XLSX === 'undefined') {
+    alert('❌ XLSX não disponível');
+    return;
+  }
+  
   const reader = new FileReader();
   reader.onload = (e) => {
     try {
@@ -48,13 +35,13 @@ function lerXLS(file, franquiaId, mes, ano) {
       const extratos = parseXLS(json, franquiaId, mes, ano);
       
       if (extratos.length === 0) {
-        alert('⚠️ Nenhum extrato válido encontrado no arquivo');
+        alert('⚠️ Nenhum extrato válido encontrado');
         return;
       }
       
-      salvarExtratos(extratos);
+      salvarExtratosSupabase(extratos);
     } catch (error) {
-      console.error('❌ Erro ao processar:', error);
+      console.error('❌ Erro:', error);
       alert('Erro: ' + error.message);
     }
   };
@@ -65,7 +52,6 @@ function lerXLS(file, franquiaId, mes, ano) {
 function parseXLS(dados, franquiaId, mes, ano) {
   let extratos = [];
   
-  // Encontrar header
   let headerIdx = -1;
   for (let i = 0; i < Math.min(20, dados.length); i++) {
     const row = dados[i];
@@ -91,10 +77,9 @@ function parseXLS(dados, franquiaId, mes, ano) {
   }
 
   if (headerIdx === -1) {
-    throw new Error('Não foi possível detectar o formato do arquivo');
+    throw new Error('Não foi possível detectar o formato');
   }
 
-  // Processar dados
   for (let i = headerIdx + 1; i < dados.length; i++) {
     const row = dados[i];
     if (!row || row.length < 2) continue;
@@ -106,7 +91,6 @@ function parseXLS(dados, franquiaId, mes, ano) {
 
     if (!data || !descricao || (valor === 0 && saldo === 0)) continue;
 
-    // Converter data
     let dataFormatada = data;
     if (typeof data === 'number') {
       const d = new Date((data - 25569) * 86400 * 1000);
@@ -114,12 +98,12 @@ function parseXLS(dados, franquiaId, mes, ano) {
     }
 
     extratos.push({
-      id: Date.now() + Math.random(),
       unidade_id: parseInt(franquiaId),
       mes: mes,
       ano: ano,
       data: dataFormatada,
       descricao: String(descricao).trim(),
+      descricao_editada: null,
       valor: Math.abs(valor),
       saldo: saldo,
       tipo_operacao: valor > 0 ? 'crédito' : 'débito',
@@ -130,65 +114,86 @@ function parseXLS(dados, franquiaId, mes, ano) {
   return extratos;
 }
 
-function salvarExtratos(extratos) {
-  // Pegar existentes e SOMAR (não substituir)
-  let extratosExistentes = JSON.parse(localStorage.getItem('extratos') || '[]');
-  const totalAntes = extratosExistentes.length;
-  
-  extratosExistentes = extratosExistentes.concat(extratos);
-  localStorage.setItem('extratos', JSON.stringify(extratosExistentes));
+async function salvarExtratosSupabase(extratos) {
+  try {
+    for (const extrato of extratos) {
+      await SupabaseAPI.insert('extratos', extrato);
+    }
 
-  console.log(`✅ ${extratos.length} extratos ADICIONADOS (tinha ${totalAntes}, agora tem ${extratosExistentes.length})`);
-  alert(`✅ ${extratos.length} extratos importados com sucesso!\n\nTotal agora: ${extratosExistentes.length}`);
-  
-  document.getElementById('fileInput').value = '';
-  if (typeof loadExtratos === 'function') {
-    loadExtratos();
+    console.log('✅ Importados:', extratos.length);
+    alert(`✅ ${extratos.length} extratos importados com sucesso!`);
+    
+    document.getElementById('fileInput').value = '';
+    if (typeof loadExtratos === 'function') {
+      loadExtratos();
+    }
+  } catch (error) {
+    console.error('❌ Erro ao salvar:', error);
+    alert('Erro ao salvar: ' + error.message);
   }
 }
 
-function loadExtratos() {
+async function loadExtratos() {
   const franquiaId = document.getElementById('franquiaFilter')?.value;
   const mes = document.getElementById('mesFilter')?.value;
   const ano = document.getElementById('anoFilter')?.value;
 
-  let extratos = JSON.parse(localStorage.getItem('extratos') || '[]');
+  try {
+    let extratos = await SupabaseAPI.get('extratos');
 
-  if (franquiaId) extratos = extratos.filter(e => e.unidade_id === parseInt(franquiaId));
-  if (mes) extratos = extratos.filter(e => e.mes === mes);
-  if (ano) extratos = extratos.filter(e => e.ano === ano);
+    if (franquiaId) extratos = extratos.filter(e => e.unidade_id === parseInt(franquiaId));
+    if (mes) extratos = extratos.filter(e => e.mes === mes);
+    if (ano) extratos = extratos.filter(e => e.ano === ano);
 
-  const tbody = document.getElementById('tbody');
-  if (!tbody) return;
+    const tbody = document.getElementById('tbody');
+    if (!tbody) return;
 
-  tbody.innerHTML = '';
-  if (extratos.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;">Nenhum extrato</td></tr>';
-    return;
+    tbody.innerHTML = '';
+    if (extratos.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;">Nenhum extrato</td></tr>';
+      return;
+    }
+
+    extratos.forEach(e => {
+      const tr = document.createElement('tr');
+      const descricaoExibir = e.descricao_editada || e.descricao;
+      
+      tr.innerHTML = `
+        <td>${e.data}</td>
+        <td title="${e.descricao}">${descricaoExibir}</td>
+        <td><span class="badge">${e.tipo_operacao}</span></td>
+        <td>R$ ${parseFloat(e.valor).toFixed(2)}</td>
+        <td>R$ ${parseFloat(e.saldo).toFixed(2)}</td>
+        <td>
+          <button class="btn-edit" onclick="abrirEdicao(${e.id}, '${e.descricao}', '${e.descricao_editada || e.descricao}')">Editar</button>
+          <button class="btn-danger" onclick="deletarExtrato(${e.id})">Deletar</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (error) {
+    console.error('❌ Erro ao carregar:', error);
   }
-
-  extratos.forEach(e => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${e.data}</td>
-      <td>${e.descricao}</td>
-      <td><span class="badge">${e.tipo_operacao}</span></td>
-      <td>R$ ${parseFloat(e.valor).toFixed(2)}</td>
-      <td>R$ ${parseFloat(e.saldo).toFixed(2)}</td>
-      <td>
-        <button class="btn-danger" onclick="deletarExtrato(${e.id})">Deletar</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
 }
 
-function deletarExtrato(id) {
+async function abrirEdicao(id, descricaoOriginal, descricaoEditada) {
+  const novaDescricao = prompt(`Editar descrição:\n\nOriginal: ${descricaoOriginal}\n\nNova:`, descricaoEditada);
+  
+  if (novaDescricao !== null && novaDescricao !== descricaoEditada) {
+    await SupabaseAPI.update('extratos', id, { descricao_editada: novaDescricao });
+    loadExtratos();
+    alert('✅ Descrição atualizada!');
+  }
+}
+
+async function deletarExtrato(id) {
   if (!confirm('Deletar este extrato?')) return;
   
-  let extratos = JSON.parse(localStorage.getItem('extratos') || '[]');
-  extratos = extratos.filter(e => e.id !== id);
-  localStorage.setItem('extratos', JSON.stringify(extratos));
-  
-  loadExtratos();
+  try {
+    await SupabaseAPI.delete('extratos', id);
+    loadExtratos();
+  } catch (error) {
+    console.error('❌ Erro:', error);
+    alert('Erro ao deletar: ' + error.message);
+  }
 }

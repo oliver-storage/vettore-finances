@@ -1,4 +1,4 @@
-<!-- Vettore Finances v1.6.1 • Desenvolvido por OliverStorage -->
+<!-- Vettore Finances v1.7.0 • Desenvolvido por OliverStorage -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vettore Finances - Extratos</title>
   
-  <!-- XLSX - CARREGAMENTO CRÍTICO -->
+  <!-- XLSX -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   
   <link rel="stylesheet" href="../css/styles.css">
@@ -76,8 +76,6 @@
       <input type="file" id="fileInput" accept=".xls,.xlsx" style="display:none;" onchange="handleFileUpload(event)">
     </div>
 
-    <div id="alertMsg" class="alert" style="display:none;"></div>
-
     <div class="card">
       <h3>Extratos</h3>
       <table id="tabelaExtratos">
@@ -97,22 +95,23 @@
   </div>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.6.1 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.7.0 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>
   <script src="../js/masks.js"></script>
+  <script src="../js/supabase-utils.js"></script>
   <script src="../js/importador.js"></script>
 
   <script>
-    function inicializar() {
+    async function inicializar() {
       try {
         checkAuth();
         
         const user = JSON.parse(localStorage.getItem('currentUser'));
-        const unidades = JSON.parse(localStorage.getItem('unidades') || '[]');
+        const unidades = await SupabaseAPI.get('unidades');
         const franquia = unidades.find(u => u.id === user.unidade_id);
-        const nomeFranquia = franquia?.nomeFranquia || franquia?.nome || 'Franquia';
+        const nomeFranquia = franquia?.nomeFranquia || 'Franquia';
         
         document.getElementById('userName').textContent = `${nomeFranquia} - ${user.nome}`;
         
@@ -122,7 +121,7 @@
         unidades.forEach(u => {
           const option = document.createElement('option');
           option.value = u.id;
-          option.textContent = u.nomeFranquia || u.nome;
+          option.textContent = u.nomeFranquia;
           selectFranquia.appendChild(option);
         });
         
@@ -138,7 +137,6 @@
         loadExtratos();
         
         console.log('✅ Inicialização completa');
-        console.log('📦 XLSX disponível?', typeof XLSX !== 'undefined' ? 'TRUE' : 'FALSE');
         
       } catch (error) {
         console.error('❌ Erro:', error);
@@ -151,6 +149,5 @@
       inicializar();
     }
   </script>
-  <script src="../js/inicializador.js"></script>
 </body>
 </html>
