@@ -30,10 +30,10 @@
     .login-container {
       background: var(--papel-alto);
       border-radius: 16px;
-      padding: 48px 40px;
+      padding: 36px 32px;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
       width: 100%;
-      max-width: 400px;
+      max-width: 380px;
       animation: slideUp 0.5s ease-out;
     }
 
@@ -50,60 +50,60 @@
 
     .logo {
       text-align: center;
-      margin-bottom: 32px;
+      margin-bottom: 16px;
     }
 
     .logo svg {
-      width: 48px;
-      height: 48px;
+      width: 40px;
+      height: 40px;
     }
 
     .logo-text {
       display: inline-block;
-      margin-top: 12px;
-      font-size: 12px;
+      margin-top: 8px;
+      font-size: 11px;
       color: var(--tinta-70);
       font-weight: 500;
       letter-spacing: 0.5px;
     }
 
     h1 {
-      font-size: 32px;
+      font-size: 28px;
       font-weight: 600;
       color: var(--tinta);
-      margin-bottom: 8px;
+      margin-bottom: 4px;
       font-family: "IBM Plex Sans Condensed", sans-serif;
       text-align: center;
     }
 
     .subtitle {
-      font-size: 14px;
+      font-size: 13px;
       color: var(--tinta-70);
       text-align: center;
-      margin-bottom: 32px;
-      line-height: 1.5;
+      margin-bottom: 20px;
+      line-height: 1.4;
     }
 
     .form-group {
-      margin-bottom: 20px;
+      margin-bottom: 16px;
     }
 
     label {
       display: block;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 600;
       color: var(--tinta);
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
 
     input {
       width: 100%;
-      padding: 12px 14px;
+      padding: 10px 12px;
       border: 1px solid var(--linha);
-      border-radius: 8px;
-      font-size: 14px;
+      border-radius: 6px;
+      font-size: 13px;
       font-family: "IBM Plex Sans", sans-serif;
       background: var(--papel);
       color: var(--tinta);
@@ -123,16 +123,16 @@
 
     .btn-login {
       width: 100%;
-      padding: 12px 16px;
+      padding: 10px 14px;
       background: var(--topo-bg);
       color: white;
       border: none;
-      border-radius: 8px;
-      font-size: 16px;
+      border-radius: 6px;
+      font-size: 14px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.2s;
-      margin-top: 8px;
+      margin-top: 6px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
@@ -151,25 +151,25 @@
       width: 100%;
       height: 1px;
       background: var(--linha);
-      margin: 32px 0;
+      margin: 18px 0;
     }
 
     .footer {
       text-align: center;
-      font-size: 11px;
+      font-size: 10px;
       color: var(--tinta-40);
-      margin-top: 24px;
+      margin-top: 12px;
     }
 
     .error-msg {
       display: none;
-      padding: 12px;
+      padding: 8px 10px;
       background: #ffebee;
       color: #c62828;
-      border-radius: 6px;
-      font-size: 13px;
-      margin-bottom: 16px;
-      border-left: 3px solid #c62828;
+      border-radius: 4px;
+      font-size: 12px;
+      margin-bottom: 12px;
+      border-left: 2px solid #c62828;
     }
 
     .error-msg.show {
@@ -278,27 +278,36 @@
       spinner.style.display = 'block';
 
       try {
+        console.log('📡 Buscando usuários...');
         const usuarios = await SupabaseAPI.get('usuarios');
-        const user = usuarios.find(u => 
-          (u.email === usuario || u.nome === usuario) && u.ativo
-        );
+        console.log('✅ Usuários recebidos:', usuarios);
+        console.log('📝 Procurando por:', usuario);
+        
+        const user = usuarios.find(u => {
+          console.log('Verificando:', u.email, '===', usuario, '?', u.email === usuario);
+          return (u.email === usuario || u.nome === usuario) && u.ativo;
+        });
+
+        console.log('👤 Usuário encontrado:', user);
 
         if (!user) {
           throw new Error('Usuário não encontrado');
         }
 
-        // Em produção, usar hash de senha. Aqui: validação simples.
+        console.log('🔐 Validando senha...');
         if (user.senha !== senha) {
+          console.log('❌ Senha incorreta. Recebido:', senha, 'Esperado:', user.senha);
           throw new Error('Senha incorreta');
         }
 
-        // Login bem-sucedido
+        console.log('✅ Login bem-sucedido!');
         localStorage.setItem('currentUser', JSON.stringify(user));
         
         await new Promise(resolve => setTimeout(resolve, 500));
         window.location.href = 'dashboard.html';
 
       } catch (error) {
+        console.error('❌ Erro:', error);
         mostrarErro(error.message || 'Erro ao fazer login');
       } finally {
         btnLogin.classList.remove('loading');
