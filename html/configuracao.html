@@ -1,4 +1,4 @@
-<!-- Vettore Finances v1.8.5 • Desenvolvido por OliverStorage -->
+<!-- Vettore Finances v1.8.6 • Desenvolvido por OliverStorage -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -73,6 +73,7 @@
       <button class="tab-btn active" onclick="switchTab('unidades')">Unidades</button>
       <button class="tab-btn" onclick="switchTab('usuarios')">Usuários</button>
       <button class="tab-btn" onclick="switchTab('privilegios')">Privilégios</button>
+      <button class="tab-btn" onclick="switchTab('categorias')">Categorias</button>
     </div>
 
     <!-- ABA 1: UNIDADES -->
@@ -406,12 +407,60 @@
         
         <button class="btn-primary" onclick="salvarPrivilegios()" style="margin-top:20px;">Salvar Privilégios</button>
       </div>
-    </div>
+      <div id="categorias" class="tab-content" style="display:none;">
+        <h3>Categorias e Serviços</h3>
+        
+        <div class="card">
+          <h4>Categorias de Lançamento</h4>
+          <div class="form-row-2">
+            <div class="form-group">
+              <label>Nova Categoria</label>
+              <input type="text" id="inputNovaCategoria" placeholder="Ex: CONSULTORIA, ALUGUEL">
+            </div>
+            <div class="form-group" style="display:flex; align-items:flex-end;">
+              <button class="btn-primary" onclick="adicionarCategoria()">Adicionar</button>
+            </div>
+          </div>
+          
+          <div style="margin-top:20px;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Categoria</th>
+                  <th>Ação</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyCategorias"></tbody>
+            </table>
+          </div>
+        </div>
 
-  </div>
-
-  <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.8.5 Desenvolvido por OliverStorage</p>
+        <div class="card" style="margin-top:20px;">
+          <h4>Tipos de Serviço</h4>
+          <div class="form-row-2">
+            <div class="form-group">
+              <label>Novo Serviço</label>
+              <input type="text" id="inputNovoServico" placeholder="Ex: Consultoria, Auditoria, Assessoria">
+            </div>
+            <div class="form-group" style="display:flex; align-items:flex-end;">
+              <button class="btn-primary" onclick="adicionarServico()">Adicionar</button>
+            </div>
+          </div>
+          
+          <div style="margin-top:20px;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Serviço</th>
+                  <th>Ação</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyServicos"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    <p>&copy; Vettore Finances 2026 - v1.8.6 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>

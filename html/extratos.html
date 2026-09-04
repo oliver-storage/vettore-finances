@@ -1,4 +1,4 @@
-<!-- Vettore Finances v1.8.5 • Desenvolvido por OliverStorage -->
+<!-- Vettore Finances v1.8.6 • Desenvolvido por OliverStorage -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -388,7 +388,7 @@
   </div>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.8.5 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.8.6 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>
@@ -472,14 +472,16 @@
         extratos.forEach(e => {
           const tr = document.createElement('tr');
           const valorFormatado = formatarMoedaBR(e.valor);
+          const dataRef = e.data_referencia || e.data;
+          const historicoCorrecao = e.historico_correcao || e.descricao;
           
           tr.innerHTML = `
-            <td style="font-weight:500; color:var(--tinta-70);">${e.data}</td>
+            <td style="font-weight:500; color:var(--tinta);">${e.data}</td>
             <td style="font-size:13px; color:var(--tinta);">${e.descricao}</td>
             <td style="font-weight:600; color:var(--marca); font-size:14px;">${valorFormatado}</td>
             <td style="text-align:center; color:var(--tinta-40);">${e.codigo || '-'}</td>
-            <td><input type="date" value="${e.data_referencia || ''}" onchange="atualizarCampo(${e.id}, 'data_referencia', this.value)"></td>
-            <td><input type="text" placeholder="Descrição do lançamento" value="${e.historico_correcao || ''}" onchange="atualizarCampo(${e.id}, 'historico_correcao', this.value)"></td>
+            <td><input type="date" value="${dataRef}" onchange="atualizarCampo(${e.id}, 'data_referencia', this.value)"></td>
+            <td><input type="text" placeholder="Descrição do lançamento" value="${historicoCorrecao}" onchange="atualizarCampo(${e.id}, 'historico_correcao', this.value)"></td>
             <td>
               <select onchange="atualizarCampo(${e.id}, 'categoria', this.value)">
                 <option value="">Selecione...</option>

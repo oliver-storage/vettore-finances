@@ -1,6 +1,13 @@
 /**
- * Vettore Finances - Configuração com Supabase v1.7.0
+ * Vettore Finances - Configuração com Supabase v1.8.6
  */
+
+const CATEGORIAS_PADRAO = [
+  'BOLETOS', 'CUSTEIO', 'DAE CLIENTE', 'ENDEREÇO FISCAL',
+  'HONORÁRIOS', 'NEGOCIAÇÃO', 'PARCEIROS', 'SERVIÇOS', 'TARIFAS', 'SALDO ANTERIOR'
+];
+
+let CATEGORIAS = [...CATEGORIAS_PADRAO];
 
 async function inicializar() {
   try {
@@ -34,6 +41,8 @@ async function inicializar() {
     await carregarFranquiasSelect(unidades, user);
     await carregarUsuarios(user);
     await carregarPrivilegios();
+    await carregarCategorias();
+    await carregarServicos();
     
   } catch (error) {
     console.error('❌ Erro:', error);
@@ -417,6 +426,102 @@ async function deletarUsuario(id) {
   } catch (error) {
     alert('❌ Erro: ' + error.message);
   }
+}
+
+// GERENCIAR CATEGORIAS
+async function adicionarCategoria() {
+  const input = document.getElementById('inputNovaCategoria');
+  const categoria = input.value.trim().toUpperCase();
+  
+  if (!categoria) {
+    alert('⚠️ Digite um nome para a categoria');
+    return;
+  }
+  
+  if (CATEGORIAS.includes(categoria)) {
+    alert('⚠️ Categoria já existe');
+    return;
+  }
+  
+  CATEGORIAS.push(categoria);
+  localStorage.setItem('categorias', JSON.stringify(CATEGORIAS));
+  input.value = '';
+  carregarCategorias();
+  alert('✅ Categoria adicionada!');
+}
+
+function carregarCategorias() {
+  const tbody = document.getElementById('tbodyCategorias');
+  tbody.innerHTML = '';
+  
+  CATEGORIAS.forEach(cat => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${cat}</td>
+      <td><button class="btn-danger" onclick="deletarCategoria('${cat}')">Deletar</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function deletarCategoria(categoria) {
+  if (!confirm(`Deletar categoria "${categoria}"?`)) return;
+  
+  CATEGORIAS = CATEGORIAS.filter(c => c !== categoria);
+  localStorage.setItem('categorias', JSON.stringify(CATEGORIAS));
+  carregarCategorias();
+  alert('✅ Categoria deletada!');
+}
+
+// GERENCIAR SERVIÇOS
+const SERVICOS_KEY = 'servicos_list';
+
+async function adicionarServico() {
+  const input = document.getElementById('inputNovoServico');
+  const servico = input.value.trim();
+  
+  if (!servico) {
+    alert('⚠️ Digite um nome para o serviço');
+    return;
+  }
+  
+  let servicos = JSON.parse(localStorage.getItem(SERVICOS_KEY) || '[]');
+  
+  if (servicos.includes(servico)) {
+    alert('⚠️ Serviço já existe');
+    return;
+  }
+  
+  servicos.push(servico);
+  localStorage.setItem(SERVICOS_KEY, JSON.stringify(servicos));
+  input.value = '';
+  carregarServicos();
+  alert('✅ Serviço adicionado!');
+}
+
+function carregarServicos() {
+  const servicos = JSON.parse(localStorage.getItem(SERVICOS_KEY) || '[]');
+  const tbody = document.getElementById('tbodyServicos');
+  tbody.innerHTML = '';
+  
+  servicos.forEach(srv => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${srv}</td>
+      <td><button class="btn-danger" onclick="deletarServico('${srv}')">Deletar</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function deletarServico(servico) {
+  if (!confirm(`Deletar serviço "${servico}"?`)) return;
+  
+  let servicos = JSON.parse(localStorage.getItem(SERVICOS_KEY) || '[]');
+  servicos = servicos.filter(s => s !== servico);
+  localStorage.setItem(SERVICOS_KEY, JSON.stringify(servicos));
+  carregarServicos();
+  alert('✅ Serviço deletado!');
 }
 
 if (document.readyState === 'loading') {
