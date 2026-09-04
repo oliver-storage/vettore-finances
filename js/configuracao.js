@@ -13,10 +13,18 @@ async function inicializar() {
     
     document.getElementById('userName').textContent = `${nomeFranquia} - ${user.nome}`;
     
-    // Máscara CPF na aba usuários
+    // Máscara CPF na aba usuários (criar)
     const inputCPF = document.getElementById('inputCPFUsuario');
     if (inputCPF) {
       inputCPF.addEventListener('input', (e) => {
+        e.target.value = aplicarMascaraCPF(e.target.value);
+      });
+    }
+    
+    // Máscara CPF no modal (editar)
+    const modalCPF = document.getElementById('modalCPFUsuario');
+    if (modalCPF) {
+      modalCPF.addEventListener('input', (e) => {
         e.target.value = aplicarMascaraCPF(e.target.value);
       });
     }
@@ -254,6 +262,7 @@ async function deletarUnidade(id) {
 }
 async function editarUsuario(id) {
   const usuarios = await SupabaseAPI.get('usuarios');
+  const unidades = await SupabaseAPI.get('unidades');
   const user = usuarios.find(u => u.id === id);
   
   if (!user) {
@@ -261,24 +270,48 @@ async function editarUsuario(id) {
     return;
   }
   
-  const novoNome = prompt('Nome:', user.nome);
-  if (novoNome === null) return;
+  // Preencher modal
+  document.getElementById('modalUsuarioId').value = id;
+  document.getElementById('modalNomeUsuario').value = user.nome;
+  document.getElementById('modalEmailUsuario').value = user.email;
+  document.getElementById('modalCPFUsuario').value = user.cpf ? formatarCPF(user.cpf) : '';
+  document.getElementById('modalPerfilUsuario').value = user.perfil;
+  document.getElementById('modalSenhaUsuario').value = '';
   
-  const novoEmail = prompt('Email:', user.email);
-  if (novoEmail === null) return;
+  // Preencher franquias
+  const selectFranquia = document.getElementById('modalFranquiaUsuario');
+  selectFranquia.innerHTML = '';
+  unidades.forEach(u => {
+    const option = document.createElement('option');
+    option.value = u.id;
+    option.textContent = u.nomeFranquia;
+    if (u.id === user.unidade_id) option.selected = true;
+    selectFranquia.appendChild(option);
+  });
   
-  const novoCPF = prompt('CPF (apenas números):', user.cpf || '');
-  if (novoCPF === null) return;
+  // Mostrar modal
+  document.getElementById('modalEditarUsuario').style.display = 'flex';
+}
+
+function fecharModalUsuario() {
+  document.getElementById('modalEditarUsuario').style.display = 'none';
+}
+
+async function salvarEdicaoUsuario(e) {
+  e.preventDefault();
   
-  const novaSenha = prompt('Senha (deixe vazio para manter):', '');
-  if (novaSenha === null) return;
+  const id = parseInt(document.getElementById('modalUsuarioId').value);
+  const cpfRaw = document.getElementById('modalCPFUsuario').value.replace(/\D/g, '');
   
   const updateData = {
-    nome: novoNome,
-    email: novoEmail,
-    cpf: novoCPF
+    nome: document.getElementById('modalNomeUsuario').value,
+    email: document.getElementById('modalEmailUsuario').value,
+    cpf: cpfRaw || null,
+    unidade_id: parseInt(document.getElementById('modalFranquiaUsuario').value),
+    perfil: document.getElementById('modalPerfilUsuario').value
   };
   
+  const novaSenha = document.getElementById('modalSenhaUsuario').value;
   if (novaSenha) {
     updateData.senha = novaSenha;
   }
@@ -286,6 +319,7 @@ async function editarUsuario(id) {
   try {
     await SupabaseAPI.update('usuarios', id, updateData);
     alert('✅ Usuário atualizado!');
+    fecharModalUsuario();
     await carregarUsuarios();
   } catch (error) {
     alert('❌ Erro: ' + error.message);

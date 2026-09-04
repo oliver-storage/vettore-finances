@@ -181,7 +181,55 @@
       </div>
     </div>
 
-    <!-- ABA 2: USUÁRIOS -->
+    <!-- MODAL EDITAR USUÁRIO -->
+    <div id="modalEditarUsuario" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;" onclick="if(event.target.id === 'modalEditarUsuario') fecharModalUsuario();">
+      <div style="background:var(--papel-alto); border-radius:8px; padding:24px; width:90%; max-width:450px; box-shadow:0 10px 40px rgba(0,0,0,0.3);">
+        <h3 style="margin-bottom:16px; color:var(--tinta);">Editar Usuário</h3>
+        
+        <form onsubmit="salvarEdicaoUsuario(event)">
+          <input type="hidden" id="modalUsuarioId">
+          
+          <div class="form-group">
+            <label>Nome *</label>
+            <input type="text" id="modalNomeUsuario" required>
+          </div>
+          
+          <div class="form-group">
+            <label>Email *</label>
+            <input type="email" id="modalEmailUsuario" required>
+          </div>
+          
+          <div class="form-group">
+            <label>CPF</label>
+            <input type="text" id="modalCPFUsuario" maxlength="14">
+          </div>
+          
+          <div class="form-group">
+            <label>Franquia *</label>
+            <select id="modalFranquiaUsuario" required></select>
+          </div>
+          
+          <div class="form-group">
+            <label>Perfil *</label>
+            <select id="modalPerfilUsuario" required>
+              <option value="administrador">Administrador</option>
+              <option value="gerente">Gerente</option>
+              <option value="usuario">Usuário</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label>Senha (deixar vazio para manter)</label>
+            <input type="password" id="modalSenhaUsuario">
+          </div>
+          
+          <div style="display:flex; gap:10px; margin-top:20px;">
+            <button type="submit" class="btn-primary" style="flex:1;">Salvar</button>
+            <button type="button" class="btn-secondary" style="flex:1; background:var(--tinta-40); border:none; border-radius:6px; padding:10px; color:white; cursor:pointer;" onclick="fecharModalUsuario()">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
     <div id="usuarios" class="tab-content">
       <div class="card">
         <h3>Cadastro de Usuários</h3>
