@@ -167,11 +167,23 @@
       border-spacing: 0;
     }
 
-    /* COLUNAS FIXAS - HIERARQUIA VISUAL */
+    /* COLUNAS FIXAS - COM CHECKBOX NA PRIMEIRA */
     #tabelaExtratos th:nth-child(1),
     #tabelaExtratos td:nth-child(1) {
       position: sticky;
       left: 0;
+      background: var(--papel-alto);
+      z-index: 11;
+      width: 40px;
+      min-width: 40px;
+      text-align: center;
+      padding: 12px;
+    }
+
+    #tabelaExtratos th:nth-child(2),
+    #tabelaExtratos td:nth-child(2) {
+      position: sticky;
+      left: 40px;
       background: var(--papel-alto);
       z-index: 10;
       min-width: 80px;
@@ -180,20 +192,20 @@
       font-size: 13px;
     }
 
-    #tabelaExtratos th:nth-child(2),
-    #tabelaExtratos td:nth-child(2) {
+    #tabelaExtratos th:nth-child(3),
+    #tabelaExtratos td:nth-child(3) {
       position: sticky;
-      left: 80px;
+      left: 120px;
       background: var(--papel-alto);
       z-index: 10;
       min-width: 320px;
       padding-left: 16px;
     }
 
-    #tabelaExtratos th:nth-child(3),
-    #tabelaExtratos td:nth-child(3) {
+    #tabelaExtratos th:nth-child(4),
+    #tabelaExtratos td:nth-child(4) {
       position: sticky;
-      left: 400px;
+      left: 440px;
       background: var(--papel-alto);
       z-index: 10;
       min-width: 140px;
@@ -298,6 +310,69 @@
       color: var(--alerta);
       border-color: var(--alerta);
     }
+
+    /* Checkboxes e Ações em Massa */
+    .checkbox-selecao {
+      cursor: pointer;
+      width: 18px;
+      height: 18px;
+      accent-color: var(--marca);
+    }
+
+    .acoes-em-massa {
+      animation: slideDown 0.3s ease;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .acoes-em-massa h4 {
+      margin: 0 0 12px 0;
+      color: var(--marca);
+      font-size: 14px;
+    }
+
+    .acoes-em-massa .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .acoes-em-massa .form-group label {
+      font-weight: 500;
+      font-size: 12px;
+      margin-bottom: 6px;
+      color: var(--tinta);
+    }
+
+    .acoes-em-massa .form-group select,
+    .acoes-em-massa .form-group input {
+      padding: 8px;
+      border: 1px solid var(--linha);
+      border-radius: 4px;
+      font-size: 13px;
+      background: white;
+      margin-bottom: 0;
+    }
+
+    .acoes-em-massa .btn-primary,
+    .acoes-em-massa .btn-danger {
+      font-size: 12px;
+      padding: 8px 12px;
+      margin-top: 6px;
+    }
+
+    #contadorSelecionados {
+      font-weight: 600;
+      color: var(--marca);
+    }
   </style>
 </head>
 <body>
@@ -397,10 +472,42 @@
         </div>
       </div>
 
+      <!-- AÇÕES EM MASSA -->
+      <div class="acoes-em-massa card" style="background: var(--papel); padding: 16px; border-radius: 8px; margin-bottom: 16px; display: none;" id="secaoAcoesEmMassa">
+        <h4 style="margin-top: 0;">🎯 Ações em Massa</h4>
+        <div class="form-row-4" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+          <div class="form-group">
+            <label>Categoria</label>
+            <select id="selectCategoriaEmMassa">
+              <option value="">Selecione...</option>
+            </select>
+            <button class="btn-primary" onclick="aplicarCategoriaEmMassa()" style="margin-top: 8px; width: 100%; padding: 8px;">Aplicar</button>
+          </div>
+          <div class="form-group">
+            <label>Serviço</label>
+            <input type="text" id="inputServicoEmMassa" placeholder="Ex: Consultoria">
+            <button class="btn-primary" onclick="aplicarServicoEmMassa()" style="margin-top: 8px; width: 100%; padding: 8px;">Aplicar</button>
+          </div>
+          <div class="form-group">
+            <label>Cliente</label>
+            <input type="text" id="inputClienteEmMassa" placeholder="Ex: Empresa X">
+            <button class="btn-primary" onclick="aplicarClienteEmMassa()" style="margin-top: 8px; width: 100%; padding: 8px;">Aplicar</button>
+          </div>
+          <div class="form-group">
+            <label>&nbsp;</label>
+            <button class="btn-danger" onclick="deletarSelecionados()" style="width: 100%; padding: 10px; margin-top: 0;">🗑️ Deletar Selecionados</button>
+          </div>
+        </div>
+        <p style="font-size: 12px; color: var(--tinta-70); margin: 12px 0 0 0;">
+          <span id="contadorSelecionados">0</span> lançamento(s) selecionado(s)
+        </p>
+      </div>
+
       <div class="table-wrapper">
         <table id="tabelaExtratos">
           <thead>
             <tr>
+              <th style="width: 40px; text-align: center;"><input type="checkbox" id="selectTodos" onchange="selecionarTodos(this.checked)"></th>
               <th>Data</th>
               <th>Histórico Banco</th>
               <th>Valor</th>
@@ -501,6 +608,7 @@
 
         // Carregar dados
         await loadExtratos(user);
+        atualizarSelecionamentos();
         
       } catch (error) {
         console.error('❌ Erro:', error);
@@ -525,7 +633,7 @@
         tbody.innerHTML = '';
 
         if (extratos.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:20px;">Nenhum extrato</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:20px;">Nenhum extrato</td></tr>';
           return;
         }
 
@@ -538,6 +646,7 @@
           const historicoCorrecao = e.historico_correcao || e.descricao;
           
           tr.innerHTML = `
+            <td style="text-align:center;"><input type="checkbox" class="checkbox-selecao" value="${e.id}" onchange="atualizarContadorSelecionados()"></td>
             <td style="font-weight:400; color:var(--tinta); font-size:13px;">${dataFormatada}</td>
             <td style="font-size:13px; color:var(--tinta);">${e.descricao}</td>
             <td style="font-weight:600; color:${corVal}; font-size:14px;">${valorFormatado}</td>
@@ -586,6 +695,153 @@
         console.error('❌ Erro:', error);
       }
     }
+
+    // ========== AÇÕES EM MASSA ==========
+    function obterSelecionados() {
+      const checkboxes = document.querySelectorAll('.checkbox-selecao:checked');
+      return Array.from(checkboxes).map(cb => parseInt(cb.value));
+    }
+
+    function atualizarContadorSelecionados() {
+      const selecionados = obterSelecionados();
+      const contador = document.getElementById('contadorSelecionados');
+      const secao = document.getElementById('secaoAcoesEmMassa');
+      
+      contador.textContent = selecionados.length;
+      
+      // Mostrar/esconder seção se houver selecionados
+      if (selecionados.length > 0) {
+        secao.style.display = 'block';
+      } else {
+        secao.style.display = 'none';
+        document.getElementById('selectTodos').checked = false;
+      }
+    }
+
+    function selecionarTodos(checked) {
+      document.querySelectorAll('.checkbox-selecao').forEach(cb => {
+        cb.checked = checked;
+      });
+      atualizarContadorSelecionados();
+    }
+
+    async function aplicarCategoriaEmMassa() {
+      const selecionados = obterSelecionados();
+      if (selecionados.length === 0) {
+        alert('⚠️ Selecione pelo menos um lançamento');
+        return;
+      }
+
+      const categoria = document.getElementById('selectCategoriaEmMassa').value;
+      if (!categoria) {
+        alert('⚠️ Selecione uma categoria');
+        return;
+      }
+
+      if (!confirm(`Aplicar categoria "${categoria}" a ${selecionados.length} lançamento(s)?`)) return;
+
+      try {
+        for (const id of selecionados) {
+          await SupabaseAPI.update('extratos', id, { categoria });
+        }
+        alert(`✅ Categoria aplicada a ${selecionados.length} lançamento(s)`);
+        document.getElementById('selectCategoriaEmMassa').value = '';
+        const user = JSON.parse(localStorage.getItem('currentUser'));
+        await loadExtratos(user);
+      } catch (error) {
+        alert('❌ Erro: ' + error.message);
+      }
+    }
+
+    async function aplicarServicoEmMassa() {
+      const selecionados = obterSelecionados();
+      if (selecionados.length === 0) {
+        alert('⚠️ Selecione pelo menos um lançamento');
+        return;
+      }
+
+      const servico = document.getElementById('inputServicoEmMassa').value;
+      if (!servico) {
+        alert('⚠️ Digite um serviço');
+        return;
+      }
+
+      if (!confirm(`Aplicar serviço "${servico}" a ${selecionados.length} lançamento(s)?`)) return;
+
+      try {
+        for (const id of selecionados) {
+          await SupabaseAPI.update('extratos', id, { servicos: servico });
+        }
+        alert(`✅ Serviço aplicado a ${selecionados.length} lançamento(s)`);
+        document.getElementById('inputServicoEmMassa').value = '';
+        const user = JSON.parse(localStorage.getItem('currentUser'));
+        await loadExtratos(user);
+      } catch (error) {
+        alert('❌ Erro: ' + error.message);
+      }
+    }
+
+    async function aplicarClienteEmMassa() {
+      const selecionados = obterSelecionados();
+      if (selecionados.length === 0) {
+        alert('⚠️ Selecione pelo menos um lançamento');
+        return;
+      }
+
+      const cliente = document.getElementById('inputClienteEmMassa').value;
+      if (!cliente) {
+        alert('⚠️ Digite um cliente');
+        return;
+      }
+
+      if (!confirm(`Aplicar cliente "${cliente}" a ${selecionados.length} lançamento(s)?`)) return;
+
+      try {
+        for (const id of selecionados) {
+          await SupabaseAPI.update('extratos', id, { cliente });
+        }
+        alert(`✅ Cliente aplicado a ${selecionados.length} lançamento(s)`);
+        document.getElementById('inputClienteEmMassa').value = '';
+        const user = JSON.parse(localStorage.getItem('currentUser'));
+        await loadExtratos(user);
+      } catch (error) {
+        alert('❌ Erro: ' + error.message);
+      }
+    }
+
+    async function deletarSelecionados() {
+      const selecionados = obterSelecionados();
+      if (selecionados.length === 0) {
+        alert('⚠️ Selecione pelo menos um lançamento');
+        return;
+      }
+
+      if (!confirm(`🗑️ Deletar ${selecionados.length} lançamento(s)? Esta ação não pode ser desfeita.`)) return;
+
+      try {
+        for (const id of selecionados) {
+          await SupabaseAPI.delete('extratos', id);
+        }
+        alert(`✅ ${selecionados.length} lançamento(s) deletado(s)`);
+        const user = JSON.parse(localStorage.getItem('currentUser'));
+        await loadExtratos(user);
+      } catch (error) {
+        alert('❌ Erro: ' + error.message);
+      }
+    }
+
+    function atualizarSelecionamentos() {
+      // Atualizar categorias no select de ações em massa
+      const selectCategoriaEmMassa = document.getElementById('selectCategoriaEmMassa');
+      selectCategoriaEmMassa.innerHTML = '<option value="">Selecione...</option>';
+      CATEGORIAS.forEach(cat => {
+        const option = document.createElement('option');
+        option.value = cat;
+        option.textContent = cat;
+        selectCategoriaEmMassa.appendChild(option);
+      });
+    }
+    // ========== FIM AÇÕES EM MASSA ==========
 
     function atualizarResumoCategorias(extratos) {
       const resumo = {};
