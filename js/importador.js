@@ -1,5 +1,5 @@
 /**
- * Vettore Finances - Importador de Extratos v1.8.1
+ * Vettore Finances - Importador de Extratos v1.8.2
  * Salva em Supabase com suporte a edição
  */
 
