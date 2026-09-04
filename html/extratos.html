@@ -1,4 +1,4 @@
-<!-- Vettore Finances v1.8.2 • Desenvolvido por OliverStorage -->
+<!-- Vettore Finances v1.8.3 • Desenvolvido por OliverStorage -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -83,6 +83,77 @@
 
     table input, table select {
       font-size: 12px;
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+      border-radius: 8px;
+      border: 1px solid var(--linha);
+    }
+
+    #tabelaExtratos {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+
+    #tabelaExtratos th:nth-child(1),
+    #tabelaExtratos td:nth-child(1) {
+      position: sticky;
+      left: 0;
+      background: var(--papel-alto);
+      z-index: 10;
+      min-width: 90px;
+    }
+
+    #tabelaExtratos th:nth-child(2),
+    #tabelaExtratos td:nth-child(2) {
+      position: sticky;
+      left: 90px;
+      background: var(--papel-alto);
+      z-index: 10;
+      min-width: 220px;
+    }
+
+    #tabelaExtratos th:nth-child(3),
+    #tabelaExtratos td:nth-child(3) {
+      position: sticky;
+      left: 310px;
+      background: var(--papel-alto);
+      z-index: 10;
+      min-width: 110px;
+      text-align: right;
+    }
+
+    #tabelaExtratos thead th {
+      background: var(--marca);
+      color: white;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      padding: 12px 8px;
+      font-weight: 600;
+    }
+
+    #tabelaExtratos thead th:nth-child(1),
+    #tabelaExtratos thead th:nth-child(2),
+    #tabelaExtratos thead th:nth-child(3) {
+      background: var(--marca);
+    }
+
+    #tabelaExtratos tbody tr:hover {
+      background: var(--papel);
+    }
+
+    #tabelaExtratos td {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--linha);
+    }
+
+    #tabelaExtratos input,
+    #tabelaExtratos select {
+      white-space: normal;
+      width: 100%;
     }
   </style>
 </head>
@@ -183,29 +254,31 @@
         </div>
       </div>
 
-      <table id="tabelaExtratos">
-        <thead>
-          <tr>
-            <th>Data</th>
-            <th>Histórico Banco</th>
-            <th>Histórico Correção</th>
-            <th>CÓD</th>
-            <th>Valor</th>
-            <th>Data Ref.</th>
-            <th>Categoria</th>
-            <th>Serviços</th>
-            <th>Cliente</th>
-            <th>Observação</th>
-            <th>Ações</th>
-          </tr>
-        </thead>
-        <tbody id="tbody"></tbody>
-      </table>
+      <div class="table-wrapper">
+        <table id="tabelaExtratos">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Histórico Banco</th>
+              <th>Valor</th>
+              <th>CÓD</th>
+              <th>Data Ref.</th>
+              <th>Histórico Correção</th>
+              <th>Categoria</th>
+              <th>Serviços</th>
+              <th>Cliente</th>
+              <th>Observação</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.8.2 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.8.3 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>
@@ -217,6 +290,13 @@
       'BOLETOS', 'CUSTEIO', 'DAE CLIENTE', 'ENDEREÇO FISCAL',
       'HONORÁRIOS', 'NEGOCIAÇÃO', 'PARCEIROS', 'SERVIÇOS', 'TARIFAS', 'SALDO ANTERIOR'
     ];
+
+    function formatarMoedaBR(valor) {
+      return parseFloat(valor || 0).toLocaleString('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+      });
+    }
 
     async function inicializar() {
       try {
@@ -284,19 +364,19 @@
           tr.innerHTML = `
             <td>${e.data}</td>
             <td>${e.descricao}</td>
-            <td><input type="text" value="${e.historico_correcao || ''}" onchange="atualizarCampo(${e.id}, 'historico_correcao', this.value)" style="width:100%; padding:4px;"></td>
+            <td style="text-align:right; font-weight:600;">${formatarMoedaBR(e.valor)}</td>
             <td>${e.codigo || '-'}</td>
-            <td>R$ ${parseFloat(e.valor).toFixed(2)}</td>
-            <td><input type="date" value="${e.data_referencia || ''}" onchange="atualizarCampo(${e.id}, 'data_referencia', this.value)" style="width:100%; padding:4px;"></td>
+            <td><input type="date" value="${e.data_referencia || ''}" onchange="atualizarCampo(${e.id}, 'data_referencia', this.value)"></td>
+            <td><input type="text" value="${e.historico_correcao || ''}" onchange="atualizarCampo(${e.id}, 'historico_correcao', this.value)"></td>
             <td>
-              <select onchange="atualizarCampo(${e.id}, 'categoria', this.value)" style="width:100%; padding:4px;">
+              <select onchange="atualizarCampo(${e.id}, 'categoria', this.value)">
                 <option value="">-</option>
                 ${CATEGORIAS.map(c => `<option value="${c}" ${e.categoria === c ? 'selected' : ''}>${c}</option>`).join('')}
               </select>
             </td>
-            <td><input type="text" value="${e.servicos || ''}" onchange="atualizarCampo(${e.id}, 'servicos', this.value)" style="width:100%; padding:4px;"></td>
-            <td><input type="text" value="${e.cliente || ''}" onchange="atualizarCampo(${e.id}, 'cliente', this.value)" style="width:100%; padding:4px;"></td>
-            <td><input type="text" value="${e.observacao || ''}" onchange="atualizarCampo(${e.id}, 'observacao', this.value)" style="width:100%; padding:4px;"></td>
+            <td><input type="text" value="${e.servicos || ''}" onchange="atualizarCampo(${e.id}, 'servicos', this.value)"></td>
+            <td><input type="text" value="${e.cliente || ''}" onchange="atualizarCampo(${e.id}, 'cliente', this.value)"></td>
+            <td><input type="text" value="${e.observacao || ''}" onchange="atualizarCampo(${e.id}, 'observacao', this.value)"></td>
             <td><button class="btn-danger" onclick="deletarExtrato(${e.id})">Deletar</button></td>
           `;
           tbody.appendChild(tr);
@@ -352,7 +432,7 @@
           html += `
             <div class="categoria-box">
               <label>${cat}</label>
-              <value>R$ ${valor.toFixed(2)}</value>
+              <value>${formatarMoedaBR(valor)}</value>
             </div>
           `;
         }
