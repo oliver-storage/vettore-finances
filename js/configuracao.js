@@ -137,36 +137,44 @@ async function carregarPrivilegios() {
 async function handleNovaUnidade(e) {
   e.preventDefault();
   
-  const nova = {
-    nomeFranquia: document.getElementById('inputNomeFranquia').value,
-    razaoSocial: document.getElementById('inputRazaoSocial').value,
-    cnpj: document.getElementById('inputCNPJ').value,
-    email: document.getElementById('inputEmail').value,
-    telefone: document.getElementById('inputTelefone').value,
-    cep: document.getElementById('inputCEP').value,
-    rua: document.getElementById('inputRua').value,
-    numero: document.getElementById('inputNumero').value,
-    complemento: document.getElementById('inputComplemento').value,
-    bairro: document.getElementById('inputBairro').value,
-    cidade: document.getElementById('inputCidade').value,
-    estado: document.getElementById('inputEstado').value,
-    banco: document.getElementById('inputBanco').value,
-    agencia: document.getElementById('inputAgencia').value,
-    conta: document.getElementById('inputConta').value,
-    tipoConta: document.getElementById('inputTipoConta').value
-  };
-  
-  const result = await SupabaseAPI.insert('unidades', nova);
-  
-  if (result && result.length > 0) {
-    alert('✅ Unidade criada com sucesso!');
-    e.target.reset();
-    await carregarUnidades();
-    const unidades = await SupabaseAPI.get('unidades');
-    await carregarFranquiasSelect(unidades);
-  } else {
-    alert('❌ Erro ao criar unidade');
-    console.error('Resposta:', result);
+  try {
+    const nova = {
+      nomeFranquia: document.getElementById('inputNomeFranquia').value,
+      razaoSocial: document.getElementById('inputRazaoSocial').value,
+      cnpj: document.getElementById('inputCNPJ').value,
+      email: document.getElementById('inputEmail').value,
+      telefone: document.getElementById('inputTelefone').value,
+      cep: document.getElementById('inputCEP').value,
+      rua: document.getElementById('inputRua').value,
+      numero: document.getElementById('inputNumero').value,
+      complemento: document.getElementById('inputComplemento').value,
+      bairro: document.getElementById('inputBairro').value,
+      cidade: document.getElementById('inputCidade').value,
+      estado: document.getElementById('inputEstado').value,
+      banco: document.getElementById('inputBanco').value,
+      agencia: document.getElementById('inputAgencia').value,
+      conta: document.getElementById('inputConta').value,
+      tipoConta: document.getElementById('inputTipoConta').value
+    };
+    
+    console.log('📝 Dados a enviar:', nova);
+    
+    const result = await SupabaseAPI.insert('unidades', nova);
+    
+    console.log('📥 Resposta:', result);
+    
+    if (result && result.length > 0) {
+      alert('✅ Unidade criada com sucesso!');
+      e.target.reset();
+      await carregarUnidades();
+      const unidades = await SupabaseAPI.get('unidades');
+      await carregarFranquiasSelect(unidades);
+    } else {
+      alert('❌ Erro ao criar unidade');
+    }
+  } catch (error) {
+    alert('❌ Erro: ' + error.message);
+    console.error('Erro completo:', error);
   }
 }
 
@@ -229,19 +237,68 @@ async function editarUnidade(id) {
   const unidade = unidades.find(u => u.id === id);
   
   if (!unidade) {
-    alert('❌ Unidade não encontrada');
+    alert('❌ Franquia não encontrada');
     return;
   }
   
-  const novoNome = prompt('Nome Franquia:', unidade.nomeFranquia);
-  if (novoNome === null) return;
+  // Preencher modal
+  document.getElementById('modalFranquiaId').value = id;
+  document.getElementById('modalNomeFranquia').value = unidade.nomeFranquia || '';
+  document.getElementById('modalRazaoSocial').value = unidade.razaoSocial || '';
+  document.getElementById('modalCNPJ').value = unidade.cnpj || '';
+  document.getElementById('modalEmailFranquia').value = unidade.email || '';
+  document.getElementById('modalTelefoneFranquia').value = unidade.telefone || '';
+  document.getElementById('modalCEPFranquia').value = unidade.cep || '';
+  document.getElementById('modalRuaFranquia').value = unidade.rua || '';
+  document.getElementById('modalNumeroFranquia').value = unidade.numero || '';
+  document.getElementById('modalComplementoFranquia').value = unidade.complemento || '';
+  document.getElementById('modalBairroFranquia').value = unidade.bairro || '';
+  document.getElementById('modalCidadeFranquia').value = unidade.cidade || '';
+  document.getElementById('modalEstadoFranquia').value = unidade.estado || '';
+  document.getElementById('modalBancoFranquia').value = unidade.banco || '';
+  document.getElementById('modalAgenciaFranquia').value = unidade.agencia || '';
+  document.getElementById('modalContaFranquia').value = unidade.conta || '';
+  document.getElementById('modalTipoContaFranquia').value = unidade.tipoConta || '';
   
-  const updateData = { nomeFranquia: novoNome };
+  // Mostrar modal
+  document.getElementById('modalEditarFranquia').style.display = 'flex';
+}
+
+function fecharModalFranquia() {
+  document.getElementById('modalEditarFranquia').style.display = 'none';
+}
+
+async function salvarEdicaoFranquia(e) {
+  e.preventDefault();
+  
+  const id = parseInt(document.getElementById('modalFranquiaId').value);
+  
+  const updateData = {
+    nomeFranquia: document.getElementById('modalNomeFranquia').value,
+    razaoSocial: document.getElementById('modalRazaoSocial').value,
+    cnpj: document.getElementById('modalCNPJ').value,
+    email: document.getElementById('modalEmailFranquia').value,
+    telefone: document.getElementById('modalTelefoneFranquia').value,
+    cep: document.getElementById('modalCEPFranquia').value,
+    rua: document.getElementById('modalRuaFranquia').value,
+    numero: document.getElementById('modalNumeroFranquia').value,
+    complemento: document.getElementById('modalComplementoFranquia').value,
+    bairro: document.getElementById('modalBairroFranquia').value,
+    cidade: document.getElementById('modalCidadeFranquia').value,
+    estado: document.getElementById('modalEstadoFranquia').value,
+    banco: document.getElementById('modalBancoFranquia').value,
+    agencia: document.getElementById('modalAgenciaFranquia').value,
+    conta: document.getElementById('modalContaFranquia').value,
+    tipoConta: document.getElementById('modalTipoContaFranquia').value
+  };
   
   try {
     await SupabaseAPI.update('unidades', id, updateData);
-    alert('✅ Unidade atualizada!');
+    alert('✅ Franquia atualizada!');
+    fecharModalFranquia();
     await carregarUnidades();
+    const unidades = await SupabaseAPI.get('unidades');
+    await carregarFranquiasSelect(unidades);
   } catch (error) {
     alert('❌ Erro: ' + error.message);
   }

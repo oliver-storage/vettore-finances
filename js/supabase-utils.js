@@ -31,7 +31,15 @@ class SupabaseAPI {
       },
       body: JSON.stringify(data)
     });
-    return response.json();
+    
+    const result = await response.json();
+    
+    if (!response.ok) {
+      console.error('❌ Erro Supabase:', response.status, result);
+      throw new Error(result.message || 'Erro ao inserir');
+    }
+    
+    return result;
   }
 
   static async update(table, id, data) {
@@ -46,7 +54,15 @@ class SupabaseAPI {
       },
       body: JSON.stringify(data)
     });
-    return response.json();
+    
+    const result = await response.json();
+    
+    if (!response.ok) {
+      console.error('❌ Erro Supabase:', response.status, result);
+      throw new Error(result.message || 'Erro ao atualizar');
+    }
+    
+    return result;
   }
 
   static async delete(table, id) {
@@ -59,7 +75,14 @@ class SupabaseAPI {
         'Content-Type': 'application/json'
       }
     });
-    return response.ok;
+    
+    if (!response.ok) {
+      const result = await response.json();
+      console.error('❌ Erro Supabase:', response.status, result);
+      throw new Error(result.message || 'Erro ao deletar');
+    }
+    
+    return true;
   }
 
   static async query(table, filters = {}) {
