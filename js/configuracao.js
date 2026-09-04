@@ -9,9 +9,9 @@ async function inicializar() {
     const user = JSON.parse(localStorage.getItem('currentUser'));
     const unidades = await SupabaseAPI.get('unidades');
     const franquia = unidades.find(u => u.id === user.unidade_id);
-    const nomeFranquia = franquia?.nomeFranquia || 'Franquia';
+    const nome_franquia = franquia?.nome_franquia || 'Franquia';
     
-    document.getElementById('userName').textContent = `${nomeFranquia} - ${user.nome}`;
+    document.getElementById('userName').textContent = `${nome_franquia} - ${user.nome}`;
     
     // Máscara CPF na aba usuários (criar)
     const inputCPF = document.getElementById('inputCPFUsuario');
@@ -56,7 +56,7 @@ async function carregarUnidades() {
   unidades.forEach(u => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td>${u.nomeFranquia}</td>
+      <td>${u.nome_franquia}</td>
       <td>${u.cnpj || '-'}</td>
       <td>${u.telefone || '-'}</td>
       <td>
@@ -75,7 +75,7 @@ async function carregarFranquiasSelect(unidades) {
   unidades.forEach(u => {
     const option = document.createElement('option');
     option.value = u.id;
-    option.textContent = u.nomeFranquia;
+    option.textContent = u.nome_franquia;
     select.appendChild(option);
   });
 }
@@ -88,7 +88,7 @@ async function carregarUsuarios() {
   tbody.innerHTML = '';
   usuarios.forEach(u => {
     const unidade = unidades.find(un => un.id === u.unidade_id);
-    const nomeUnidade = unidade?.nomeFranquia || '-';
+    const nomeUnidade = unidade?.nome_franquia || '-';
     const cpfFormatado = u.cpf ? formatarCPF(u.cpf) : '-';
     
     const tr = document.createElement('tr');
@@ -139,8 +139,8 @@ async function handleNovaUnidade(e) {
   
   try {
     const nova = {
-      nomeFranquia: document.getElementById('inputNomeFranquia').value,
-      razaoSocial: document.getElementById('inputRazaoSocial').value,
+      nome_franquia: document.getElementById('inputNomeFranquia').value,
+      razao_social: document.getElementById('inputRazaoSocial').value,
       cnpj: document.getElementById('inputCNPJ').value,
       email: document.getElementById('inputEmail').value,
       telefone: document.getElementById('inputTelefone').value,
@@ -154,7 +154,7 @@ async function handleNovaUnidade(e) {
       banco: document.getElementById('inputBanco').value,
       agencia: document.getElementById('inputAgencia').value,
       conta: document.getElementById('inputConta').value,
-      tipoConta: document.getElementById('inputTipoConta').value
+      tipo_conta: document.getElementById('inputTipoConta').value
     };
     
     console.log('📝 Dados a enviar:', nova);
@@ -243,8 +243,8 @@ async function editarUnidade(id) {
   
   // Preencher modal
   document.getElementById('modalFranquiaId').value = id;
-  document.getElementById('modalNomeFranquia').value = unidade.nomeFranquia || '';
-  document.getElementById('modalRazaoSocial').value = unidade.razaoSocial || '';
+  document.getElementById('modalNomeFranquia').value = unidade.nome_franquia || '';
+  document.getElementById('modalRazaoSocial').value = unidade.razao_social || '';
   document.getElementById('modalCNPJ').value = unidade.cnpj || '';
   document.getElementById('modalEmailFranquia').value = unidade.email || '';
   document.getElementById('modalTelefoneFranquia').value = unidade.telefone || '';
@@ -258,7 +258,7 @@ async function editarUnidade(id) {
   document.getElementById('modalBancoFranquia').value = unidade.banco || '';
   document.getElementById('modalAgenciaFranquia').value = unidade.agencia || '';
   document.getElementById('modalContaFranquia').value = unidade.conta || '';
-  document.getElementById('modalTipoContaFranquia').value = unidade.tipoConta || '';
+  document.getElementById('modalTipoContaFranquia').value = unidade.tipo_conta || '';
   
   // Mostrar modal
   document.getElementById('modalEditarFranquia').style.display = 'flex';
@@ -274,8 +274,8 @@ async function salvarEdicaoFranquia(e) {
   const id = parseInt(document.getElementById('modalFranquiaId').value);
   
   const updateData = {
-    nomeFranquia: document.getElementById('modalNomeFranquia').value,
-    razaoSocial: document.getElementById('modalRazaoSocial').value,
+    nome_franquia: document.getElementById('modalNomeFranquia').value,
+    razao_social: document.getElementById('modalRazaoSocial').value,
     cnpj: document.getElementById('modalCNPJ').value,
     email: document.getElementById('modalEmailFranquia').value,
     telefone: document.getElementById('modalTelefoneFranquia').value,
@@ -289,7 +289,7 @@ async function salvarEdicaoFranquia(e) {
     banco: document.getElementById('modalBancoFranquia').value,
     agencia: document.getElementById('modalAgenciaFranquia').value,
     conta: document.getElementById('modalContaFranquia').value,
-    tipoConta: document.getElementById('modalTipoContaFranquia').value
+    tipo_conta: document.getElementById('modalTipoContaFranquia').value
   };
   
   try {
@@ -341,7 +341,7 @@ async function editarUsuario(id) {
   unidades.forEach(u => {
     const option = document.createElement('option');
     option.value = u.id;
-    option.textContent = u.nomeFranquia;
+    option.textContent = u.nome_franquia;
     if (u.id === user.unidade_id) option.selected = true;
     selectFranquia.appendChild(option);
   });
