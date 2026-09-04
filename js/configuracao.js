@@ -1,5 +1,5 @@
 /**
- * Vettore Finances - Configuração com Supabase v1.8.8
+ * Vettore Finances - Configuração com Supabase v1.9.0
  */
 
 const CATEGORIAS_PADRAO = [
@@ -36,7 +36,16 @@ async function inicializar() {
       });
     }
     
-    // Carregar dados com filtros de permissão
+    // Verificar se é admin para mostrar privilégios
+    if (user.perfil === 'administrador') {
+      document.getElementById('tabPrivilegios').style.display = 'inline-block';
+    }
+
+    // Preencher informações do usuário na ABA Geral
+    document.getElementById('infoUsuarioNome').textContent = user.nome;
+    document.getElementById('infoUsuarioEmail').textContent = user.email;
+    document.getElementById('infoUsuarioFranquia').textContent = franquia?.nomefranquia || '-';
+    document.getElementById('infoUsuarioPerfil').textContent = user.perfil;
     await carregarUnidades(user);
     await carregarFranquiasSelect(unidades, user);
     await carregarUsuarios(user);

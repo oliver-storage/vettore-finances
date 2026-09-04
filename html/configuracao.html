@@ -1,4 +1,4 @@
-<!-- Vettore Finances v1.8.8 • Desenvolvido por OliverStorage -->
+<!-- Vettore Finances v1.9.0 • Desenvolvido por OliverStorage -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -47,6 +47,31 @@
     .tab-content.active {
       display: block;
     }
+
+    .card table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+
+    .card table tr {
+      border-bottom: 1px solid var(--linha);
+    }
+
+    .card table tr:last-child {
+      border-bottom: none;
+    }
+
+    .card table td {
+      padding: 12px;
+      vertical-align: middle;
+    }
+
+    .card table td:first-child {
+      width: 160px;
+      color: var(--tinta-70);
+      font-weight: 500;
+    }
   </style>
 </head>
 <body>
@@ -70,14 +95,54 @@
     <p class="subtitle">Dados gerais do sistema, salvos no Supabase.</p>
     
     <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab('unidades')">Unidades</button>
+      <button class="tab-btn active" onclick="switchTab('geral')">Geral</button>
+      <button class="tab-btn" onclick="switchTab('unidades')">Unidades</button>
       <button class="tab-btn" onclick="switchTab('usuarios')">Usuários</button>
-      <button class="tab-btn" onclick="switchTab('privilegios')">Privilégios</button>
+      <button class="tab-btn" id="tabPrivilegios" style="display:none;" onclick="switchTab('privilegios')">Privilégios</button>
       <button class="tab-btn" onclick="switchTab('financeiro')">Financeiro</button>
     </div>
 
+    <!-- ABA 0: GERAL -->
+    <div id="geral" class="tab-content active">
+      <h3>Configurações Gerais</h3>
+      
+      <div class="card">
+        <h4>Sistema</h4>
+        <div class="form-group">
+          <label>Nome da Empresa</label>
+          <input type="text" id="inputNomeEmpresa" placeholder="Vettore Finances">
+        </div>
+        <div class="form-group">
+          <label>Versão Atual</label>
+          <input type="text" value="v1.9.0" readonly style="background:var(--papel); cursor:not-allowed;">
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:20px;">
+        <h4>Informações do Usuário Logado</h4>
+        <table>
+          <tr>
+            <td><strong>Nome:</strong></td>
+            <td id="infoUsuarioNome">-</td>
+          </tr>
+          <tr>
+            <td><strong>Email:</strong></td>
+            <td id="infoUsuarioEmail">-</td>
+          </tr>
+          <tr>
+            <td><strong>Franquia:</strong></td>
+            <td id="infoUsuarioFranquia">-</td>
+          </tr>
+          <tr>
+            <td><strong>Perfil:</strong></td>
+            <td id="infoUsuarioPerfil">-</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
     <!-- ABA 1: UNIDADES -->
-    <div id="unidades" class="tab-content active">
+    <div id="unidades" class="tab-content">
       <div class="card">
         <h3>Cadastro de Unidades/Franquias</h3>
         <p class="description">Registre suas unidades e franquias. Campos com asterisco (*) são obrigatórios</p>
@@ -460,7 +525,7 @@
           </div>
         </div>
       </div>
-    <p>&copy; Vettore Finances 2026 - v1.8.8 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.0 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>

@@ -1,4 +1,4 @@
-<!-- Vettore Finances v1.8.8 • Desenvolvido por OliverStorage -->
+<!-- Vettore Finances v1.9.0 • Desenvolvido por OliverStorage -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -421,7 +421,7 @@
   </div>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.8.8 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.0 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>
@@ -439,6 +439,19 @@
         style: 'currency',
         currency: 'BRL'
       });
+    }
+
+    function formatarValorComSinal(valor) {
+      const v = parseFloat(valor || 0);
+      const formatado = Math.abs(v).toLocaleString('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+      });
+      return v >= 0 ? `+ ${formatado}` : `- ${formatado}`;
+    }
+
+    function corValor(valor) {
+      return parseFloat(valor || 0) >= 0 ? 'var(--destaque)' : 'var(--alerta)';
     }
 
     function formatarDataBR(data) {
@@ -518,7 +531,8 @@
 
         extratos.forEach(e => {
           const tr = document.createElement('tr');
-          const valorFormatado = formatarMoedaBR(e.valor);
+          const valorFormatado = formatarValorComSinal(e.valor);
+          const corVal = corValor(e.valor);
           const dataFormatada = formatarDataBR(e.data);
           const dataRef = e.data_referencia || e.data;
           const historicoCorrecao = e.historico_correcao || e.descricao;
@@ -526,7 +540,7 @@
           tr.innerHTML = `
             <td style="font-weight:400; color:var(--tinta); font-size:13px;">${dataFormatada}</td>
             <td style="font-size:13px; color:var(--tinta);">${e.descricao}</td>
-            <td style="font-weight:600; color:var(--marca); font-size:14px;">${valorFormatado}</td>
+            <td style="font-weight:600; color:${corVal}; font-size:14px;">${valorFormatado}</td>
             <td style="text-align:center; color:var(--tinta-40); font-size:12px;">${e.codigo || '-'}</td>
             <td><input type="date" value="${dataRef}" onchange="atualizarCampo(${e.id}, 'data_referencia', this.value)"></td>
             <td><input type="text" placeholder="Descrição do lançamento" value="${historicoCorrecao}" onchange="atualizarCampo(${e.id}, 'historico_correcao', this.value)"></td>
@@ -591,10 +605,12 @@
 
       Object.entries(resumo).forEach(([cat, valor]) => {
         if (valor !== 0) {
+          const corVal = corValor(valor);
+          const valorFormatado = formatarValorComSinal(valor);
           html += `
             <div class="categoria-box">
               <label>${cat}</label>
-              <value>${formatarMoedaBR(valor)}</value>
+              <value style="color:${corVal};">${valorFormatado}</value>
             </div>
           `;
         }
