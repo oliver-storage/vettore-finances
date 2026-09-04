@@ -1,4 +1,4 @@
-<!-- Vettore Finances v1.8.4 • Desenvolvido por OliverStorage -->
+<!-- Vettore Finances v1.8.5 • Desenvolvido por OliverStorage -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -179,6 +179,14 @@
       font-size: 12px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+    }
+
+    /* Override: manter azul nas colunas fixas do header */
+    #tabelaExtratos thead th:nth-child(1),
+    #tabelaExtratos thead th:nth-child(2),
+    #tabelaExtratos thead th:nth-child(3) {
+      background: var(--marca);
+      color: white;
     }
 
     #tabelaExtratos tbody tr {
@@ -380,7 +388,7 @@
   </div>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.8.4 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.8.5 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>
