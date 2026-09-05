@@ -244,6 +244,7 @@ async function salvarPF(event) {
     profissao: document.getElementById('pfProfissao').value.trim() || null,
     cpf: document.getElementById('pfCPF').value.trim() || null,
     endereco: document.getElementById('pfEndereco').value.trim() || null,
+    estado: document.getElementById('pfEstado').value.trim().toUpperCase() || null,
     telefone: document.getElementById('pfTelefone').value.trim() || null,
     municipio: document.getElementById('pfMunicipio').value.trim() || null,
     cnae: document.getElementById('pfCNAE').value.trim() || null,
@@ -322,6 +323,7 @@ async function editarPF(id) {
   document.getElementById('pfProfissao').value = p.profissao || '';
   document.getElementById('pfCPF').value = p.cpf || '';
   document.getElementById('pfEndereco').value = p.endereco || '';
+  document.getElementById('pfEstado').value = p.estado || '';
   document.getElementById('pfTelefone').value = p.telefone || '';
   document.getElementById('pfMunicipio').value = p.municipio || '';
   document.getElementById('pfCNAE').value = p.cnae || '';
@@ -336,7 +338,7 @@ async function editarPF(id) {
 
 function limparFormularioPF() {
   document.getElementById('pfId').value = '';
-  ['pfNome','pfDataNascimento','pfNacionalidade','pfEstadoCivil','pfProfissao','pfCPF','pfEndereco',
+  ['pfNome','pfDataNascimento','pfNacionalidade','pfEstadoCivil','pfProfissao','pfCPF','pfEndereco','pfEstado',
    'pfTelefone','pfMunicipio','pfCNAE','pfSenhaGov','pfEmail','pfCapitalSocial','pfObservacoes','pfSequencia']
     .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   document.querySelectorAll('.pjVinculoCheckbox').forEach(cb => cb.checked = false);
@@ -386,6 +388,7 @@ async function salvarPJ(event) {
     capital_social: document.getElementById('pjCapitalSocial').value.trim() || null,
     senha_gov: document.getElementById('pjSenhaGov').value.trim() || null,
     endereco_empresa: document.getElementById('pjEnderecoEmpresa').value.trim() || null,
+    estado_empresa: document.getElementById('pjEstadoEmpresa').value.trim().toUpperCase() || null,
     municipio_empresa: document.getElementById('pjMunicipioEmpresa').value.trim() || null,
     nome_representante: document.getElementById('pjNomeRepresentante').value.trim() || null,
     data_nascimento_representante: document.getElementById('pjDataNascimentoRepresentante').value || null,
@@ -397,6 +400,7 @@ async function salvarPJ(event) {
     telefone_representante: document.getElementById('pjTelefoneRepresentante').value.trim() || null,
     email_representante: document.getElementById('pjEmailRepresentante').value.trim() || null,
     endereco_representante: document.getElementById('pjEnderecoRepresentante').value.trim() || null,
+    estado_representante: document.getElementById('pjEstadoRepresentante').value.trim().toUpperCase() || null,
     observacoes: document.getElementById('pjObservacoes').value.trim() || null
   };
 
@@ -471,6 +475,7 @@ async function editarPJ(id) {
   document.getElementById('pjCapitalSocial').value = j.capital_social || '';
   document.getElementById('pjSenhaGov').value = j.senha_gov || '';
   document.getElementById('pjEnderecoEmpresa').value = j.endereco_empresa || '';
+  document.getElementById('pjEstadoEmpresa').value = j.estado_empresa || '';
   document.getElementById('pjMunicipioEmpresa').value = j.municipio_empresa || '';
   document.getElementById('pjNomeRepresentante').value = j.nome_representante || '';
   document.getElementById('pjDataNascimentoRepresentante').value = j.data_nascimento_representante || '';
@@ -482,6 +487,7 @@ async function editarPJ(id) {
   document.getElementById('pjTelefoneRepresentante').value = j.telefone_representante || '';
   document.getElementById('pjEmailRepresentante').value = j.email_representante || '';
   document.getElementById('pjEnderecoRepresentante').value = j.endereco_representante || '';
+  document.getElementById('pjEstadoRepresentante').value = j.estado_representante || '';
   document.getElementById('pjObservacoes').value = j.observacoes || '';
 
   await popularVinculosPFnoFormPJ();
@@ -490,10 +496,10 @@ async function editarPJ(id) {
 function limparFormularioPJ() {
   document.getElementById('pjId').value = '';
   ['pjRazaoSocial','pjCNPJ','pjSegmento','pjPorte','pjRegimeTributario','pjNaturezaJuridica','pjCNAE',
-   'pjCapitalSocial','pjSenhaGov','pjEnderecoEmpresa','pjMunicipioEmpresa','pjNomeRepresentante',
+   'pjCapitalSocial','pjSenhaGov','pjEnderecoEmpresa','pjEstadoEmpresa','pjMunicipioEmpresa','pjNomeRepresentante',
    'pjDataNascimentoRepresentante','pjNacionalidadeRepresentante','pjEstadoCivilRepresentante',
    'pjProfissaoRepresentante','pjCPFRepresentante','pjRGRepresentante','pjTelefoneRepresentante',
-   'pjEmailRepresentante','pjEnderecoRepresentante','pjObservacoes']
+   'pjEmailRepresentante','pjEnderecoRepresentante','pjEstadoRepresentante','pjObservacoes']
     .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   document.querySelectorAll('.pfVinculoCheckbox').forEach(cb => cb.checked = false);
 }

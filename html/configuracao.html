@@ -5,8 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vettore Finances - Configuração</title>
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.4.2">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.4.2">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.4.3">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.4.3">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -705,9 +705,13 @@
                 </div>
 
                 <div class="form-row-3">
-                  <div class="form-group" style="grid-column: span 3;">
+                  <div class="form-group" style="grid-column: span 2;">
                     <label>Endereço</label>
                     <input type="text" id="pfEndereco">
+                  </div>
+                  <div class="form-group">
+                    <label>Estado</label>
+                    <input type="text" id="pfEstado" maxlength="2" style="text-transform:uppercase;">
                   </div>
                 </div>
 
@@ -800,13 +804,17 @@
                 </div>
 
                 <div class="form-row-3">
-                  <div class="form-group" style="grid-column: span 2;">
+                  <div class="form-group">
                     <label>Endereço da Empresa</label>
                     <input type="text" id="pjEnderecoEmpresa">
                   </div>
                   <div class="form-group">
                     <label>Município da Empresa</label>
                     <input type="text" id="pjMunicipioEmpresa">
+                  </div>
+                  <div class="form-group">
+                    <label>Estado da Empresa</label>
+                    <input type="text" id="pjEstadoEmpresa" maxlength="2" style="text-transform:uppercase;">
                   </div>
                 </div>
 
@@ -864,9 +872,13 @@
                 </div>
 
                 <div class="form-row-3">
-                  <div class="form-group" style="grid-column: span 3;">
+                  <div class="form-group" style="grid-column: span 2;">
                     <label>Endereço do Representante</label>
                     <input type="text" id="pjEnderecoRepresentante">
+                  </div>
+                  <div class="form-group">
+                    <label>Estado do Representante</label>
+                    <input type="text" id="pjEstadoRepresentante" maxlength="2" style="text-transform:uppercase;">
                   </div>
                 </div>
 
@@ -893,7 +905,7 @@
       </div>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.4.2 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.4.3 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>
