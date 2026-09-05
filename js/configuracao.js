@@ -7,6 +7,7 @@ const CATEGORIAS_PADRAO = [
 ];
 
 let CATEGORIAS = [...CATEGORIAS_PADRAO];
+let UNIDADES_CACHE = [];
 
 async function inicializar() {
   try {
@@ -14,6 +15,7 @@ async function inicializar() {
     
     const user = JSON.parse(localStorage.getItem('currentUser'));
     const unidades = await SupabaseAPI.get('unidades');
+    UNIDADES_CACHE = unidades;
     const franquia = unidades.find(u => u.id === user.unidade_id);
     const nomefranquia = franquia?.nomefranquia || 'Sistema';
     
@@ -549,6 +551,18 @@ async function atualizarSelectsParametros() {
       selectSub.appendChild(option);
     });
   }
+
+  // Checkboxes de franquias
+  const containerFranquias = document.getElementById('checkboxesFranquiasParam');
+  if (containerFranquias) {
+    if (UNIDADES_CACHE.length === 0) UNIDADES_CACHE = await SupabaseAPI.get('unidades');
+    containerFranquias.innerHTML = UNIDADES_CACHE.map(u => `
+      <label style="display:flex; align-items:center; gap:6px; font-size:13px; font-weight:400; cursor:pointer;">
+        <input type="checkbox" class="checkbox-sistema franquiaParamCheckbox" value="${u.id}">
+        ${u.nomefranquia}
+      </label>
+    `).join('');
+  }
 }
 
 async function carregarParametros() {
@@ -557,9 +571,10 @@ async function carregarParametros() {
 
   tbody.innerHTML = '';
   const parametros = await SupabaseAPI.get('parametros_auto');
+  if (UNIDADES_CACHE.length === 0) UNIDADES_CACHE = await SupabaseAPI.get('unidades');
 
   if (parametros.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--tinta-40);">Nenhum parâmetro cadastrado</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px; color:var(--tinta-40);">Nenhum parâmetro cadastrado</td></tr>';
     document.getElementById('acoesMassaParametros').style.display = 'none';
     document.getElementById('checkAllParametros').checked = false;
     return;
@@ -568,6 +583,9 @@ async function carregarParametros() {
   parametros.forEach((param) => {
     const tr = document.createElement('tr');
     tr.style.borderBottom = '1px solid var(--linha)';
+    const franquiasTexto = (!param.unidade_ids || param.unidade_ids.length === 0)
+      ? '<span style="color:var(--tinta-40);">Todas</span>'
+      : param.unidade_ids.map(id => UNIDADES_CACHE.find(u => u.id === id)?.nomefranquia || id).join(', ');
     tr.innerHTML = `
       <td style="text-align:center; padding: 12px 6px;">
         <input type="checkbox" class="checkbox-sistema checkboxParametro" data-id="${param.id}" onchange="atualizarAcoesMassa()">
@@ -575,6 +593,7 @@ async function carregarParametros() {
       <td style="padding:12px;">${param.descricao}</td>
       <td style="padding:12px;">${param.categoria}</td>
       <td style="padding:12px;">${param.subcategoria || '-'}</td>
+      <td style="padding:12px; font-size:12px;">${franquiasTexto}</td>
       <td style="padding:12px; text-align:center; display:flex; gap:6px; justify-content:center;">
         <button class="action-button" onclick="abrirModalEditarParametro(${param.id})" title="Editar Parâmetro">✏️</button>
         <button class="action-button delete" onclick="deletarParametro(${param.id})" title="Deletar Parâmetro">🗑️</button>
@@ -668,6 +687,7 @@ async function adicionarParametro() {
   const descricao = document.getElementById('inputParamDescricao')?.value.trim().toUpperCase();
   const categoria = document.getElementById('selectParamCategoria')?.value;
   const subcategoria = document.getElementById('selectParamSubcategoria')?.value;
+  const unidadeIds = Array.from(document.querySelectorAll('.franquiaParamCheckbox:checked')).map(cb => parseInt(cb.value));
 
   if (!descricao || !categoria) {
     alert('⚠️ Preencha Descrição e Categoria');
@@ -680,11 +700,17 @@ async function adicionarParametro() {
     return;
   }
 
-  await SupabaseAPI.insert('parametros_auto', { descricao, categoria, subcategoria: subcategoria || null });
+  await SupabaseAPI.insert('parametros_auto', {
+    descricao,
+    categoria,
+    subcategoria: subcategoria || null,
+    unidade_ids: unidadeIds.length > 0 ? unidadeIds : null
+  });
 
   document.getElementById('inputParamDescricao').value = '';
   document.getElementById('selectParamCategoria').value = '';
   document.getElementById('selectParamSubcategoria').value = '';
+  document.querySelectorAll('.franquiaParamCheckbox:checked').forEach(cb => cb.checked = false);
 
   await carregarParametros();
   alert('✅ Parâmetro adicionado!');
@@ -740,6 +766,11 @@ async function abrirModalEditarParametro(id) {
           <option value="">Nenhuma</option>
         </select>
       </div>
+
+      <div style="margin-bottom: 20px;">
+        <label style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px;">Franquias (nenhuma marcada = todas)</label>
+        <div id="modalFranquiasParam" style="display:flex; flex-wrap:wrap; gap:10px;"></div>
+      </div>
       
       <div style="display: flex; gap: 8px; justify-content: flex-end;">
         <button onclick="fecharModalParametro()" class="btn-danger" style="padding: 10px 16px;">Cancelar</button>
@@ -770,6 +801,15 @@ async function abrirModalEditarParametro(id) {
     if (sub === param.subcategoria) option.selected = true;
     selectSub.appendChild(option);
   });
+
+  if (UNIDADES_CACHE.length === 0) UNIDADES_CACHE = await SupabaseAPI.get('unidades');
+  const jaMarcadas = param.unidade_ids || [];
+  document.getElementById('modalFranquiasParam').innerHTML = UNIDADES_CACHE.map(u => `
+    <label style="display:flex; align-items:center; gap:6px; font-size:13px; font-weight:400; cursor:pointer;">
+      <input type="checkbox" class="checkbox-sistema modalFranquiaCheckbox" value="${u.id}" ${jaMarcadas.includes(u.id) ? 'checked' : ''}>
+      ${u.nomefranquia}
+    </label>
+  `).join('');
 }
 
 function fecharModalParametro() {
@@ -780,13 +820,18 @@ function fecharModalParametro() {
 async function salvarEdicaoParametro(id) {
   const categoria = document.getElementById('modalParamCategoria').value;
   const subcategoria = document.getElementById('modalParamSubcategoria').value;
+  const unidadeIds = Array.from(document.querySelectorAll('.modalFranquiaCheckbox:checked')).map(cb => parseInt(cb.value));
 
   if (!categoria) {
     alert('⚠️ Selecione uma categoria');
     return;
   }
 
-  await SupabaseAPI.update('parametros_auto', id, { categoria, subcategoria: subcategoria || null });
+  await SupabaseAPI.update('parametros_auto', id, {
+    categoria,
+    subcategoria: subcategoria || null,
+    unidade_ids: unidadeIds.length > 0 ? unidadeIds : null
+  });
 
   fecharModalParametro();
   await carregarParametros();
@@ -849,6 +894,54 @@ async function editarSubcategoryEmLote() {
 
   await Promise.all(ids.map(id => SupabaseAPI.update('parametros_auto', id, { subcategoria: subcategoria || null })));
 
+  await carregarParametros();
+  alert(`✅ ${ids.length} parâmetro(s) atualizado(s)!`);
+}
+
+async function editarFranquiasEmLote() {
+  const ids = Array.from(document.querySelectorAll('.checkboxParametro:checked')).map(cb => parseInt(cb.dataset.id));
+
+  if (ids.length === 0) {
+    alert('⚠️ Selecione parâmetros');
+    return;
+  }
+
+  if (UNIDADES_CACHE.length === 0) UNIDADES_CACHE = await SupabaseAPI.get('unidades');
+
+  const modal = document.createElement('div');
+  modal.id = 'modalFranquiasLote';
+  modal.style.cssText = `
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.3); display: flex; align-items: center;
+    justify-content: center; z-index: 1000;
+  `;
+  modal.innerHTML = `
+    <div style="background: white; padding: 24px; border-radius: 8px; width: 90%; max-width: 500px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+      <h3 style="margin: 0 0 8px 0;">Editar Franquias em Lote</h3>
+      <p style="font-size:12px; color:var(--tinta-70); margin-bottom:16px;">Aplicando a ${ids.length} parâmetro(s). Nenhuma marcada = todas as franquias.</p>
+      <div id="loteFranquiasCheckboxes" style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:20px;">
+        ${UNIDADES_CACHE.map(u => `
+          <label style="display:flex; align-items:center; gap:6px; font-size:13px; font-weight:400; cursor:pointer;">
+            <input type="checkbox" class="checkbox-sistema loteFranquiaCheckbox" value="${u.id}">
+            ${u.nomefranquia}
+          </label>
+        `).join('')}
+      </div>
+      <div style="display: flex; gap: 8px; justify-content: flex-end;">
+        <button onclick="document.getElementById('modalFranquiasLote').remove()" class="btn-danger" style="padding: 10px 16px;">Cancelar</button>
+        <button onclick="salvarFranquiasEmLote([${ids.join(',')}])" class="btn-primary" style="padding: 10px 16px;">Aplicar</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+async function salvarFranquiasEmLote(ids) {
+  const unidadeIds = Array.from(document.querySelectorAll('.loteFranquiaCheckbox:checked')).map(cb => parseInt(cb.value));
+
+  await Promise.all(ids.map(id => SupabaseAPI.update('parametros_auto', id, { unidade_ids: unidadeIds.length > 0 ? unidadeIds : null })));
+
+  document.getElementById('modalFranquiasLote').remove();
   await carregarParametros();
   alert(`✅ ${ids.length} parâmetro(s) atualizado(s)!`);
 }

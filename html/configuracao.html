@@ -5,8 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vettore Finances - Configuração</title>
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.1.0">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.1.0">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.1.1">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.1.1">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -526,6 +526,12 @@
               </select>
             </div>
           </div>
+
+          <div class="form-group" style="margin-top:12px;">
+            <label>Franquias (deixe todas desmarcadas = aplica a todas)</label>
+            <div id="checkboxesFranquiasParam" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:6px;"></div>
+          </div>
+
           <button class="btn-primary" onclick="adicionarParametro()" style="margin-top:12px;">✅ Adicionar Parâmetro</button>
 
           <div style="margin-top:24px;">
@@ -537,6 +543,7 @@
               <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
                 <button class="action-button" onclick="editarCategoryEmLote()" title="Editar Categoria em Lote" style="width: auto; padding: 0 12px;">✏️ Editar Categoria</button>
                 <button class="action-button" onclick="editarSubcategoryEmLote()" title="Editar Subcategoria em Lote" style="width: auto; padding: 0 12px;">✏️ Editar Subcategoria</button>
+                <button class="action-button" onclick="editarFranquiasEmLote()" title="Editar Franquias em Lote" style="width: auto; padding: 0 12px;">✏️ Editar Franquias</button>
                 <button class="action-button delete" onclick="deletarSelecionados()" title="Deletar Selecionados" style="width: auto; padding: 0 12px;">🗑️ Deletar</button>
               </div>
             </div>
@@ -550,6 +557,7 @@
                   <th style="padding:12px;">Descrição</th>
                   <th style="padding:12px;">Categoria</th>
                   <th style="padding:12px;">Subcategoria</th>
+                  <th style="padding:12px;">Franquias</th>
                   <th style="text-align:center; width:100px; padding:12px;">Ações</th>
                 </tr>
               </thead>
@@ -560,7 +568,7 @@
       </div>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.1.0 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.1.1 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>
