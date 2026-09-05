@@ -251,8 +251,7 @@ async function salvarPF(event) {
     senha_gov: document.getElementById('pfSenhaGov').value.trim() || null,
     email: document.getElementById('pfEmail').value.trim() || null,
     capital_social: document.getElementById('pfCapitalSocial').value.trim() || null,
-    observacoes: document.getElementById('pfObservacoes').value.trim() || null,
-    sequencia: document.getElementById('pfSequencia').value.trim() || null
+    observacoes: document.getElementById('pfObservacoes').value.trim() || null
   };
 
   if (!dados.nome) {
@@ -331,7 +330,6 @@ async function editarPF(id) {
   document.getElementById('pfEmail').value = p.email || '';
   document.getElementById('pfCapitalSocial').value = p.capital_social || '';
   document.getElementById('pfObservacoes').value = p.observacoes || '';
-  document.getElementById('pfSequencia').value = p.sequencia || '';
 
   await popularVinculosPJnoFormPF();
 }
@@ -339,7 +337,7 @@ async function editarPF(id) {
 function limparFormularioPF() {
   document.getElementById('pfId').value = '';
   ['pfNome','pfDataNascimento','pfNacionalidade','pfEstadoCivil','pfProfissao','pfCPF','pfEndereco','pfEstado',
-   'pfTelefone','pfMunicipio','pfCNAE','pfSenhaGov','pfEmail','pfCapitalSocial','pfObservacoes','pfSequencia']
+   'pfTelefone','pfMunicipio','pfCNAE','pfSenhaGov','pfEmail','pfCapitalSocial','pfObservacoes']
     .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   document.querySelectorAll('.pjVinculoCheckbox').forEach(cb => cb.checked = false);
 }
