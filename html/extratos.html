@@ -174,10 +174,10 @@
       left: 0;
       background: var(--papel-alto);
       z-index: 11;
-      width: 40px;
+      width: auto;
       min-width: 40px;
       text-align: center;
-      padding: 12px;
+      padding: 12px 6px;
     }
 
     #tabelaExtratos th:nth-child(2),
@@ -218,6 +218,28 @@
       text-align: center;
       color: var(--tinta-40);
       font-size: 12px;
+    }
+
+    /* Data Ref. - Tamanho exato do input date */
+    #tabelaExtratos th:nth-child(6),
+    #tabelaExtratos td:nth-child(6) {
+      min-width: 110px;
+      text-align: center;
+    }
+
+    #tabelaExtratos td:nth-child(6) input[type="date"] {
+      width: 100%;
+      max-width: 100px;
+    }
+
+    /* Histórico Correção - Aumentar 250px */
+    #tabelaExtratos th:nth-child(7),
+    #tabelaExtratos td:nth-child(7) {
+      min-width: 450px;
+    }
+
+    #tabelaExtratos td:nth-child(7) input[type="text"] {
+      width: 100%;
     }
 
     #tabelaExtratos thead th {
