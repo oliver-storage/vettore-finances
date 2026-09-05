@@ -403,6 +403,42 @@
       font-weight: 600;
       color: var(--marca);
     }
+
+    /* PADRÃO CHECKBOX DO SISTEMA */
+    .checkbox-sistema {
+      width: 20px;
+      height: 20px;
+      border: 1px solid var(--linha);
+      border-radius: 4px;
+      background: transparent;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      appearance: none;
+      -webkit-appearance: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .checkbox-sistema:hover {
+      border-color: var(--marca);
+      background: var(--papel-alto);
+    }
+
+    .checkbox-sistema:checked {
+      background: var(--marca);
+      border-color: var(--marca);
+      color: white;
+    }
+
+    .checkbox-sistema:checked::after {
+      content: '✓';
+      font-size: 12px;
+      font-weight: bold;
+      color: white;
+    }
+
+    /* FIM CHECKBOX */
   </style>
 </head>
 <body>
@@ -558,7 +594,7 @@
   </div>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.0.16 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.0.17 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>
