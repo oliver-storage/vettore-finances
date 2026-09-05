@@ -3,8 +3,7 @@
  */
 
 const CATEGORIAS_PADRAO = [
-  'BOLETOS', 'CUSTEIO', 'DAE CLIENTE', 'ENDEREÇO FISCAL',
-  'HONORÁRIOS', 'NEGOCIAÇÃO', 'PARCEIROS', 'SERVIÇOS', 'TARIFAS', 'SALDO ANTERIOR'
+  'IMPOSTOS', 'CUSTEIO', 'BOLETOS', 'HONORÁRIOS', 'TARIFAS'
 ];
 
 let CATEGORIAS = [...CATEGORIAS_PADRAO];
@@ -463,9 +462,13 @@ async function adicionarCategoria() {
 }
 
 function carregarCategorias() {
-  const tbody = document.getElementById('tbodyCategorias');
-  tbody.innerHTML = '';
+  // Carregar categorias do localStorage se existirem
+  CATEGORIAS = JSON.parse(localStorage.getItem('categorias') || JSON.stringify(CATEGORIAS_PADRAO));
   
+  const tbody = document.getElementById('tbodyCategorias');
+  if (!tbody) return; // Se não existe, pula
+  
+  tbody.innerHTML = '';
   CATEGORIAS.forEach(cat => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
@@ -595,15 +598,14 @@ function deletarSubcategoria(subcategoria) {
   alert('✅ Subcategoria deletada!');
 }
 
-// ========== PARÂMETROS ==========
-const PARAMETROS_KEY = 'parametros_auto';
-
 function atualizarSelectsParametros() {
-  // Atualizar Categoria
+  // Carregar categorias (localStorage ou padrão)
+  let categorias = JSON.parse(localStorage.getItem('categorias') || JSON.stringify(CATEGORIAS_PADRAO));
+  
   const selectCat = document.getElementById('selectParamCategoria');
   if (selectCat) {
     selectCat.innerHTML = '<option value="">Selecione...</option>';
-    CATEGORIAS.forEach(cat => {
+    categorias.forEach(cat => {
       const option = document.createElement('option');
       option.value = cat;
       option.textContent = cat;
@@ -611,102 +613,7 @@ function atualizarSelectsParametros() {
     });
   }
   
-  // Atualizar Subcategoria
-  const selectSub = document.getElementById('selectParamSubcategoria');
-  if (selectSub) {
-    selectSub.innerHTML = '<option value="">Nenhuma</option>';
-    let subcategorias = JSON.parse(localStorage.getItem(SUBCATEGORIAS_KEY) || '[]');
-    subcategorias.forEach(sub => {
-      const option = document.createElement('option');
-      option.value = sub;
-      option.textContent = sub;
-      selectSub.appendChild(option);
-    });
-  }
-}
-
-function adicionarParametro() {
-  const descricao = document.getElementById('inputParamDescricao').value.trim().toUpperCase();
-  const categoria = document.getElementById('selectParamCategoria').value;
-  const subcategoria = document.getElementById('selectParamSubcategoria').value;
-
-  if (!descricao || !categoria) {
-    alert('⚠️ Preencha Descrição e Categoria');
-    return;
-  }
-
-  let parametros = JSON.parse(localStorage.getItem(PARAMETROS_KEY) || '[]');
-  
-  if (parametros.some(p => p.descricao === descricao)) {
-    alert('⚠️ Este parâmetro já existe');
-    return;
-  }
-
-  parametros.push({ descricao, categoria, subcategoria });
-  localStorage.setItem(PARAMETROS_KEY, JSON.stringify(parametros));
-  
-  document.getElementById('inputParamDescricao').value = '';
-  document.getElementById('selectParamCategoria').value = '';
-  document.getElementById('selectParamSubcategoria').value = '';
-  
-  carregarParametros();
-  alert('✅ Parâmetro adicionado!');
-}
-
-function carregarParametros() {
-  const tbody = document.getElementById('tbodyParametros');
-  if (!tbody) return;
-  
-  tbody.innerHTML = '';
-  let parametros = JSON.parse(localStorage.getItem(PARAMETROS_KEY) || '[]');
-  
-  if (parametros.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:var(--tinta-40);">Nenhum parâmetro</td></tr>';
-    return;
-  }
-
-  parametros.forEach(param => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${param.descricao}</td>
-      <td>${param.categoria}</td>
-      <td>${param.subcategoria || '-'}</td>
-      <td style="text-align:center;"><button class="btn-danger" onclick="deletarParametro('${param.descricao}')" style="padding:6px 12px; font-size:12px;">Deletar</button></td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
-
-function deletarParametro(descricao) {
-  if (!confirm(`Deletar parâmetro "${descricao}"?`)) return;
-  
-  let parametros = JSON.parse(localStorage.getItem(PARAMETROS_KEY) || '[]');
-  parametros = parametros.filter(p => p.descricao !== descricao);
-  localStorage.setItem(PARAMETROS_KEY, JSON.stringify(parametros));
-  
-  carregarParametros();
-  alert('✅ Parâmetro deletado!');
-}
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', inicializar);
-} else {
-  inicializar();
-}
-
-// ========== PARÂMETROS (MODELO ANTIGO - TABELA) ==========
-function atualizarSelectsParametros() {
-  const selectCat = document.getElementById('selectParamCategoria');
-  if (selectCat) {
-    selectCat.innerHTML = '<option value="">Selecione...</option>';
-    CATEGORIAS.forEach(cat => {
-      const option = document.createElement('option');
-      option.value = cat;
-      option.textContent = cat;
-      selectCat.appendChild(option);
-    });
-  }
-  
+  // Carregar subcategorias
   const selectSub = document.getElementById('selectParamSubcategoria');
   if (selectSub) {
     selectSub.innerHTML = '<option value="">Nenhuma</option>';
