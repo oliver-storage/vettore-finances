@@ -9,8 +9,8 @@
   <!-- XLSX -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.0.22">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.0.22">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.0.24">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.0.24">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -197,7 +197,7 @@
       background: var(--papel-alto);
       z-index: 10;
       min-width: 320px;
-      padding-left: 16px;
+      padding-left: 12px;
     }
 
     #tabelaExtratos th:nth-child(4),
@@ -206,28 +206,33 @@
       left: 440px;
       background: var(--papel-alto);
       z-index: 10;
-      min-width: 140px;
+      width: 1%;
+      white-space: nowrap;
       text-align: right;
-      padding-right: 16px;
+      padding: 12px 10px;
     }
 
     #tabelaExtratos th:nth-child(5),
     #tabelaExtratos td:nth-child(5) {
+      width: 1%;
+      white-space: nowrap;
       text-align: center;
       color: var(--tinta-40);
       font-size: 12px;
+      padding: 12px 8px;
     }
 
     /* Data Ref. - Tamanho exato do input date */
     #tabelaExtratos th:nth-child(6),
     #tabelaExtratos td:nth-child(6) {
-      min-width: 110px;
+      width: 1%;
+      white-space: nowrap;
       text-align: center;
+      padding: 12px 8px;
     }
 
     #tabelaExtratos td:nth-child(6) input[type="date"] {
-      width: 100%;
-      max-width: 100px;
+      width: 130px;
     }
 
     /* Histórico Correção - Aumentar 250px */
@@ -277,9 +282,6 @@
     }
 
     /* COLUNAS COM LARGURA ESPECÍFICA */
-    #tabelaExtratos td:nth-child(4) { min-width: 100px; }
-    #tabelaExtratos td:nth-child(5) { min-width: 120px; }
-    #tabelaExtratos td:nth-child(6) { min-width: 280px; }
     #tabelaExtratos td:nth-child(7) { min-width: 160px; }
     #tabelaExtratos td:nth-child(8) { min-width: 180px; }
     #tabelaExtratos td:nth-child(9) { min-width: 180px; }
@@ -589,7 +591,7 @@
   </div>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.0.22 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.0.24 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>
