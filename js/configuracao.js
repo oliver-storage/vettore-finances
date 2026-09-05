@@ -645,7 +645,7 @@ function carregarParametros() {
     const tr = document.createElement('tr');
     tr.style.borderBottom = '1px solid var(--linha)';
     tr.innerHTML = `
-      <td style="text-align:center; padding:12px;">
+      <td style="text-align:center; padding: 12px 6px;">
         <input type="checkbox" class="checkbox-sistema checkboxParametro" data-index="${index}" onchange="atualizarAcoesMassa()">
       </td>
       <td style="padding:12px;">${param.descricao}</td>

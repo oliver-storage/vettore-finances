@@ -515,7 +515,7 @@
         <table id="tabelaExtratos">
           <thead>
             <tr>
-              <th style="width: 40px; text-align: center;"><input type="checkbox" class="checkbox-sistema" id="selectTodos" onchange="selecionarTodos(this.checked)"></th>
+              <th style="width: auto; text-align: center; padding: 12px 6px;"><input type="checkbox" class="checkbox-sistema" id="selectTodos" onchange="selecionarTodos(this.checked)"></th>
               <th>Data</th>
               <th>Histórico Banco</th>
               <th>Valor</th>
@@ -657,7 +657,7 @@
           const historicoCorrecao = e.historico_correcao || e.descricao;
           
           tr.innerHTML = `
-            <td style="text-align:center;"><input type="checkbox" class="checkbox-sistema" value="${e.id}" onchange="atualizarContadorSelecionados()"></td>
+            <td style="text-align:center; padding: 12px 6px;"><input type="checkbox" class="checkbox-sistema" value="${e.id}" onchange="atualizarContadorSelecionados()"></td>
             <td style="font-weight:400; color:var(--tinta); font-size:13px;">${dataFormatada}</td>
             <td style="font-size:13px; color:var(--tinta);">${e.descricao}</td>
             <td style="font-weight:600; color:${corVal}; font-size:14px;">${valorFormatado}</td>
