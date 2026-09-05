@@ -52,6 +52,9 @@ async function inicializar() {
     await carregarPrivilegios();
     carregarCategorias();
     carregarServicos();
+    carregarSubcategorias();
+    carregarParametros();
+    atualizarSelectsParametros();
     
   } catch (error) {
     console.error('❌ Erro:', error);
@@ -531,6 +534,158 @@ function deletarServico(servico) {
   localStorage.setItem(SERVICOS_KEY, JSON.stringify(servicos));
   carregarServicos();
   alert('✅ Serviço deletado!');
+}
+
+// ========== SUBCATEGORIAS ==========
+const SUBCATEGORIAS_KEY = 'subcategorias';
+
+function adicionarSubcategoria() {
+  const input = document.getElementById('inputNovaSubcategoria');
+  const subcategoria = input.value.trim().toUpperCase();
+
+  if (!subcategoria) {
+    alert('⚠️ Digite uma subcategoria');
+    return;
+  }
+  
+  let subcategorias = JSON.parse(localStorage.getItem(SUBCATEGORIAS_KEY) || '[]');
+  
+  if (subcategorias.includes(subcategoria)) {
+    alert('⚠️ Subcategoria já existe');
+    return;
+  }
+  
+  subcategorias.push(subcategoria);
+  localStorage.setItem(SUBCATEGORIAS_KEY, JSON.stringify(subcategorias));
+  input.value = '';
+  carregarSubcategorias();
+  alert('✅ Subcategoria adicionada!');
+}
+
+function carregarSubcategorias() {
+  const tbody = document.getElementById('tbodySubcategorias');
+  if (!tbody) return;
+  
+  tbody.innerHTML = '';
+  let subcategorias = JSON.parse(localStorage.getItem(SUBCATEGORIAS_KEY) || '[]');
+  
+  if (subcategorias.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; padding:20px; color:var(--tinta-40);">Nenhuma subcategoria</td></tr>';
+    return;
+  }
+  
+  subcategorias.forEach(sub => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${sub}</td>
+      <td><button class="btn-danger" onclick="deletarSubcategoria('${sub}')">Deletar</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function deletarSubcategoria(subcategoria) {
+  if (!confirm(`Deletar subcategoria "${subcategoria}"?`)) return;
+  
+  let subcategorias = JSON.parse(localStorage.getItem(SUBCATEGORIAS_KEY) || '[]');
+  subcategorias = subcategorias.filter(s => s !== subcategoria);
+  localStorage.setItem(SUBCATEGORIAS_KEY, JSON.stringify(subcategorias));
+  carregarSubcategorias();
+  atualizarSelectsParametros();
+  alert('✅ Subcategoria deletada!');
+}
+
+// ========== PARÂMETROS ==========
+const PARAMETROS_KEY = 'parametros_auto';
+
+function atualizarSelectsParametros() {
+  // Atualizar Categoria
+  const selectCat = document.getElementById('selectParamCategoria');
+  if (selectCat) {
+    selectCat.innerHTML = '<option value="">Selecione...</option>';
+    CATEGORIAS.forEach(cat => {
+      const option = document.createElement('option');
+      option.value = cat;
+      option.textContent = cat;
+      selectCat.appendChild(option);
+    });
+  }
+  
+  // Atualizar Subcategoria
+  const selectSub = document.getElementById('selectParamSubcategoria');
+  if (selectSub) {
+    selectSub.innerHTML = '<option value="">Nenhuma</option>';
+    let subcategorias = JSON.parse(localStorage.getItem(SUBCATEGORIAS_KEY) || '[]');
+    subcategorias.forEach(sub => {
+      const option = document.createElement('option');
+      option.value = sub;
+      option.textContent = sub;
+      selectSub.appendChild(option);
+    });
+  }
+}
+
+function adicionarParametro() {
+  const descricao = document.getElementById('inputParamDescricao').value.trim().toUpperCase();
+  const categoria = document.getElementById('selectParamCategoria').value;
+  const subcategoria = document.getElementById('selectParamSubcategoria').value;
+
+  if (!descricao || !categoria) {
+    alert('⚠️ Preencha Descrição e Categoria');
+    return;
+  }
+
+  let parametros = JSON.parse(localStorage.getItem(PARAMETROS_KEY) || '[]');
+  
+  if (parametros.some(p => p.descricao === descricao)) {
+    alert('⚠️ Este parâmetro já existe');
+    return;
+  }
+
+  parametros.push({ descricao, categoria, subcategoria });
+  localStorage.setItem(PARAMETROS_KEY, JSON.stringify(parametros));
+  
+  document.getElementById('inputParamDescricao').value = '';
+  document.getElementById('selectParamCategoria').value = '';
+  document.getElementById('selectParamSubcategoria').value = '';
+  
+  carregarParametros();
+  alert('✅ Parâmetro adicionado!');
+}
+
+function carregarParametros() {
+  const tbody = document.getElementById('tbodyParametros');
+  if (!tbody) return;
+  
+  tbody.innerHTML = '';
+  let parametros = JSON.parse(localStorage.getItem(PARAMETROS_KEY) || '[]');
+  
+  if (parametros.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:var(--tinta-40);">Nenhum parâmetro</td></tr>';
+    return;
+  }
+
+  parametros.forEach(param => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${param.descricao}</td>
+      <td>${param.categoria}</td>
+      <td>${param.subcategoria || '-'}</td>
+      <td style="text-align:center;"><button class="btn-danger" onclick="deletarParametro('${param.descricao}')" style="padding:6px 12px; font-size:12px;">Deletar</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function deletarParametro(descricao) {
+  if (!confirm(`Deletar parâmetro "${descricao}"?`)) return;
+  
+  let parametros = JSON.parse(localStorage.getItem(PARAMETROS_KEY) || '[]');
+  parametros = parametros.filter(p => p.descricao !== descricao);
+  localStorage.setItem(PARAMETROS_KEY, JSON.stringify(parametros));
+  
+  carregarParametros();
+  alert('✅ Parâmetro deletado!');
 }
 
 if (document.readyState === 'loading') {

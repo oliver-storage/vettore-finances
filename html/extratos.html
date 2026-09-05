@@ -645,6 +645,9 @@
           return;
         }
 
+        // Aplicar parâmetros de auto-preenchimento
+        extratos = aplicarParametrosAuto(extratos);
+
         extratos.forEach(e => {
           const tr = document.createElement('tr');
           const valorFormatado = formatarValorComSinal(e.valor);
@@ -662,7 +665,7 @@
             <td><input type="date" value="${dataRef}" onchange="atualizarCampo(${e.id}, 'data_referencia', this.value)"></td>
             <td><input type="text" placeholder="Descrição do lançamento" value="${historicoCorrecao}" onchange="atualizarCampo(${e.id}, 'historico_correcao', this.value)"></td>
             <td>
-              <select onchange="atualizarCampo(${e.id}, 'categoria', this.value)">
+              <select onchange="atualizarCampo(${e.id}, 'categoria', this.value); this.style.backgroundColor = '';" style="${e._autoPreenchido ? 'background-color: #FFFACD;' : ''}">
                 <option value="">Selecione...</option>
                 ${CATEGORIAS.map(c => `<option value="${c}" ${e.categoria === c ? 'selected' : ''}>${c}</option>`).join('')}
               </select>
@@ -850,6 +853,25 @@
       });
     }
     // ========== FIM AÇÕES EM MASSA ==========
+
+    // ========== APLICAR PARÂMETROS AUTO ==========
+    function aplicarParametrosAuto(extratos) {
+      const parametros = JSON.parse(localStorage.getItem('parametros_auto') || '[]');
+      if (parametros.length === 0) return extratos;
+
+      return extratos.map(extrato => {
+        const param = parametros.find(p => 
+          extrato.descricao.toUpperCase().includes(p.descricao)
+        );
+        if (param) {
+          extrato.categoria = param.categoria;
+          extrato.subcategoria = param.subcategoria || '';
+          extrato._autoPreenchido = true;
+        }
+        return extrato;
+      });
+    }
+    // ========== FIM PARÂMETROS ==========
 
     function atualizarResumoCategorias(extratos) {
       const resumo = {};

@@ -99,6 +99,7 @@
       <button class="tab-btn" onclick="switchTab('unidades')">Unidades</button>
       <button class="tab-btn" onclick="switchTab('usuarios')">Usuários</button>
       <button class="tab-btn" id="tabPrivilegios" style="display:none;" onclick="switchTab('privilegios')">Privilégios</button>
+      <button class="tab-btn" onclick="switchTab('financeiro')">Financeiro</button>
     </div>
 
     <!-- ABA 0: GERAL -->
@@ -472,7 +473,93 @@
         <button class="btn-primary" onclick="salvarPrivilegios()" style="margin-top:20px;">Salvar Privilégios</button>
       </div>
       </div>
-    <p>&copy; Vettore Finances 2026 - v1.9.0.6 Desenvolvido por OliverStorage</p>
+
+      <!-- SUB ABA FINANCEIRO -->
+      <div id="financeiro" class="tab-content">
+        <h3>Configurações Financeiras</h3>
+
+        <!-- CATEGORIAS -->
+        <div class="card">
+          <h4>📁 Categorias</h4>
+          <div class="form-row-2">
+            <div class="form-group">
+              <label>Nova Categoria</label>
+              <input type="text" id="inputNovaCategoria" placeholder="Ex: IMPOSTOS, CUSTEIO">
+            </div>
+            <div class="form-group" style="display:flex; align-items:flex-end;">
+              <button class="btn-primary" onclick="adicionarCategoria()">Adicionar</button>
+            </div>
+          </div>
+          <div style="margin-top:20px;">
+            <table>
+              <thead><tr><th>Categoria</th><th>Ação</th></tr></thead>
+              <tbody id="tbodyCategorias"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- SUBCATEGORIAS -->
+        <div class="card" style="margin-top:20px;">
+          <h4>📂 Subcategorias</h4>
+          <div class="form-row-2">
+            <div class="form-group">
+              <label>Nova Subcategoria</label>
+              <input type="text" id="inputNovaSubcategoria" placeholder="Ex: REPASSE, DESCONTO">
+            </div>
+            <div class="form-group" style="display:flex; align-items:flex-end;">
+              <button class="btn-primary" onclick="adicionarSubcategoria()">Adicionar</button>
+            </div>
+          </div>
+          <div style="margin-top:20px;">
+            <table>
+              <thead><tr><th>Subcategoria</th><th>Ação</th></tr></thead>
+              <tbody id="tbodySubcategorias"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- PARÂMETROS DE AUTO-PREENCHIMENTO -->
+        <div class="card" style="margin-top:20px;">
+          <h4>⚙️ Parâmetros de Auto-Preenchimento</h4>
+          <p style="font-size:12px; color:var(--tinta-70); margin-bottom:16px;">
+            Configure automaticamente: se o histórico contiver a descrição, a categoria será pré-preenchida.
+          </p>
+          <div class="form-row-3">
+            <div class="form-group">
+              <label>Descrição (busca no texto)</label>
+              <input type="text" id="inputParamDescricao" placeholder="Ex: RECEBIMENTO PIX">
+            </div>
+            <div class="form-group">
+              <label>Categoria</label>
+              <select id="selectParamCategoria"></select>
+            </div>
+            <div class="form-group">
+              <label>Subcategoria</label>
+              <select id="selectParamSubcategoria">
+                <option value="">Nenhuma</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn-primary" onclick="adicionarParametro()" style="margin-top:12px;">✅ Adicionar Parâmetro</button>
+
+          <div style="margin-top:24px;">
+            <h5 style="margin:0 0 12px 0; font-size:13px;">Parâmetros Cadastrados</h5>
+            <table>
+              <thead>
+                <tr>
+                  <th>Descrição</th>
+                  <th>Categoria</th>
+                  <th>Subcategoria</th>
+                  <th style="text-align:center;">Ação</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyParametros"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    <p>&copy; Vettore Finances 2026 - v1.9.0.7 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>
