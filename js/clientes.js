@@ -1,5 +1,6 @@
 /**
- * Vettore Finances - Módulo Clientes (PF/PJ) v1.9.3.0
+ * Vettore Finances - Módulo Clientes (PF/PJ) v1.9.4.0
+ * Lista unificada com filtros + modal de cadastro/edição
  */
 
 let unidadeAtivaCliente = null;
@@ -29,8 +30,7 @@ async function inicializarClientes() {
       elUserName.textContent = `${franquia?.nomefranquia || ''} - ${user.nome}`;
     }
 
-    await carregarPF();
-    await carregarPJ();
+    await carregarListaUnificada();
   } catch (error) {
     console.error('❌ Erro:', error);
   }
@@ -38,57 +38,166 @@ async function inicializarClientes() {
 
 async function trocarFranquiaCliente() {
   unidadeAtivaCliente = parseInt(document.getElementById('franquiaFilterCliente').value);
-  await carregarPF();
-  await carregarPJ();
+  await carregarListaUnificada();
 }
 
-function switchTabCliente(tab) {
-  document.getElementById('tabPF').classList.toggle('active', tab === 'pf');
-  document.getElementById('tabPJ').classList.toggle('active', tab === 'pj');
-  document.querySelectorAll('.sub-tab-btn').forEach((btn, i) => {
-    btn.classList.toggle('active', (i === 0 && tab === 'pf') || (i === 1 && tab === 'pj'));
+// ========== MODAL ==========
+function abrirModalNovoCadastro() {
+  document.getElementById('modalCliente').style.display = 'flex';
+  document.getElementById('modalEscolhaTipo').style.display = 'block';
+  document.getElementById('modalFormPF').style.display = 'none';
+  document.getElementById('modalFormPJ').style.display = 'none';
+  limparFormularioPF();
+  limparFormularioPJ();
+}
+
+async function escolherTipoCadastro(tipo) {
+  document.getElementById('modalEscolhaTipo').style.display = 'none';
+  if (tipo === 'pf') {
+    document.getElementById('modalFormPF').style.display = 'block';
+    await popularVinculosPJnoFormPF();
+  } else {
+    document.getElementById('modalFormPJ').style.display = 'block';
+    await popularVinculosPFnoFormPJ();
+  }
+}
+
+function fecharModalCliente() {
+  document.getElementById('modalCliente').style.display = 'none';
+}
+
+// ========== LISTA UNIFICADA ==========
+async function carregarListaUnificada() {
+  const todosPF = await SupabaseAPI.get('clientes_pf');
+  const todosPJ = await SupabaseAPI.get('clientes_pj');
+
+  PF_CACHE = todosPF.filter(p => p.unidade_id === unidadeAtivaCliente);
+  PJ_CACHE = todosPJ.filter(j => j.unidade_id === unidadeAtivaCliente);
+
+  aplicarFiltrosLista();
+}
+
+function montarListaCombinada() {
+  const pf = PF_CACHE.map(p => ({
+    tipo: 'PF',
+    id: p.id,
+    nome: p.nome,
+    documento: p.cpf || '',
+    telefone: p.telefone || '',
+    municipio: p.municipio || ''
+  }));
+  const pj = PJ_CACHE.map(j => ({
+    tipo: 'PJ',
+    id: j.id,
+    nome: j.razao_social,
+    documento: j.cnpj || '',
+    telefone: j.telefone_representante || '',
+    municipio: j.municipio_empresa || ''
+  }));
+  return [...pf, ...pj];
+}
+
+function aplicarFiltrosLista() {
+  const filtroTipo = document.getElementById('filtroTipo')?.value || '';
+  const filtroNome = (document.getElementById('filtroNome')?.value || '').toUpperCase();
+  const filtroDocumento = (document.getElementById('filtroDocumento')?.value || '').toUpperCase();
+  const filtroTelefone = (document.getElementById('filtroTelefone')?.value || '').toUpperCase();
+  const filtroMunicipio = (document.getElementById('filtroMunicipio')?.value || '').toUpperCase();
+
+  let lista = montarListaCombinada();
+
+  if (filtroTipo) lista = lista.filter(c => c.tipo === filtroTipo);
+  if (filtroNome) lista = lista.filter(c => c.nome.toUpperCase().includes(filtroNome));
+  if (filtroDocumento) lista = lista.filter(c => c.documento.toUpperCase().includes(filtroDocumento));
+  if (filtroTelefone) lista = lista.filter(c => c.telefone.toUpperCase().includes(filtroTelefone));
+  if (filtroMunicipio) lista = lista.filter(c => c.municipio.toUpperCase().includes(filtroMunicipio));
+
+  renderizarListaUnificada(lista);
+}
+
+function renderizarListaUnificada(lista) {
+  const tbody = document.getElementById('tbodyClientesUnificada');
+  tbody.innerHTML = '';
+
+  if (lista.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:var(--tinta-40);">Nenhum cliente encontrado</td></tr>';
+    document.getElementById('acoesMassaClientesLista').style.display = 'none';
+    document.getElementById('checkAllClientesLista').checked = false;
+    return;
+  }
+
+  lista.forEach(c => {
+    const tr = document.createElement('tr');
+    tr.style.borderBottom = '1px solid var(--linha)';
+    tr.innerHTML = `
+      <td style="width:20px; text-align:center; padding:12px 0;">
+        <input type="checkbox" class="checkbox-sistema checkboxClienteLista" data-tipo="${c.tipo}" data-id="${c.id}" onchange="atualizarAcoesMassaLista()">
+      </td>
+      <td style="padding:12px;">${c.tipo === 'PF' ? '👤 PF' : '🏢 PJ'}</td>
+      <td style="padding:12px;">${c.nome}</td>
+      <td style="padding:12px;">${c.documento || '-'}</td>
+      <td style="padding:12px;">${c.telefone || '-'}</td>
+      <td style="padding:12px;">${c.municipio || '-'}</td>
+      <td style="padding:12px; text-align:center; display:flex; gap:6px; justify-content:center;">
+        <button class="action-button" onclick="editarClienteLista('${c.tipo}', ${c.id})" title="Editar">✏️</button>
+        <button class="action-button delete" onclick="deletarClienteLista('${c.tipo}', ${c.id})" title="Deletar">🗑️</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
   });
+
+  document.getElementById('acoesMassaClientesLista').style.display = 'none';
+  document.getElementById('checkAllClientesLista').checked = false;
+}
+
+function atualizarAcoesMassaLista() {
+  const selecionados = document.querySelectorAll('.checkboxClienteLista:checked').length;
+  document.getElementById('acoesMassaClientesLista').style.display = selecionados > 0 ? 'block' : 'none';
+}
+
+function toggleAllClientesLista(checked) {
+  document.querySelectorAll('.checkboxClienteLista').forEach(cb => cb.checked = checked);
+  atualizarAcoesMassaLista();
+}
+
+async function deletarSelecionadosLista() {
+  const itens = Array.from(document.querySelectorAll('.checkboxClienteLista:checked')).map(cb => ({
+    tipo: cb.dataset.tipo,
+    id: parseInt(cb.dataset.id)
+  }));
+  if (itens.length === 0) return;
+  if (!confirm(`Deletar ${itens.length} cliente(s)?`)) return;
+
+  await Promise.all(itens.map(item =>
+    SupabaseAPI.delete(item.tipo === 'PF' ? 'clientes_pf' : 'clientes_pj', item.id)
+  ));
+
+  await carregarListaUnificada();
+  alert(`✅ ${itens.length} registro(s) deletado(s)!`);
+}
+
+async function editarClienteLista(tipo, id) {
+  abrirModalNovoCadastro();
+  document.getElementById('modalEscolhaTipo').style.display = 'none';
+
+  if (tipo === 'PF') {
+    document.getElementById('modalFormPF').style.display = 'block';
+    await editarPF(id);
+  } else {
+    document.getElementById('modalFormPJ').style.display = 'block';
+    await editarPJ(id);
+  }
+}
+
+async function deletarClienteLista(tipo, id) {
+  if (tipo === 'PF') {
+    await deletarPF(id);
+  } else {
+    await deletarPJ(id);
+  }
 }
 
 // ========== PESSOA FÍSICA ==========
-async function carregarPF() {
-  const tbody = document.getElementById('tbodyPF');
-  if (!tbody) return;
-  tbody.innerHTML = '';
-
-  const todos = await SupabaseAPI.get('clientes_pf');
-  PF_CACHE = todos.filter(p => p.unidade_id === unidadeAtivaCliente);
-
-  if (PF_CACHE.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px; color:var(--tinta-40);">Nenhuma pessoa física cadastrada</td></tr>';
-    document.getElementById('acoesMassaPF').style.display = 'none';
-    document.getElementById('checkAllPF').checked = false;
-  } else {
-    PF_CACHE.forEach(p => {
-      const tr = document.createElement('tr');
-      tr.style.borderBottom = '1px solid var(--linha)';
-      tr.innerHTML = `
-        <td style="width:20px; text-align:center; padding:12px 0;">
-          <input type="checkbox" class="checkbox-sistema checkboxPF" data-id="${p.id}" onchange="atualizarAcoesMassaPF()">
-        </td>
-        <td style="padding:12px;">${p.nome}</td>
-        <td style="padding:12px;">${p.cpf || '-'}</td>
-        <td style="padding:12px;">${p.telefone || '-'}</td>
-        <td style="padding:12px;">${p.municipio || '-'}</td>
-        <td style="padding:12px; text-align:center; display:flex; gap:6px; justify-content:center;">
-          <button class="action-button" onclick="editarPF(${p.id})" title="Editar">✏️</button>
-          <button class="action-button delete" onclick="deletarPF(${p.id})" title="Deletar">🗑️</button>
-        </td>
-      `;
-      tbody.appendChild(tr);
-    });
-    document.getElementById('acoesMassaPF').style.display = 'none';
-    document.getElementById('checkAllPF').checked = false;
-  }
-
-  await popularVinculosPJnoFormPF();
-}
-
 async function popularVinculosPJnoFormPF() {
   const container = document.getElementById('pfVinculosPJ');
   if (!container) return;
@@ -155,7 +264,8 @@ async function salvarPF(event) {
 
     alert(id ? '✅ Pessoa Física atualizada!' : '✅ Pessoa Física cadastrada!');
     limparFormularioPF();
-    await carregarPF();
+    fecharModalCliente();
+    await carregarListaUnificada();
   } catch (error) {
     console.error('❌ Erro ao salvar PF:', error);
     alert('❌ Erro ao salvar Pessoa Física');
@@ -204,93 +314,24 @@ async function editarPF(id) {
   document.getElementById('pfSequencia').value = p.sequencia || '';
 
   await popularVinculosPJnoFormPF();
-
-  document.getElementById('btnCancelarPF').style.display = 'inline-block';
-  switchTabCliente('pf');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function cancelarEdicaoPF() {
-  limparFormularioPF();
 }
 
 function limparFormularioPF() {
   document.getElementById('pfId').value = '';
   ['pfNome','pfDataNascimento','pfNacionalidade','pfEstadoCivil','pfProfissao','pfCPF','pfEndereco',
    'pfTelefone','pfMunicipio','pfCNAE','pfSenhaGov','pfEmail','pfCapitalSocial','pfObservacoes','pfSequencia']
-    .forEach(id => document.getElementById(id).value = '');
+    .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   document.querySelectorAll('.pjVinculoCheckbox').forEach(cb => cb.checked = false);
-  document.getElementById('btnCancelarPF').style.display = 'none';
 }
 
 async function deletarPF(id) {
   if (!confirm('Deletar esta Pessoa Física? Vínculos com PJ também serão removidos.')) return;
   await SupabaseAPI.delete('clientes_pf', id);
-  await carregarPF();
-  await carregarPJ();
+  await carregarListaUnificada();
   alert('✅ Pessoa Física deletada!');
 }
 
-function atualizarAcoesMassaPF() {
-  const selecionados = document.querySelectorAll('.checkboxPF:checked').length;
-  document.getElementById('acoesMassaPF').style.display = selecionados > 0 ? 'block' : 'none';
-}
-
-function toggleAllPF(checked) {
-  document.querySelectorAll('.checkboxPF').forEach(cb => cb.checked = checked);
-  atualizarAcoesMassaPF();
-}
-
-async function deletarPFSelecionados() {
-  const ids = Array.from(document.querySelectorAll('.checkboxPF:checked')).map(cb => parseInt(cb.dataset.id));
-  if (ids.length === 0) return;
-  if (!confirm(`Deletar ${ids.length} Pessoa(s) Física(s)?`)) return;
-
-  await Promise.all(ids.map(id => SupabaseAPI.delete('clientes_pf', id)));
-  await carregarPF();
-  await carregarPJ();
-  alert(`✅ ${ids.length} registro(s) deletado(s)!`);
-}
-
 // ========== PESSOA JURÍDICA ==========
-async function carregarPJ() {
-  const tbody = document.getElementById('tbodyPJ');
-  if (!tbody) return;
-  tbody.innerHTML = '';
-
-  const todos = await SupabaseAPI.get('clientes_pj');
-  PJ_CACHE = todos.filter(j => j.unidade_id === unidadeAtivaCliente);
-
-  if (PJ_CACHE.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px; color:var(--tinta-40);">Nenhuma pessoa jurídica cadastrada</td></tr>';
-    document.getElementById('acoesMassaPJ').style.display = 'none';
-    document.getElementById('checkAllPJ').checked = false;
-  } else {
-    PJ_CACHE.forEach(j => {
-      const tr = document.createElement('tr');
-      tr.style.borderBottom = '1px solid var(--linha)';
-      tr.innerHTML = `
-        <td style="width:20px; text-align:center; padding:12px 0;">
-          <input type="checkbox" class="checkbox-sistema checkboxPJ" data-id="${j.id}" onchange="atualizarAcoesMassaPJ()">
-        </td>
-        <td style="padding:12px;">${j.razao_social}</td>
-        <td style="padding:12px;">${j.cnpj || '-'}</td>
-        <td style="padding:12px;">${j.nome_representante || '-'}</td>
-        <td style="padding:12px;">${j.segmento || '-'}</td>
-        <td style="padding:12px; text-align:center; display:flex; gap:6px; justify-content:center;">
-          <button class="action-button" onclick="editarPJ(${j.id})" title="Editar">✏️</button>
-          <button class="action-button delete" onclick="deletarPJ(${j.id})" title="Deletar">🗑️</button>
-        </td>
-      `;
-      tbody.appendChild(tr);
-    });
-    document.getElementById('acoesMassaPJ').style.display = 'none';
-    document.getElementById('checkAllPJ').checked = false;
-  }
-
-  await popularVinculosPFnoFormPJ();
-}
-
 async function popularVinculosPFnoFormPJ() {
   const container = document.getElementById('pjVinculosPF');
   if (!container) return;
@@ -364,7 +405,8 @@ async function salvarPJ(event) {
 
     alert(id ? '✅ Pessoa Jurídica atualizada!' : '✅ Pessoa Jurídica cadastrada!');
     limparFormularioPJ();
-    await carregarPJ();
+    fecharModalCliente();
+    await carregarListaUnificada();
   } catch (error) {
     console.error('❌ Erro ao salvar PJ:', error);
     alert('❌ Erro ao salvar Pessoa Jurídica');
@@ -420,14 +462,6 @@ async function editarPJ(id) {
   document.getElementById('pjObservacoes').value = j.observacoes || '';
 
   await popularVinculosPFnoFormPJ();
-
-  document.getElementById('btnCancelarPJ').style.display = 'inline-block';
-  switchTabCliente('pj');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function cancelarEdicaoPJ() {
-  limparFormularioPJ();
 }
 
 function limparFormularioPJ() {
@@ -437,38 +471,15 @@ function limparFormularioPJ() {
    'pjDataNascimentoRepresentante','pjNacionalidadeRepresentante','pjEstadoCivilRepresentante',
    'pjProfissaoRepresentante','pjCPFRepresentante','pjRGRepresentante','pjTelefoneRepresentante',
    'pjEmailRepresentante','pjEnderecoRepresentante','pjObservacoes']
-    .forEach(id => document.getElementById(id).value = '');
+    .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   document.querySelectorAll('.pfVinculoCheckbox').forEach(cb => cb.checked = false);
-  document.getElementById('btnCancelarPJ').style.display = 'none';
 }
 
 async function deletarPJ(id) {
   if (!confirm('Deletar esta Pessoa Jurídica? Vínculos com PF também serão removidos.')) return;
   await SupabaseAPI.delete('clientes_pj', id);
-  await carregarPJ();
-  await carregarPF();
+  await carregarListaUnificada();
   alert('✅ Pessoa Jurídica deletada!');
-}
-
-function atualizarAcoesMassaPJ() {
-  const selecionados = document.querySelectorAll('.checkboxPJ:checked').length;
-  document.getElementById('acoesMassaPJ').style.display = selecionados > 0 ? 'block' : 'none';
-}
-
-function toggleAllPJ(checked) {
-  document.querySelectorAll('.checkboxPJ').forEach(cb => cb.checked = checked);
-  atualizarAcoesMassaPJ();
-}
-
-async function deletarPJSelecionados() {
-  const ids = Array.from(document.querySelectorAll('.checkboxPJ:checked')).map(cb => parseInt(cb.dataset.id));
-  if (ids.length === 0) return;
-  if (!confirm(`Deletar ${ids.length} Pessoa(s) Jurídica(s)?`)) return;
-
-  await Promise.all(ids.map(id => SupabaseAPI.delete('clientes_pj', id)));
-  await carregarPJ();
-  await carregarPF();
-  alert(`✅ ${ids.length} registro(s) deletado(s)!`);
 }
 
 // Nota: inicializarClientes() é chamado explicitamente por quem inclui este script
