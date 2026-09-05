@@ -52,8 +52,6 @@ async function inicializar() {
     await carregarPrivilegios();
     carregarCategorias();
     carregarServicos();
-    carregarParametros();
-    aplicarParametros();
     
   } catch (error) {
     console.error('❌ Erro:', error);
@@ -460,91 +458,6 @@ async function adicionarCategoria() {
   carregarCategorias();
   alert('✅ Categoria adicionada!');
 }
-
-// ========== PARÂMETROS DE AUTO-PREENCHIMENTO ==========
-const PARAMETROS_KEY = 'parametros_auto';
-
-function adicionarParametro() {
-  const descricao = document.getElementById('inputParamDescricao').value.trim().toUpperCase();
-  const categoria = document.getElementById('selectParamCategoria').value;
-  const subcategoria = document.getElementById('inputParamSubcategoria').value.trim();
-
-  if (!descricao || !categoria) {
-    alert('⚠️ Preencha Descrição e Categoria');
-    return;
-  }
-
-  let parametros = JSON.parse(localStorage.getItem(PARAMETROS_KEY) || '[]');
-  
-  if (parametros.some(p => p.descricao === descricao)) {
-    alert('⚠️ Este parâmetro já existe');
-    return;
-  }
-
-  parametros.push({ descricao, categoria, subcategoria });
-  localStorage.setItem(PARAMETROS_KEY, JSON.stringify(parametros));
-  
-  document.getElementById('inputParamDescricao').value = '';
-  document.getElementById('selectParamCategoria').value = '';
-  document.getElementById('inputParamSubcategoria').value = '';
-  
-  carregarParametros();
-  alert('✅ Parâmetro adicionado!');
-}
-
-function carregarParametros() {
-  const tbody = document.getElementById('tbodyParametros');
-  if (!tbody) return;
-  
-  tbody.innerHTML = '';
-  let parametros = JSON.parse(localStorage.getItem(PARAMETROS_KEY) || '[]');
-  
-  if (parametros.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:var(--tinta-40);">Nenhum parâmetro cadastrado</td></tr>';
-    return;
-  }
-
-  parametros.forEach(param => {
-    const tr = document.createElement('tr');
-    tr.style.borderBottom = '1px solid var(--linha)';
-    tr.innerHTML = `
-      <td style="padding: 10px; font-size: 13px;">${param.descricao}</td>
-      <td style="padding: 10px; font-size: 13px;">${param.categoria}</td>
-      <td style="padding: 10px; font-size: 13px;">${param.subcategoria || '-'}</td>
-      <td style="padding: 10px; text-align: center;">
-        <button class="btn-danger" onclick="deletarParametro('${param.descricao}')" style="padding: 6px 12px; font-size: 12px;">Deletar</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
-
-function deletarParametro(descricao) {
-  if (!confirm(`Deletar parâmetro "${descricao}"?`)) return;
-  
-  let parametros = JSON.parse(localStorage.getItem(PARAMETROS_KEY) || '[]');
-  parametros = parametros.filter(p => p.descricao !== descricao);
-  localStorage.setItem(PARAMETROS_KEY, JSON.stringify(parametros));
-  
-  carregarParametros();
-  alert('✅ Parâmetro deletado!');
-}
-
-function aplicarParametros() {
-  // Função chamada ao carregar/importar extratos para aplicar parâmetros
-  const selectParamCategoria = document.getElementById('selectParamCategoria');
-  if (!selectParamCategoria) return;
-  
-  selectParamCategoria.innerHTML = '<option value="">Selecione...</option>';
-  CATEGORIAS.forEach(cat => {
-    const option = document.createElement('option');
-    option.value = cat;
-    option.textContent = cat;
-    selectParamCategoria.appendChild(option);
-  });
-}
-
-// ========== FIM PARÂMETROS ==========
 
 function carregarCategorias() {
   const tbody = document.getElementById('tbodyCategorias');

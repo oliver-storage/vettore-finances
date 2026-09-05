@@ -99,7 +99,6 @@
       <button class="tab-btn" onclick="switchTab('unidades')">Unidades</button>
       <button class="tab-btn" onclick="switchTab('usuarios')">Usuários</button>
       <button class="tab-btn" id="tabPrivilegios" style="display:none;" onclick="switchTab('privilegios')">Privilégios</button>
-      <button class="tab-btn" onclick="switchTab('financeiro')">Financeiro</button>
     </div>
 
     <!-- ABA 0: GERAL -->
@@ -472,103 +471,8 @@
         
         <button class="btn-primary" onclick="salvarPrivilegios()" style="margin-top:20px;">Salvar Privilégios</button>
       </div>
-      <div id="financeiro" class="tab-content">
-        <h3>Configurações Financeiras</h3>
-        
-        <!-- PARÂMETROS DE AUTO-PREENCHIMENTO -->
-        <div class="card">
-          <h4>📋 Parâmetros de Auto-Preenchimento</h4>
-          <p style="font-size: 12px; color: var(--tinta-70); margin-bottom: 16px;">
-            Configure automaticamente categorias ao importar. Se o histórico contiver a descrição, a categoria será pré-preenchida.
-          </p>
-          
-          <div class="form-row-3">
-            <div class="form-group">
-              <label>Descrição (busca no texto)</label>
-              <input type="text" id="inputParamDescricao" placeholder="Ex: RECEBIMENTO PIX">
-            </div>
-            <div class="form-group">
-              <label>Categoria</label>
-              <select id="selectParamCategoria">
-                <option value="">Selecione...</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Subcategoria (opcional)</label>
-              <input type="text" id="inputParamSubcategoria" placeholder="Ex: HONORÁRIOS">
-            </div>
-          </div>
-          
-          <button class="btn-primary" onclick="adicionarParametro()" style="margin-top: 12px;">✅ Adicionar Parâmetro</button>
-          
-          <div style="margin-top:24px;">
-            <h5 style="margin: 0 0 12px 0; font-size: 13px; color: var(--tinta);">Parâmetros Cadastrados</h5>
-            <table style="width: 100%; border-collapse: collapse;">
-              <thead>
-                <tr style="background: var(--papel); border-bottom: 2px solid var(--linha);">
-                  <th style="padding: 10px; text-align: left; font-size: 12px; font-weight: 600;">Descrição</th>
-                  <th style="padding: 10px; text-align: left; font-size: 12px; font-weight: 600;">Categoria</th>
-                  <th style="padding: 10px; text-align: left; font-size: 12px; font-weight: 600;">Subcategoria</th>
-                  <th style="padding: 10px; text-align: center; font-size: 12px; font-weight: 600;">Ação</th>
-                </tr>
-              </thead>
-              <tbody id="tbodyParametros"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- CATEGORIAS -->
-        <div class="card" style="margin-top: 20px;">
-          <h4>Categorias de Lançamento</h4>
-          <div class="form-row-2">
-            <div class="form-group">
-              <label>Nova Categoria</label>
-              <input type="text" id="inputNovaCategoria" placeholder="Ex: CONSULTORIA, ALUGUEL">
-            </div>
-            <div class="form-group" style="display:flex; align-items:flex-end;">
-              <button class="btn-primary" onclick="adicionarCategoria()">Adicionar</button>
-            </div>
-          </div>
-          
-          <div style="margin-top:20px;">
-            <table>
-              <thead>
-                <tr>
-                  <th>Categoria</th>
-                  <th>Ação</th>
-                </tr>
-              </thead>
-              <tbody id="tbodyCategorias"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <div class="card" style="margin-top:20px;">
-          <h4>Tipos de Serviço</h4>
-          <div class="form-row-2">
-            <div class="form-group">
-              <label>Novo Serviço</label>
-              <input type="text" id="inputNovoServico" placeholder="Ex: Consultoria, Auditoria, Assessoria">
-            </div>
-            <div class="form-group" style="display:flex; align-items:flex-end;">
-              <button class="btn-primary" onclick="adicionarServico()">Adicionar</button>
-            </div>
-          </div>
-          
-          <div style="margin-top:20px;">
-            <table>
-              <thead>
-                <tr>
-                  <th>Serviço</th>
-                  <th>Ação</th>
-                </tr>
-              </thead>
-              <tbody id="tbodyServicos"></tbody>
-            </table>
-          </div>
-        </div>
       </div>
-    <p>&copy; Vettore Finances 2026 - v1.9.0.5 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.0.6 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>
@@ -588,14 +492,6 @@
       
       document.getElementById(tabName).classList.add('active');
       event.target.classList.add('active');
-      
-      // Carregar dados específicos da ABA
-      if (tabName === 'financeiro') {
-        setTimeout(() => {
-          carregarParametros();
-          aplicarParametros();
-        }, 100);
-      }
     }
   </script>
 </body>
