@@ -379,17 +379,6 @@ async function salvarPJ(event) {
     endereco_empresa: document.getElementById('pjEnderecoEmpresa').value.trim() || null,
     estado_empresa: document.getElementById('pjEstadoEmpresa').value.trim().toUpperCase() || null,
     municipio_empresa: document.getElementById('pjMunicipioEmpresa').value.trim() || null,
-    nome_representante: document.getElementById('pjNomeRepresentante').value.trim() || null,
-    data_nascimento_representante: document.getElementById('pjDataNascimentoRepresentante').value || null,
-    nacionalidade_representante: document.getElementById('pjNacionalidadeRepresentante').value.trim() || null,
-    estado_civil_representante: document.getElementById('pjEstadoCivilRepresentante').value || null,
-    profissao_representante: document.getElementById('pjProfissaoRepresentante').value.trim() || null,
-    cpf_representante: document.getElementById('pjCPFRepresentante').value.trim() || null,
-    rg_representante: document.getElementById('pjRGRepresentante').value.trim() || null,
-    telefone_representante: document.getElementById('pjTelefoneRepresentante').value.trim() || null,
-    email_representante: document.getElementById('pjEmailRepresentante').value.trim() || null,
-    endereco_representante: document.getElementById('pjEnderecoRepresentante').value.trim() || null,
-    estado_representante: document.getElementById('pjEstadoRepresentante').value.trim().toUpperCase() || null,
     observacoes: document.getElementById('pjObservacoes').value.trim() || null
   };
 
@@ -466,17 +455,6 @@ async function editarPJ(id) {
   document.getElementById('pjEnderecoEmpresa').value = j.endereco_empresa || '';
   document.getElementById('pjEstadoEmpresa').value = j.estado_empresa || '';
   document.getElementById('pjMunicipioEmpresa').value = j.municipio_empresa || '';
-  document.getElementById('pjNomeRepresentante').value = j.nome_representante || '';
-  document.getElementById('pjDataNascimentoRepresentante').value = j.data_nascimento_representante || '';
-  document.getElementById('pjNacionalidadeRepresentante').value = j.nacionalidade_representante || '';
-  document.getElementById('pjEstadoCivilRepresentante').value = j.estado_civil_representante || '';
-  document.getElementById('pjProfissaoRepresentante').value = j.profissao_representante || '';
-  document.getElementById('pjCPFRepresentante').value = j.cpf_representante || '';
-  document.getElementById('pjRGRepresentante').value = j.rg_representante || '';
-  document.getElementById('pjTelefoneRepresentante').value = j.telefone_representante || '';
-  document.getElementById('pjEmailRepresentante').value = j.email_representante || '';
-  document.getElementById('pjEnderecoRepresentante').value = j.endereco_representante || '';
-  document.getElementById('pjEstadoRepresentante').value = j.estado_representante || '';
   document.getElementById('pjObservacoes').value = j.observacoes || '';
 
   await popularVinculosPFnoFormPJ();
@@ -485,10 +463,7 @@ async function editarPJ(id) {
 function limparFormularioPJ() {
   document.getElementById('pjId').value = '';
   ['pjRazaoSocial','pjCNPJ','pjSegmento','pjPorte','pjRegimeTributario','pjNaturezaJuridica','pjCNAE',
-   'pjCapitalSocial','pjSenhaGov','pjEnderecoEmpresa','pjEstadoEmpresa','pjMunicipioEmpresa','pjNomeRepresentante',
-   'pjDataNascimentoRepresentante','pjNacionalidadeRepresentante','pjEstadoCivilRepresentante',
-   'pjProfissaoRepresentante','pjCPFRepresentante','pjRGRepresentante','pjTelefoneRepresentante',
-   'pjEmailRepresentante','pjEnderecoRepresentante','pjEstadoRepresentante','pjObservacoes']
+   'pjCapitalSocial','pjSenhaGov','pjEnderecoEmpresa','pjEstadoEmpresa','pjMunicipioEmpresa','pjObservacoes']
     .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   document.querySelectorAll('.pfVinculoCheckbox').forEach(cb => cb.checked = false);
 }
