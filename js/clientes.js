@@ -1,11 +1,13 @@
 /**
- * Vettore Finances - Módulo Clientes (PF/PJ) v1.9.3.1 - PREVIEW (versão com abas, sem modal)
+ * Vettore Finances - Módulo Clientes (PF/PJ) v1.9.4.0
+ * Lista unificada com filtros + modal de cadastro/edição
  */
 
 let unidadeAtivaCliente = null;
 let PF_CACHE = [];
 let PJ_CACHE = [];
 
+// ========== INICIALIZAÇÃO ==========
 async function inicializarClientes() {
   try {
     checkAuth();
@@ -28,8 +30,7 @@ async function inicializarClientes() {
       elUserName.textContent = `${franquia?.nomefranquia || ''} - ${user.nome}`;
     }
 
-    await carregarPF();
-    await carregarPJ();
+    await carregarListaUnificada();
   } catch (error) {
     console.error('❌ Erro:', error);
   }
@@ -37,53 +38,179 @@ async function inicializarClientes() {
 
 async function trocarFranquiaCliente() {
   unidadeAtivaCliente = parseInt(document.getElementById('franquiaFilterCliente').value);
-  await carregarPF();
-  await carregarPJ();
+  await carregarListaUnificada();
 }
 
-function switchTabCliente(tab) {
-  document.getElementById('tabPF').classList.toggle('active', tab === 'pf');
-  document.getElementById('tabPJ').classList.toggle('active', tab === 'pj');
-  document.querySelectorAll('.sub-tab-btn').forEach((btn, i) => {
-    btn.classList.toggle('active', (i === 0 && tab === 'pf') || (i === 1 && tab === 'pj'));
-  });
+// ========== MODAL ==========
+function abrirModalNovoCadastro() {
+  document.getElementById('modalCliente').style.display = 'flex';
+  document.getElementById('modalEscolhaTipo').style.display = 'none';
+  document.getElementById('modalFormPF').style.display = 'none';
+  document.getElementById('modalFormPJ').style.display = 'block';
+  limparFormularioPF();
+  limparFormularioPJ();
+  popularVinculosPFnoFormPJ();
 }
 
-// ========== PESSOA FÍSICA ==========
-async function carregarPF() {
-  const tbody = document.getElementById('tbodyPF');
-  if (!tbody) return;
-  tbody.innerHTML = '';
-
-  const todos = await SupabaseAPI.get('clientes_pf');
-  PF_CACHE = todos.filter(p => p.unidade_id === unidadeAtivaCliente);
-
-  if (PF_CACHE.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px; color:var(--tinta-40);">Nenhuma pessoa física cadastrada</td></tr>';
+async function escolherTipoCadastro(tipo) {
+  document.getElementById('modalEscolhaTipo').style.display = 'none';
+  if (tipo === 'pf') {
+    document.getElementById('modalFormPF').style.display = 'block';
+    await popularVinculosPJnoFormPF();
   } else {
-    PF_CACHE.forEach(p => {
-      const tr = document.createElement('tr');
-      tr.style.borderBottom = '1px solid var(--linha)';
-      tr.innerHTML = `
-        <td style="width:20px; text-align:center; padding:12px 0;">
-          <input type="checkbox" class="checkbox-sistema checkboxPF" data-id="${p.id}" onchange="atualizarAcoesMassaPF()">
-        </td>
-        <td style="padding:12px;">${p.nome}</td>
-        <td style="padding:12px;">${p.cpf || '-'}</td>
-        <td style="padding:12px;">${p.telefone || '-'}</td>
-        <td style="padding:12px;">${p.municipio || '-'}</td>
-        <td style="padding:12px; text-align:center; display:flex; gap:6px; justify-content:center;">
-          <button class="action-button" onclick="editarPF(${p.id})" title="Editar">✏️</button>
-          <button class="action-button delete" onclick="deletarPF(${p.id})" title="Deletar">🗑️</button>
-        </td>
-      `;
-      tbody.appendChild(tr);
-    });
+    document.getElementById('modalFormPJ').style.display = 'block';
+    await popularVinculosPFnoFormPJ();
   }
+}
 
+function fecharModalCliente() {
+  document.getElementById('modalCliente').style.display = 'none';
+}
+
+async function mostrarFormPF() {
+  document.getElementById('modalFormPJ').style.display = 'none';
+  document.getElementById('modalFormPF').style.display = 'block';
   await popularVinculosPJnoFormPF();
 }
 
+async function mostrarFormPJ() {
+  document.getElementById('modalFormPF').style.display = 'none';
+  document.getElementById('modalFormPJ').style.display = 'block';
+  await popularVinculosPFnoFormPJ();
+}
+
+// ========== LISTA UNIFICADA ==========
+async function carregarListaUnificada() {
+  const todosPF = await SupabaseAPI.get('clientes_pf');
+  const todosPJ = await SupabaseAPI.get('clientes_pj');
+
+  PF_CACHE = todosPF.filter(p => p.unidade_id === unidadeAtivaCliente);
+  PJ_CACHE = todosPJ.filter(j => j.unidade_id === unidadeAtivaCliente);
+
+  aplicarFiltrosLista();
+}
+
+function montarListaCombinada() {
+  const pf = PF_CACHE.map(p => ({
+    tipo: 'PF',
+    id: p.id,
+    nome: p.nome,
+    documento: p.cpf || '',
+    telefone: p.telefone || '',
+    municipio: p.municipio || ''
+  }));
+  const pj = PJ_CACHE.map(j => ({
+    tipo: 'PJ',
+    id: j.id,
+    nome: j.razao_social,
+    documento: j.cnpj || '',
+    telefone: j.telefone_representante || '',
+    municipio: j.municipio_empresa || ''
+  }));
+  return [...pf, ...pj];
+}
+
+function aplicarFiltrosLista() {
+  const filtroTipo = document.getElementById('filtroTipo')?.value || '';
+  const filtroNome = (document.getElementById('filtroNome')?.value || '').toUpperCase();
+  const filtroDocumento = (document.getElementById('filtroDocumento')?.value || '').toUpperCase();
+  const filtroTelefone = (document.getElementById('filtroTelefone')?.value || '').toUpperCase();
+  const filtroMunicipio = (document.getElementById('filtroMunicipio')?.value || '').toUpperCase();
+
+  let lista = montarListaCombinada();
+
+  if (filtroTipo) lista = lista.filter(c => c.tipo === filtroTipo);
+  if (filtroNome) lista = lista.filter(c => c.nome.toUpperCase().includes(filtroNome));
+  if (filtroDocumento) lista = lista.filter(c => c.documento.toUpperCase().includes(filtroDocumento));
+  if (filtroTelefone) lista = lista.filter(c => c.telefone.toUpperCase().includes(filtroTelefone));
+  if (filtroMunicipio) lista = lista.filter(c => c.municipio.toUpperCase().includes(filtroMunicipio));
+
+  renderizarListaUnificada(lista);
+}
+
+function renderizarListaUnificada(lista) {
+  const tbody = document.getElementById('tbodyClientesUnificada');
+  tbody.innerHTML = '';
+
+  if (lista.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:var(--tinta-40);">Nenhum cliente encontrado</td></tr>';
+    document.getElementById('acoesMassaClientesLista').style.display = 'none';
+    document.getElementById('checkAllClientesLista').checked = false;
+    return;
+  }
+
+  lista.forEach(c => {
+    const tr = document.createElement('tr');
+    tr.style.borderBottom = '1px solid var(--linha)';
+    tr.innerHTML = `
+      <td style="width:20px; text-align:center; padding:12px 0;">
+        <input type="checkbox" class="checkbox-sistema checkboxClienteLista" data-tipo="${c.tipo}" data-id="${c.id}" onchange="atualizarAcoesMassaLista()">
+      </td>
+      <td style="padding:12px;">${c.tipo === 'PF' ? '👤 PF' : '🏢 PJ'}</td>
+      <td style="padding:12px;">${c.nome}</td>
+      <td style="padding:12px;">${c.documento || '-'}</td>
+      <td style="padding:12px;">${c.telefone || '-'}</td>
+      <td style="padding:12px;">${c.municipio || '-'}</td>
+      <td style="padding:12px; text-align:center; display:flex; gap:6px; justify-content:center;">
+        <button class="action-button" onclick="editarClienteLista('${c.tipo}', ${c.id})" title="Editar">✏️</button>
+        <button class="action-button delete" onclick="deletarClienteLista('${c.tipo}', ${c.id})" title="Deletar">🗑️</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('acoesMassaClientesLista').style.display = 'none';
+  document.getElementById('checkAllClientesLista').checked = false;
+}
+
+function atualizarAcoesMassaLista() {
+  const selecionados = document.querySelectorAll('.checkboxClienteLista:checked').length;
+  document.getElementById('acoesMassaClientesLista').style.display = selecionados > 0 ? 'block' : 'none';
+}
+
+function toggleAllClientesLista(checked) {
+  document.querySelectorAll('.checkboxClienteLista').forEach(cb => cb.checked = checked);
+  atualizarAcoesMassaLista();
+}
+
+async function deletarSelecionadosLista() {
+  const itens = Array.from(document.querySelectorAll('.checkboxClienteLista:checked')).map(cb => ({
+    tipo: cb.dataset.tipo,
+    id: parseInt(cb.dataset.id)
+  }));
+  if (itens.length === 0) return;
+  if (!confirm(`Deletar ${itens.length} cliente(s)?`)) return;
+
+  await Promise.all(itens.map(item =>
+    SupabaseAPI.delete(item.tipo === 'PF' ? 'clientes_pf' : 'clientes_pj', item.id)
+  ));
+
+  await carregarListaUnificada();
+  alert(`✅ ${itens.length} registro(s) deletado(s)!`);
+}
+
+async function editarClienteLista(tipo, id) {
+  abrirModalNovoCadastro();
+  document.getElementById('modalEscolhaTipo').style.display = 'none';
+
+  if (tipo === 'PF') {
+    document.getElementById('modalFormPF').style.display = 'block';
+    await editarPF(id);
+  } else {
+    document.getElementById('modalFormPJ').style.display = 'block';
+    await editarPJ(id);
+  }
+}
+
+async function deletarClienteLista(tipo, id) {
+  if (tipo === 'PF') {
+    await deletarPF(id);
+  } else {
+    await deletarPJ(id);
+  }
+}
+
+// ========== PESSOA FÍSICA ==========
 async function popularVinculosPJnoFormPF() {
   const container = document.getElementById('pfVinculosPJ');
   if (!container) return;
@@ -106,6 +233,7 @@ async function popularVinculosPJnoFormPF() {
 
 async function salvarPF(event) {
   event.preventDefault();
+
   const id = document.getElementById('pfId').value;
   const dados = {
     unidade_id: unidadeAtivaCliente,
@@ -125,8 +253,16 @@ async function salvarPF(event) {
     observacoes: document.getElementById('pfObservacoes').value.trim() || null,
     sequencia: document.getElementById('pfSequencia').value.trim() || null
   };
-  if (!dados.nome) { alert('⚠️ Preencha o Nome'); return; }
-  if (!unidadeAtivaCliente) { alert('⚠️ Selecione uma franquia'); return; }
+
+  if (!dados.nome) {
+    alert('⚠️ Preencha o Nome');
+    return;
+  }
+  if (!unidadeAtivaCliente) {
+    alert('⚠️ Selecione uma franquia');
+    return;
+  }
+
   try {
     let pfId;
     if (id) {
@@ -136,10 +272,18 @@ async function salvarPF(event) {
       const inserido = await SupabaseAPI.insert('clientes_pf', dados);
       pfId = inserido[0]?.id;
     }
+
     await salvarVinculosPF(pfId);
-    alert(id ? '✅ Pessoa Física atualizada!' : '✅ Pessoa Física cadastrada!');
-    limparFormularioPF();
-    await carregarPF();
+
+    if (id) {
+      alert('✅ Pessoa Física atualizada!');
+      fecharModalCliente();
+    } else {
+      alert('✅ Pessoa Física cadastrada! Pronto para o próximo cadastro.');
+      limparFormularioPF();
+      await popularVinculosPJnoFormPF();
+    }
+    await carregarListaUnificada();
   } catch (error) {
     console.error('❌ Erro ao salvar PF:', error);
     alert('❌ Erro ao salvar Pessoa Física');
@@ -148,20 +292,28 @@ async function salvarPF(event) {
 
 async function salvarVinculosPF(pfId) {
   const marcadosIds = Array.from(document.querySelectorAll('.pjVinculoCheckbox:checked')).map(cb => parseInt(cb.value));
+
   const vinculosAtuais = await SupabaseAPI.get('clientes_pf_pj');
   const vinculosDessePF = vinculosAtuais.filter(v => v.pf_id === pfId);
+
   for (const v of vinculosDessePF) {
-    if (!marcadosIds.includes(v.pj_id)) await SupabaseAPI.delete('clientes_pf_pj', v.id);
+    if (!marcadosIds.includes(v.pj_id)) {
+      await SupabaseAPI.delete('clientes_pf_pj', v.id);
+    }
   }
+
   const jaVinculadosIds = vinculosDessePF.map(v => v.pj_id);
   for (const pjId of marcadosIds) {
-    if (!jaVinculadosIds.includes(pjId)) await SupabaseAPI.insert('clientes_pf_pj', { pf_id: pfId, pj_id: pjId });
+    if (!jaVinculadosIds.includes(pjId)) {
+      await SupabaseAPI.insert('clientes_pf_pj', { pf_id: pfId, pj_id: pjId });
+    }
   }
 }
 
 async function editarPF(id) {
   const p = PF_CACHE.find(x => x.id === id) || (await SupabaseAPI.get('clientes_pf')).find(x => x.id === id);
   if (!p) return;
+
   document.getElementById('pfId').value = p.id;
   document.getElementById('pfNome').value = p.nome || '';
   document.getElementById('pfDataNascimento').value = p.data_nascimento || '';
@@ -178,89 +330,38 @@ async function editarPF(id) {
   document.getElementById('pfCapitalSocial').value = p.capital_social || '';
   document.getElementById('pfObservacoes').value = p.observacoes || '';
   document.getElementById('pfSequencia').value = p.sequencia || '';
-  await popularVinculosPJnoFormPF();
-  document.getElementById('btnCancelarPF').style.display = 'inline-block';
-  switchTabCliente('pf');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
 
-function cancelarEdicaoPF() { limparFormularioPF(); }
+  await popularVinculosPJnoFormPF();
+}
 
 function limparFormularioPF() {
   document.getElementById('pfId').value = '';
   ['pfNome','pfDataNascimento','pfNacionalidade','pfEstadoCivil','pfProfissao','pfCPF','pfEndereco',
    'pfTelefone','pfMunicipio','pfCNAE','pfSenhaGov','pfEmail','pfCapitalSocial','pfObservacoes','pfSequencia']
-    .forEach(id => document.getElementById(id).value = '');
+    .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   document.querySelectorAll('.pjVinculoCheckbox').forEach(cb => cb.checked = false);
-  document.getElementById('btnCancelarPF').style.display = 'none';
 }
 
 async function deletarPF(id) {
-  if (!confirm('Deletar esta Pessoa Física?')) return;
+  if (!confirm('Deletar esta Pessoa Física? Vínculos com PJ também serão removidos.')) return;
   await SupabaseAPI.delete('clientes_pf', id);
-  await carregarPF();
-  await carregarPJ();
+  await carregarListaUnificada();
   alert('✅ Pessoa Física deletada!');
 }
 
-function atualizarAcoesMassaPF() {
-  document.getElementById('acoesMassaPF').style.display = document.querySelectorAll('.checkboxPF:checked').length > 0 ? 'block' : 'none';
-}
-function toggleAllPF(checked) {
-  document.querySelectorAll('.checkboxPF').forEach(cb => cb.checked = checked);
-  atualizarAcoesMassaPF();
-}
-async function deletarPFSelecionados() {
-  const ids = Array.from(document.querySelectorAll('.checkboxPF:checked')).map(cb => parseInt(cb.dataset.id));
-  if (ids.length === 0) return;
-  if (!confirm(`Deletar ${ids.length} registro(s)?`)) return;
-  await Promise.all(ids.map(id => SupabaseAPI.delete('clientes_pf', id)));
-  await carregarPF(); await carregarPJ();
-  alert(`✅ ${ids.length} deletado(s)!`);
-}
-
 // ========== PESSOA JURÍDICA ==========
-async function carregarPJ() {
-  const tbody = document.getElementById('tbodyPJ');
-  if (!tbody) return;
-  tbody.innerHTML = '';
-  const todos = await SupabaseAPI.get('clientes_pj');
-  PJ_CACHE = todos.filter(j => j.unidade_id === unidadeAtivaCliente);
-  if (PJ_CACHE.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px; color:var(--tinta-40);">Nenhuma pessoa jurídica cadastrada</td></tr>';
-  } else {
-    PJ_CACHE.forEach(j => {
-      const tr = document.createElement('tr');
-      tr.style.borderBottom = '1px solid var(--linha)';
-      tr.innerHTML = `
-        <td style="width:20px; text-align:center; padding:12px 0;">
-          <input type="checkbox" class="checkbox-sistema checkboxPJ" data-id="${j.id}" onchange="atualizarAcoesMassaPJ()">
-        </td>
-        <td style="padding:12px;">${j.razao_social}</td>
-        <td style="padding:12px;">${j.cnpj || '-'}</td>
-        <td style="padding:12px;">${j.nome_representante || '-'}</td>
-        <td style="padding:12px;">${j.segmento || '-'}</td>
-        <td style="padding:12px; text-align:center; display:flex; gap:6px; justify-content:center;">
-          <button class="action-button" onclick="editarPJ(${j.id})" title="Editar">✏️</button>
-          <button class="action-button delete" onclick="deletarPJ(${j.id})" title="Deletar">🗑️</button>
-        </td>
-      `;
-      tbody.appendChild(tr);
-    });
-  }
-  await popularVinculosPFnoFormPJ();
-}
-
 async function popularVinculosPFnoFormPJ() {
   const container = document.getElementById('pjVinculosPF');
   if (!container) return;
   if (PF_CACHE.length === 0) PF_CACHE = (await SupabaseAPI.get('clientes_pf')).filter(p => p.unidade_id === unidadeAtivaCliente);
+
   const pjId = document.getElementById('pjId').value;
   let vinculadosIds = [];
   if (pjId) {
     const vinculos = await SupabaseAPI.get('clientes_pf_pj');
     vinculadosIds = vinculos.filter(v => v.pj_id === parseInt(pjId)).map(v => v.pf_id);
   }
+
   container.innerHTML = PF_CACHE.map(p => `
     <label style="display:flex; align-items:center; gap:6px; font-size:13px; font-weight:400; cursor:pointer;">
       <input type="checkbox" class="checkbox-sistema pfVinculoCheckbox" value="${p.id}" ${vinculadosIds.includes(p.id) ? 'checked' : ''}>
@@ -271,6 +372,7 @@ async function popularVinculosPFnoFormPJ() {
 
 async function salvarPJ(event) {
   event.preventDefault();
+
   const id = document.getElementById('pjId').value;
   const dados = {
     unidade_id: unidadeAtivaCliente,
@@ -297,8 +399,16 @@ async function salvarPJ(event) {
     endereco_representante: document.getElementById('pjEnderecoRepresentante').value.trim() || null,
     observacoes: document.getElementById('pjObservacoes').value.trim() || null
   };
-  if (!dados.razao_social) { alert('⚠️ Preencha a Razão Social'); return; }
-  if (!unidadeAtivaCliente) { alert('⚠️ Selecione uma franquia'); return; }
+
+  if (!dados.razao_social) {
+    alert('⚠️ Preencha a Razão Social');
+    return;
+  }
+  if (!unidadeAtivaCliente) {
+    alert('⚠️ Selecione uma franquia');
+    return;
+  }
+
   try {
     let pjId;
     if (id) {
@@ -308,10 +418,18 @@ async function salvarPJ(event) {
       const inserido = await SupabaseAPI.insert('clientes_pj', dados);
       pjId = inserido[0]?.id;
     }
+
     await salvarVinculosPJ(pjId);
-    alert(id ? '✅ Pessoa Jurídica atualizada!' : '✅ Pessoa Jurídica cadastrada!');
-    limparFormularioPJ();
-    await carregarPJ();
+
+    if (id) {
+      alert('✅ Pessoa Jurídica atualizada!');
+      fecharModalCliente();
+    } else {
+      alert('✅ Pessoa Jurídica cadastrada! Pronto para o próximo cadastro.');
+      limparFormularioPJ();
+      await popularVinculosPFnoFormPJ();
+    }
+    await carregarListaUnificada();
   } catch (error) {
     console.error('❌ Erro ao salvar PJ:', error);
     alert('❌ Erro ao salvar Pessoa Jurídica');
@@ -320,20 +438,28 @@ async function salvarPJ(event) {
 
 async function salvarVinculosPJ(pjId) {
   const marcadosIds = Array.from(document.querySelectorAll('.pfVinculoCheckbox:checked')).map(cb => parseInt(cb.value));
+
   const vinculosAtuais = await SupabaseAPI.get('clientes_pf_pj');
   const vinculosDessePJ = vinculosAtuais.filter(v => v.pj_id === pjId);
+
   for (const v of vinculosDessePJ) {
-    if (!marcadosIds.includes(v.pf_id)) await SupabaseAPI.delete('clientes_pf_pj', v.id);
+    if (!marcadosIds.includes(v.pf_id)) {
+      await SupabaseAPI.delete('clientes_pf_pj', v.id);
+    }
   }
+
   const jaVinculadosIds = vinculosDessePJ.map(v => v.pf_id);
   for (const pfId of marcadosIds) {
-    if (!jaVinculadosIds.includes(pfId)) await SupabaseAPI.insert('clientes_pf_pj', { pf_id: pfId, pj_id: pjId });
+    if (!jaVinculadosIds.includes(pfId)) {
+      await SupabaseAPI.insert('clientes_pf_pj', { pf_id: pfId, pj_id: pjId });
+    }
   }
 }
 
 async function editarPJ(id) {
   const j = PJ_CACHE.find(x => x.id === id) || (await SupabaseAPI.get('clientes_pj')).find(x => x.id === id);
   if (!j) return;
+
   document.getElementById('pjId').value = j.id;
   document.getElementById('pjRazaoSocial').value = j.razao_social || '';
   document.getElementById('pjCNPJ').value = j.cnpj || '';
@@ -357,13 +483,9 @@ async function editarPJ(id) {
   document.getElementById('pjEmailRepresentante').value = j.email_representante || '';
   document.getElementById('pjEnderecoRepresentante').value = j.endereco_representante || '';
   document.getElementById('pjObservacoes').value = j.observacoes || '';
-  await popularVinculosPFnoFormPJ();
-  document.getElementById('btnCancelarPJ').style.display = 'inline-block';
-  switchTabCliente('pj');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
 
-function cancelarEdicaoPJ() { limparFormularioPJ(); }
+  await popularVinculosPFnoFormPJ();
+}
 
 function limparFormularioPJ() {
   document.getElementById('pjId').value = '';
@@ -372,37 +494,15 @@ function limparFormularioPJ() {
    'pjDataNascimentoRepresentante','pjNacionalidadeRepresentante','pjEstadoCivilRepresentante',
    'pjProfissaoRepresentante','pjCPFRepresentante','pjRGRepresentante','pjTelefoneRepresentante',
    'pjEmailRepresentante','pjEnderecoRepresentante','pjObservacoes']
-    .forEach(id => document.getElementById(id).value = '');
+    .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   document.querySelectorAll('.pfVinculoCheckbox').forEach(cb => cb.checked = false);
-  document.getElementById('btnCancelarPJ').style.display = 'none';
 }
 
 async function deletarPJ(id) {
-  if (!confirm('Deletar esta Pessoa Jurídica?')) return;
+  if (!confirm('Deletar esta Pessoa Jurídica? Vínculos com PF também serão removidos.')) return;
   await SupabaseAPI.delete('clientes_pj', id);
-  await carregarPJ();
-  await carregarPF();
+  await carregarListaUnificada();
   alert('✅ Pessoa Jurídica deletada!');
 }
 
-function atualizarAcoesMassaPJ() {
-  document.getElementById('acoesMassaPJ').style.display = document.querySelectorAll('.checkboxPJ:checked').length > 0 ? 'block' : 'none';
-}
-function toggleAllPJ(checked) {
-  document.querySelectorAll('.checkboxPJ').forEach(cb => cb.checked = checked);
-  atualizarAcoesMassaPJ();
-}
-async function deletarPJSelecionados() {
-  const ids = Array.from(document.querySelectorAll('.checkboxPJ:checked')).map(cb => parseInt(cb.dataset.id));
-  if (ids.length === 0) return;
-  if (!confirm(`Deletar ${ids.length} registro(s)?`)) return;
-  await Promise.all(ids.map(id => SupabaseAPI.delete('clientes_pj', id)));
-  await carregarPJ(); await carregarPF();
-  alert(`✅ ${ids.length} deletado(s)!`);
-}
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', inicializarClientes);
-} else {
-  inicializarClientes();
-}
+// Nota: inicializarClientes() é chamado explicitamente por quem inclui este script
