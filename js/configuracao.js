@@ -635,20 +635,30 @@ function carregarParametros() {
   let parametros = JSON.parse(localStorage.getItem('parametros_auto') || '[]');
   
   if (parametros.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:var(--tinta-40);">Nenhum parâmetro cadastrado</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--tinta-40);">Nenhum parâmetro cadastrado</td></tr>';
+    document.getElementById('acoesMassaParametros').style.display = 'none';
     return;
   }
 
-  parametros.forEach(param => {
+  parametros.forEach((param, index) => {
     const tr = document.createElement('tr');
+    tr.style.borderBottom = '1px solid var(--linha)';
     tr.innerHTML = `
-      <td>${param.descricao}</td>
-      <td>${param.categoria}</td>
-      <td>${param.subcategoria || '-'}</td>
-      <td style="text-align:center;"><button class="btn-danger" onclick="deletarParametro('${param.descricao}')" style="padding:6px 12px; font-size:12px;">Deletar</button></td>
+      <td style="text-align:center; padding:10px;">
+        <input type="checkbox" class="checkboxParametro" data-index="${index}" onchange="atualizarAcoesMassa()">
+      </td>
+      <td style="padding:10px;">${param.descricao}</td>
+      <td style="padding:10px;">${param.categoria}</td>
+      <td style="padding:10px;">${param.subcategoria || '-'}</td>
+      <td style="padding:10px; text-align:center;">
+        <button class="btn-primary" onclick="abrirModalEditarParametro(${index})" style="padding:6px 12px; font-size:12px; margin-right:4px;">✏️ Editar</button>
+        <button class="btn-danger" onclick="deletarParametro('${param.descricao}')" style="padding:6px 12px; font-size:12px;">🗑️ Del</button>
+      </td>
     `;
     tbody.appendChild(tr);
   });
+  
+  document.getElementById('acoesMassaParametros').style.display = 'none';
 }
 
 function carregarLista() {
@@ -777,6 +787,202 @@ function deletarParametro(descricao) {
   
   carregarParametros();
   alert('✅ Parâmetro deletado!');
+}
+
+// ========== EDIÇÃO INDIVIDUAL ==========
+function abrirModalEditarParametro(index) {
+  let parametros = JSON.parse(localStorage.getItem('parametros_auto') || '[]');
+  const param = parametros[index];
+  
+  if (!param) {
+    alert('⚠️ Parâmetro não encontrado');
+    return;
+  }
+
+  // Criar modal
+  const modal = document.createElement('div');
+  modal.id = 'modalEditarParam';
+  modal.style.cssText = `
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.3); display: flex; align-items: center;
+    justify-content: center; z-index: 1000;
+  `;
+  
+  modal.innerHTML = `
+    <div style="background: white; padding: 24px; border-radius: 8px; width: 90%; max-width: 500px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+      <h3 style="margin: 0 0 20px 0;">Editar Parâmetro</h3>
+      
+      <div style="margin-bottom: 16px;">
+        <label style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px;">Descrição</label>
+        <input type="text" id="modalParamDescricao" value="${param.descricao}" readonly style="width: 100%; padding: 10px; border: 1px solid var(--linha); border-radius: 4px; background: var(--papel);">
+      </div>
+      
+      <div style="margin-bottom: 16px;">
+        <label style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px;">Categoria</label>
+        <select id="modalParamCategoria" style="width: 100%; padding: 10px; border: 1px solid var(--linha); border-radius: 4px;">
+          <option value="">Selecione...</option>
+        </select>
+      </div>
+      
+      <div style="margin-bottom: 20px;">
+        <label style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px;">Subcategoria</label>
+        <select id="modalParamSubcategoria" style="width: 100%; padding: 10px; border: 1px solid var(--linha); border-radius: 4px;">
+          <option value="">Nenhuma</option>
+        </select>
+      </div>
+      
+      <div style="display: flex; gap: 8px; justify-content: flex-end;">
+        <button onclick="fecharModalParametro()" class="btn-danger" style="padding: 10px 16px;">Cancelar</button>
+        <button onclick="salvarEdicaoParametro(${index})" class="btn-primary" style="padding: 10px 16px;">Salvar</button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  
+  // Popular selects
+  let categorias = JSON.parse(localStorage.getItem('categorias') || JSON.stringify(CATEGORIAS_PADRAO));
+  const selectCat = document.getElementById('modalParamCategoria');
+  categorias.forEach(cat => {
+    const option = document.createElement('option');
+    option.value = cat;
+    option.textContent = cat;
+    if (cat === param.categoria) option.selected = true;
+    selectCat.appendChild(option);
+  });
+  
+  let subcategorias = JSON.parse(localStorage.getItem('subcategorias') || '[]');
+  const selectSub = document.getElementById('modalParamSubcategoria');
+  subcategorias.forEach(sub => {
+    const option = document.createElement('option');
+    option.value = sub;
+    option.textContent = sub;
+    if (sub === param.subcategoria) option.selected = true;
+    selectSub.appendChild(option);
+  });
+}
+
+function fecharModalParametro() {
+  const modal = document.getElementById('modalEditarParam');
+  if (modal) modal.remove();
+}
+
+function salvarEdicaoParametro(index) {
+  const categoria = document.getElementById('modalParamCategoria').value;
+  const subcategoria = document.getElementById('modalParamSubcategoria').value;
+  
+  if (!categoria) {
+    alert('⚠️ Selecione uma categoria');
+    return;
+  }
+  
+  let parametros = JSON.parse(localStorage.getItem('parametros_auto') || '[]');
+  parametros[index].categoria = categoria;
+  parametros[index].subcategoria = subcategoria;
+  
+  localStorage.setItem('parametros_auto', JSON.stringify(parametros));
+  fecharModalParametro();
+  carregarParametros();
+  alert('✅ Parâmetro atualizado!');
+}
+
+// ========== EDIÇÃO EM MASSA ==========
+function atualizarAcoesMassa() {
+  const selecionados = document.querySelectorAll('.checkboxParametro:checked').length;
+  const container = document.getElementById('acoesMassaParametros');
+  
+  if (selecionados > 0) {
+    container.style.display = 'block';
+  } else {
+    container.style.display = 'none';
+  }
+}
+
+function editarCategoryEmLote() {
+  const selecionados = Array.from(document.querySelectorAll('.checkboxParametro:checked')).map(cb => parseInt(cb.dataset.index));
+  
+  if (selecionados.length === 0) {
+    alert('⚠️ Selecione parâmetros');
+    return;
+  }
+  
+  // Modal para escolher categoria
+  let categorias = JSON.parse(localStorage.getItem('categorias') || JSON.stringify(CATEGORIAS_PADRAO));
+  
+  const selectHtml = `
+    <div style="margin: 16px 0;">
+      <label style="display: block; margin-bottom: 8px;">Nova Categoria:</label>
+      <select id="selectNovaCategoria" style="width: 100%; padding: 10px; border: 1px solid var(--linha); border-radius: 4px;">
+        <option value="">Selecione...</option>
+        ${categorias.map(cat => `<option value="${cat}">${cat}</option>`).join('')}
+      </select>
+    </div>
+  `;
+  
+  if (confirm(`Aplicar categoria a ${selecionados.length} parâmetro(s)?`)) {
+    const modal = prompt('Digite a categoria (ou deixe em branco para cancelar):', '');
+    if (!modal) return;
+    
+    const categoria = modal.trim().toUpperCase();
+    if (!categoria) return;
+    
+    let parametros = JSON.parse(localStorage.getItem('parametros_auto') || '[]');
+    selecionados.forEach(index => {
+      if (parametros[index]) {
+        parametros[index].categoria = categoria;
+      }
+    });
+    
+    localStorage.setItem('parametros_auto', JSON.stringify(parametros));
+    carregarParametros();
+    alert(`✅ ${selecionados.length} parâmetro(s) atualizado(s)!`);
+  }
+}
+
+function editarSubcategoryEmLote() {
+  const selecionados = Array.from(document.querySelectorAll('.checkboxParametro:checked')).map(cb => parseInt(cb.dataset.index));
+  
+  if (selecionados.length === 0) {
+    alert('⚠️ Selecione parâmetros');
+    return;
+  }
+  
+  let subcategorias = JSON.parse(localStorage.getItem('subcategorias') || '[]');
+  
+  const modal = prompt(`Aplicar subcategoria a ${selecionados.length} parâmetro(s)?\n\nOpciones: ${subcategorias.join(', ') || 'Nenhuma'}\n\n(deixe em branco para "Nenhuma")`, '');
+  
+  if (modal === null) return;
+  
+  const subcategoria = modal.trim().toUpperCase();
+  
+  let parametros = JSON.parse(localStorage.getItem('parametros_auto') || '[]');
+  selecionados.forEach(index => {
+    if (parametros[index]) {
+      parametros[index].subcategoria = subcategoria;
+    }
+  });
+  
+  localStorage.setItem('parametros_auto', JSON.stringify(parametros));
+  carregarParametros();
+  alert(`✅ ${selecionados.length} parâmetro(s) atualizado(s)!`);
+}
+
+function deletarSelecionados() {
+  const selecionados = Array.from(document.querySelectorAll('.checkboxParametro:checked')).map(cb => parseInt(cb.dataset.index));
+  
+  if (selecionados.length === 0) {
+    alert('⚠️ Selecione parâmetros');
+    return;
+  }
+  
+  if (!confirm(`Deletar ${selecionados.length} parâmetro(s)?`)) return;
+  
+  let parametros = JSON.parse(localStorage.getItem('parametros_auto') || '[]');
+  parametros = parametros.filter((_, index) => !selecionados.includes(index));
+  
+  localStorage.setItem('parametros_auto', JSON.stringify(parametros));
+  carregarParametros();
+  alert(`✅ ${selecionados.length} parâmetro(s) deletado(s)!`);
 }
 
 // ========== FIM LISTAS DO SISTEMA ==========
