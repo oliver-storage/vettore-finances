@@ -49,11 +49,11 @@ async function inicializar() {
     await carregarFranquiasSelect(unidades, user);
     await carregarUsuarios(user);
     await carregarPrivilegios();
-    carregarCategorias();
     carregarServicos();
-    carregarLista();
-    carregarParametros();
-    atualizarSelectsParametros();
+    await carregarCategorias();
+    await carregarLista();
+    await carregarParametros();
+    await atualizarSelectsParametros();
     
   } catch (error) {
     console.error('❌ Erro:', error);
@@ -439,35 +439,15 @@ async function deletarUsuario(id) {
   }
 }
 
-// GERENCIAR CATEGORIAS
-async function adicionarCategoria() {
-  const input = document.getElementById('inputNovaCategoria');
-  const categoria = input.value.trim().toUpperCase();
-  
-  if (!categoria) {
-    alert('⚠️ Digite um nome para a categoria');
-    return;
-  }
-  
-  if (CATEGORIAS.includes(categoria)) {
-    alert('⚠️ Categoria já existe');
-    return;
-  }
-  
-  CATEGORIAS.push(categoria);
-  localStorage.setItem('categorias', JSON.stringify(CATEGORIAS));
-  input.value = '';
-  carregarCategorias();
-  alert('✅ Categoria adicionada!');
-}
+// GERENCIAR CATEGORIAS (adicionarCategoria via UI: usar adicionarItem/removerItemLista)
 
-function carregarCategorias() {
-  // Carregar categorias do localStorage se existirem
-  CATEGORIAS = JSON.parse(localStorage.getItem('categorias') || JSON.stringify(CATEGORIAS_PADRAO));
-  
+async function carregarCategorias() {
+  const registros = await SupabaseAPI.get('categorias');
+  CATEGORIAS = registros.map(r => r.nome);
+
   const tbody = document.getElementById('tbodyCategorias');
-  if (!tbody) return; // Se não existe, pula
-  
+  if (!tbody) return;
+
   tbody.innerHTML = '';
   CATEGORIAS.forEach(cat => {
     const tr = document.createElement('tr');
@@ -479,12 +459,14 @@ function carregarCategorias() {
   });
 }
 
-function deletarCategoria(categoria) {
+async function deletarCategoria(categoria) {
   if (!confirm(`Deletar categoria "${categoria}"?`)) return;
-  
-  CATEGORIAS = CATEGORIAS.filter(c => c !== categoria);
-  localStorage.setItem('categorias', JSON.stringify(CATEGORIAS));
-  carregarCategorias();
+
+  const registros = await SupabaseAPI.get('categorias');
+  const registro = registros.find(r => r.nome === categoria);
+  if (registro) await SupabaseAPI.delete('categorias', registro.id);
+
+  await carregarCategorias();
   alert('✅ Categoria deletada!');
 }
 
@@ -539,69 +521,11 @@ function deletarServico(servico) {
   alert('✅ Serviço deletado!');
 }
 
-// ========== SUBCATEGORIAS ==========
-const SUBCATEGORIAS_KEY = 'subcategorias';
+// ========== FIM SERVIÇOS ==========
 
-function adicionarSubcategoria() {
-  const input = document.getElementById('inputNovaSubcategoria');
-  const subcategoria = input.value.trim().toUpperCase();
+async function atualizarSelectsParametros() {
+  const categorias = CATEGORIAS.length ? CATEGORIAS : (await SupabaseAPI.get('categorias')).map(r => r.nome);
 
-  if (!subcategoria) {
-    alert('⚠️ Digite uma subcategoria');
-    return;
-  }
-  
-  let subcategorias = JSON.parse(localStorage.getItem(SUBCATEGORIAS_KEY) || '[]');
-  
-  if (subcategorias.includes(subcategoria)) {
-    alert('⚠️ Subcategoria já existe');
-    return;
-  }
-  
-  subcategorias.push(subcategoria);
-  localStorage.setItem(SUBCATEGORIAS_KEY, JSON.stringify(subcategorias));
-  input.value = '';
-  carregarSubcategorias();
-  alert('✅ Subcategoria adicionada!');
-}
-
-function carregarSubcategorias() {
-  const tbody = document.getElementById('tbodySubcategorias');
-  if (!tbody) return;
-  
-  tbody.innerHTML = '';
-  let subcategorias = JSON.parse(localStorage.getItem(SUBCATEGORIAS_KEY) || '[]');
-  
-  if (subcategorias.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; padding:20px; color:var(--tinta-40);">Nenhuma subcategoria</td></tr>';
-    return;
-  }
-  
-  subcategorias.forEach(sub => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${sub}</td>
-      <td><button class="btn-danger" onclick="deletarSubcategoria('${sub}')">Deletar</button></td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
-
-function deletarSubcategoria(subcategoria) {
-  if (!confirm(`Deletar subcategoria "${subcategoria}"?`)) return;
-  
-  let subcategorias = JSON.parse(localStorage.getItem(SUBCATEGORIAS_KEY) || '[]');
-  subcategorias = subcategorias.filter(s => s !== subcategoria);
-  localStorage.setItem(SUBCATEGORIAS_KEY, JSON.stringify(subcategorias));
-  carregarSubcategorias();
-  atualizarSelectsParametros();
-  alert('✅ Subcategoria deletada!');
-}
-
-function atualizarSelectsParametros() {
-  // Carregar categorias (localStorage ou padrão)
-  let categorias = JSON.parse(localStorage.getItem('categorias') || JSON.stringify(CATEGORIAS_PADRAO));
-  
   const selectCat = document.getElementById('selectParamCategoria');
   if (selectCat) {
     selectCat.innerHTML = '<option value="">Selecione...</option>';
@@ -612,28 +536,28 @@ function atualizarSelectsParametros() {
       selectCat.appendChild(option);
     });
   }
-  
+
   // Carregar subcategorias
   const selectSub = document.getElementById('selectParamSubcategoria');
   if (selectSub) {
     selectSub.innerHTML = '<option value="">Nenhuma</option>';
-    let subcategorias = JSON.parse(localStorage.getItem('subcategorias') || '[]');
+    const subcategorias = await SupabaseAPI.get('subcategorias');
     subcategorias.forEach(sub => {
       const option = document.createElement('option');
-      option.value = sub;
-      option.textContent = sub;
+      option.value = sub.nome;
+      option.textContent = sub.nome;
       selectSub.appendChild(option);
     });
   }
 }
 
-function carregarParametros() {
+async function carregarParametros() {
   const tbody = document.getElementById('tbodyParametros');
   if (!tbody) return;
-  
+
   tbody.innerHTML = '';
-  let parametros = JSON.parse(localStorage.getItem('parametros_auto') || '[]');
-  
+  const parametros = await SupabaseAPI.get('parametros_auto');
+
   if (parametros.length === 0) {
     tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--tinta-40);">Nenhum parâmetro cadastrado</td></tr>';
     document.getElementById('acoesMassaParametros').style.display = 'none';
@@ -641,19 +565,19 @@ function carregarParametros() {
     return;
   }
 
-  parametros.forEach((param, index) => {
+  parametros.forEach((param) => {
     const tr = document.createElement('tr');
     tr.style.borderBottom = '1px solid var(--linha)';
     tr.innerHTML = `
       <td style="text-align:center; padding: 12px 6px;">
-        <input type="checkbox" class="checkbox-sistema checkboxParametro" data-index="${index}" onchange="atualizarAcoesMassa()">
+        <input type="checkbox" class="checkbox-sistema checkboxParametro" data-id="${param.id}" onchange="atualizarAcoesMassa()">
       </td>
       <td style="padding:12px;">${param.descricao}</td>
       <td style="padding:12px;">${param.categoria}</td>
       <td style="padding:12px;">${param.subcategoria || '-'}</td>
       <td style="padding:12px; text-align:center; display:flex; gap:6px; justify-content:center;">
-        <button class="action-button" onclick="abrirModalEditarParametro(${index})" title="Editar Parâmetro">✏️</button>
-        <button class="action-button delete" onclick="deletarParametro('${param.descricao}')" title="Deletar Parâmetro">🗑️</button>
+        <button class="action-button" onclick="abrirModalEditarParametro(${param.id})" title="Editar Parâmetro">✏️</button>
+        <button class="action-button delete" onclick="deletarParametro(${param.id})" title="Deletar Parâmetro">🗑️</button>
       </td>
     `;
     tbody.appendChild(tr);
@@ -663,26 +587,25 @@ function carregarParametros() {
   document.getElementById('checkAllParametros').checked = false;
 }
 
-function carregarLista() {
+async function carregarLista() {
   const lista = document.getElementById('selectLista')?.value || 'categorias';
   const container = document.getElementById('containerChips');
   if (!container) return;
-  
+
   container.innerHTML = '';
 
-  let items = [];
-  if (lista === 'categorias') {
-    items = CATEGORIAS;
-  } else if (lista === 'subcategorias') {
-    items = JSON.parse(localStorage.getItem('subcategorias') || '[]');
-  }
+  const items = lista === 'categorias'
+    ? (await SupabaseAPI.get('categorias')).map(r => r.nome)
+    : (await SupabaseAPI.get('subcategorias')).map(r => r.nome);
+
+  if (lista === 'categorias') CATEGORIAS = items;
 
   if (items.length === 0) {
     container.innerHTML = '<p style="color:var(--tinta-40); font-size:12px;">Nenhum item nessa lista</p>';
     return;
   }
 
-  items.forEach(item => {
+  items.forEach(itemText => {
     const chip = document.createElement('div');
     chip.style.cssText = `
       display: inline-flex;
@@ -695,8 +618,6 @@ function carregarLista() {
       font-size: 13px;
       color: var(--tinta);
     `;
-    
-    const itemText = typeof item === 'string' ? item : item.descricao;
     chip.innerHTML = `
       ${itemText}
       <span onclick="removerItemLista('${lista}', '${itemText}')" style="cursor:pointer; font-weight:bold; color:var(--alerta); padding:0 4px; line-height:1;">×</span>
@@ -705,7 +626,7 @@ function carregarLista() {
   });
 }
 
-function adicionarItem() {
+async function adicionarItem() {
   const input = document.getElementById('inputNovoItem');
   const item = input.value.trim().toUpperCase();
   if (!item) {
@@ -714,46 +635,36 @@ function adicionarItem() {
   }
 
   const lista = document.getElementById('selectLista').value;
+  const tabela = lista === 'categorias' ? 'categorias' : 'subcategorias';
 
-  if (lista === 'categorias') {
-    if (CATEGORIAS.includes(item)) {
-      alert('⚠️ Esta categoria já existe');
-      return;
-    }
-    CATEGORIAS.push(item);
-    localStorage.setItem('categorias', JSON.stringify(CATEGORIAS));
-  } else if (lista === 'subcategorias') {
-    let subcategorias = JSON.parse(localStorage.getItem('subcategorias') || '[]');
-    if (subcategorias.includes(item)) {
-      alert('⚠️ Esta subcategoria já existe');
-      return;
-    }
-    subcategorias.push(item);
-    localStorage.setItem('subcategorias', JSON.stringify(subcategorias));
+  const existentes = await SupabaseAPI.get(tabela);
+  if (existentes.some(r => r.nome === item)) {
+    alert('⚠️ Este item já existe');
+    return;
   }
 
+  await SupabaseAPI.insert(tabela, { nome: item });
+
   input.value = '';
-  carregarLista();
+  await carregarLista();
+  await atualizarSelectsParametros();
   alert('✅ Item adicionado!');
 }
 
-function removerItemLista(lista, item) {
+async function removerItemLista(lista, item) {
   if (!confirm(`Remover "${item}"?`)) return;
 
-  if (lista === 'categorias') {
-    CATEGORIAS = CATEGORIAS.filter(c => c !== item);
-    localStorage.setItem('categorias', JSON.stringify(CATEGORIAS));
-  } else if (lista === 'subcategorias') {
-    let subcategorias = JSON.parse(localStorage.getItem('subcategorias') || '[]');
-    subcategorias = subcategorias.filter(s => s !== item);
-    localStorage.setItem('subcategorias', JSON.stringify(subcategorias));
-  }
+  const tabela = lista === 'categorias' ? 'categorias' : 'subcategorias';
+  const registros = await SupabaseAPI.get(tabela);
+  const registro = registros.find(r => r.nome === item);
+  if (registro) await SupabaseAPI.delete(tabela, registro.id);
 
-  carregarLista();
+  await carregarLista();
+  await atualizarSelectsParametros();
   alert('✅ Item removido!');
 }
 
-function adicionarParametro() {
+async function adicionarParametro() {
   const descricao = document.getElementById('inputParamDescricao')?.value.trim().toUpperCase();
   const categoria = document.getElementById('selectParamCategoria')?.value;
   const subcategoria = document.getElementById('selectParamSubcategoria')?.value;
@@ -763,39 +674,36 @@ function adicionarParametro() {
     return;
   }
 
-  let parametros = JSON.parse(localStorage.getItem('parametros_auto') || '[]');
+  const parametros = await SupabaseAPI.get('parametros_auto');
   if (parametros.some(p => p.descricao === descricao)) {
     alert('⚠️ Este parâmetro já existe');
     return;
   }
 
-  parametros.push({ descricao, categoria, subcategoria: subcategoria || '' });
-  localStorage.setItem('parametros_auto', JSON.stringify(parametros));
+  await SupabaseAPI.insert('parametros_auto', { descricao, categoria, subcategoria: subcategoria || null });
 
   document.getElementById('inputParamDescricao').value = '';
   document.getElementById('selectParamCategoria').value = '';
   document.getElementById('selectParamSubcategoria').value = '';
 
-  carregarParametros();
+  await carregarParametros();
   alert('✅ Parâmetro adicionado!');
 }
 
-function deletarParametro(descricao) {
-  if (!confirm(`Deletar parâmetro "${descricao}"?`)) return;
-  
-  let parametros = JSON.parse(localStorage.getItem('parametros_auto') || '[]');
-  parametros = parametros.filter(p => p.descricao !== descricao);
-  localStorage.setItem('parametros_auto', JSON.stringify(parametros));
-  
-  carregarParametros();
+async function deletarParametro(id) {
+  if (!confirm('Deletar este parâmetro?')) return;
+
+  await SupabaseAPI.delete('parametros_auto', id);
+
+  await carregarParametros();
   alert('✅ Parâmetro deletado!');
 }
 
 // ========== EDIÇÃO INDIVIDUAL ==========
-function abrirModalEditarParametro(index) {
-  let parametros = JSON.parse(localStorage.getItem('parametros_auto') || '[]');
-  const param = parametros[index];
-  
+async function abrirModalEditarParametro(id) {
+  const parametros = await SupabaseAPI.get('parametros_auto');
+  const param = parametros.find(p => p.id === id);
+
   if (!param) {
     alert('⚠️ Parâmetro não encontrado');
     return;
@@ -835,15 +743,15 @@ function abrirModalEditarParametro(index) {
       
       <div style="display: flex; gap: 8px; justify-content: flex-end;">
         <button onclick="fecharModalParametro()" class="btn-danger" style="padding: 10px 16px;">Cancelar</button>
-        <button onclick="salvarEdicaoParametro(${index})" class="btn-primary" style="padding: 10px 16px;">Salvar</button>
+        <button onclick="salvarEdicaoParametro(${id})" class="btn-primary" style="padding: 10px 16px;">Salvar</button>
       </div>
     </div>
   `;
   
   document.body.appendChild(modal);
-  
+
   // Popular selects
-  let categorias = JSON.parse(localStorage.getItem('categorias') || JSON.stringify(CATEGORIAS_PADRAO));
+  const categorias = CATEGORIAS.length ? CATEGORIAS : (await SupabaseAPI.get('categorias')).map(r => r.nome);
   const selectCat = document.getElementById('modalParamCategoria');
   categorias.forEach(cat => {
     const option = document.createElement('option');
@@ -852,8 +760,8 @@ function abrirModalEditarParametro(index) {
     if (cat === param.categoria) option.selected = true;
     selectCat.appendChild(option);
   });
-  
-  let subcategorias = JSON.parse(localStorage.getItem('subcategorias') || '[]');
+
+  const subcategorias = (await SupabaseAPI.get('subcategorias')).map(r => r.nome);
   const selectSub = document.getElementById('modalParamSubcategoria');
   subcategorias.forEach(sub => {
     const option = document.createElement('option');
@@ -869,22 +777,19 @@ function fecharModalParametro() {
   if (modal) modal.remove();
 }
 
-function salvarEdicaoParametro(index) {
+async function salvarEdicaoParametro(id) {
   const categoria = document.getElementById('modalParamCategoria').value;
   const subcategoria = document.getElementById('modalParamSubcategoria').value;
-  
+
   if (!categoria) {
     alert('⚠️ Selecione uma categoria');
     return;
   }
-  
-  let parametros = JSON.parse(localStorage.getItem('parametros_auto') || '[]');
-  parametros[index].categoria = categoria;
-  parametros[index].subcategoria = subcategoria;
-  
-  localStorage.setItem('parametros_auto', JSON.stringify(parametros));
+
+  await SupabaseAPI.update('parametros_auto', id, { categoria, subcategoria: subcategoria || null });
+
   fecharModalParametro();
-  carregarParametros();
+  await carregarParametros();
   alert('✅ Parâmetro atualizado!');
 }
 
@@ -907,91 +812,61 @@ function toggleAllParametros(checked) {
   atualizarAcoesMassa();
 }
 
-function editarCategoryEmLote() {
-  const selecionados = Array.from(document.querySelectorAll('.checkboxParametro:checked')).map(cb => parseInt(cb.dataset.index));
-  
-  if (selecionados.length === 0) {
+async function editarCategoryEmLote() {
+  const ids = Array.from(document.querySelectorAll('.checkboxParametro:checked')).map(cb => parseInt(cb.dataset.id));
+
+  if (ids.length === 0) {
     alert('⚠️ Selecione parâmetros');
     return;
   }
-  
-  // Modal para escolher categoria
-  let categorias = JSON.parse(localStorage.getItem('categorias') || JSON.stringify(CATEGORIAS_PADRAO));
-  
-  const selectHtml = `
-    <div style="margin: 16px 0;">
-      <label style="display: block; margin-bottom: 8px;">Nova Categoria:</label>
-      <select id="selectNovaCategoria" style="width: 100%; padding: 10px; border: 1px solid var(--linha); border-radius: 4px;">
-        <option value="">Selecione...</option>
-        ${categorias.map(cat => `<option value="${cat}">${cat}</option>`).join('')}
-      </select>
-    </div>
-  `;
-  
-  if (confirm(`Aplicar categoria a ${selecionados.length} parâmetro(s)?`)) {
-    const modal = prompt('Digite a categoria (ou deixe em branco para cancelar):', '');
-    if (!modal) return;
-    
-    const categoria = modal.trim().toUpperCase();
-    if (!categoria) return;
-    
-    let parametros = JSON.parse(localStorage.getItem('parametros_auto') || '[]');
-    selecionados.forEach(index => {
-      if (parametros[index]) {
-        parametros[index].categoria = categoria;
-      }
-    });
-    
-    localStorage.setItem('parametros_auto', JSON.stringify(parametros));
-    carregarParametros();
-    alert(`✅ ${selecionados.length} parâmetro(s) atualizado(s)!`);
-  }
+
+  const categoria = prompt('Digite a categoria a aplicar:', '');
+  if (!categoria || !categoria.trim()) return;
+
+  const categoriaUpper = categoria.trim().toUpperCase();
+  if (!confirm(`Aplicar categoria "${categoriaUpper}" a ${ids.length} parâmetro(s)?`)) return;
+
+  await Promise.all(ids.map(id => SupabaseAPI.update('parametros_auto', id, { categoria: categoriaUpper })));
+
+  await carregarParametros();
+  alert(`✅ ${ids.length} parâmetro(s) atualizado(s)!`);
 }
 
-function editarSubcategoryEmLote() {
-  const selecionados = Array.from(document.querySelectorAll('.checkboxParametro:checked')).map(cb => parseInt(cb.dataset.index));
-  
-  if (selecionados.length === 0) {
+async function editarSubcategoryEmLote() {
+  const ids = Array.from(document.querySelectorAll('.checkboxParametro:checked')).map(cb => parseInt(cb.dataset.id));
+
+  if (ids.length === 0) {
     alert('⚠️ Selecione parâmetros');
     return;
   }
-  
-  let subcategorias = JSON.parse(localStorage.getItem('subcategorias') || '[]');
-  
-  const modal = prompt(`Aplicar subcategoria a ${selecionados.length} parâmetro(s)?\n\nOpciones: ${subcategorias.join(', ') || 'Nenhuma'}\n\n(deixe em branco para "Nenhuma")`, '');
-  
+
+  const subcategorias = (await SupabaseAPI.get('subcategorias')).map(r => r.nome);
+  const modal = prompt(`Aplicar subcategoria a ${ids.length} parâmetro(s)?\n\nOpções: ${subcategorias.join(', ') || 'Nenhuma'}\n\n(deixe em branco para "Nenhuma")`, '');
+
   if (modal === null) return;
-  
+
   const subcategoria = modal.trim().toUpperCase();
-  
-  let parametros = JSON.parse(localStorage.getItem('parametros_auto') || '[]');
-  selecionados.forEach(index => {
-    if (parametros[index]) {
-      parametros[index].subcategoria = subcategoria;
-    }
-  });
-  
-  localStorage.setItem('parametros_auto', JSON.stringify(parametros));
-  carregarParametros();
-  alert(`✅ ${selecionados.length} parâmetro(s) atualizado(s)!`);
+
+  await Promise.all(ids.map(id => SupabaseAPI.update('parametros_auto', id, { subcategoria: subcategoria || null })));
+
+  await carregarParametros();
+  alert(`✅ ${ids.length} parâmetro(s) atualizado(s)!`);
 }
 
-function deletarSelecionados() {
-  const selecionados = Array.from(document.querySelectorAll('.checkboxParametro:checked')).map(cb => parseInt(cb.dataset.index));
-  
-  if (selecionados.length === 0) {
+async function deletarSelecionados() {
+  const ids = Array.from(document.querySelectorAll('.checkboxParametro:checked')).map(cb => parseInt(cb.dataset.id));
+
+  if (ids.length === 0) {
     alert('⚠️ Selecione parâmetros');
     return;
   }
-  
-  if (!confirm(`Deletar ${selecionados.length} parâmetro(s)?`)) return;
-  
-  let parametros = JSON.parse(localStorage.getItem('parametros_auto') || '[]');
-  parametros = parametros.filter((_, index) => !selecionados.includes(index));
-  
-  localStorage.setItem('parametros_auto', JSON.stringify(parametros));
-  carregarParametros();
-  alert(`✅ ${selecionados.length} parâmetro(s) deletado(s)!`);
+
+  if (!confirm(`Deletar ${ids.length} parâmetro(s)?`)) return;
+
+  await Promise.all(ids.map(id => SupabaseAPI.delete('parametros_auto', id)));
+
+  await carregarParametros();
+  alert(`✅ ${ids.length} parâmetro(s) deletado(s)!`);
 }
 
 // ========== FIM LISTAS DO SISTEMA ==========

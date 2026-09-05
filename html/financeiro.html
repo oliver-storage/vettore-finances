@@ -9,8 +9,8 @@
   <!-- XLSX -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.0.24">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.0.24">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.0.25">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.0.25">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -591,7 +591,7 @@
   </div>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.0.24 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.0.25 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>
@@ -599,10 +599,7 @@
   <script src="../js/importador.js"></script>
 
   <script>
-    const CATEGORIAS = [
-      'BOLETOS', 'CUSTEIO', 'DAE CLIENTE', 'ENDEREÇO FISCAL',
-      'HONORÁRIOS', 'NEGOCIAÇÃO', 'PARCEIROS', 'SERVIÇOS', 'TARIFAS', 'SALDO ANTERIOR'
-    ];
+    let CATEGORIAS = [];
 
     function formatarMoedaBR(valor) {
       return parseFloat(valor || 0).toLocaleString('pt-BR', {
@@ -644,6 +641,7 @@
         
         const user = JSON.parse(localStorage.getItem('currentUser'));
         const unidades = await SupabaseAPI.get('unidades');
+        CATEGORIAS = (await SupabaseAPI.get('categorias')).map(r => r.nome);
 
         // Dropdown de Franquia (somente administrador)
         if (user.perfil === 'administrador') {
@@ -743,7 +741,7 @@
         }
 
         // Aplicar parâmetros de auto-preenchimento
-        extratos = aplicarParametrosAuto(extratos);
+        extratos = await aplicarParametrosAuto(extratos);
 
         extratos.forEach(e => {
           const tr = document.createElement('tr');
@@ -952,8 +950,8 @@
     // ========== FIM AÇÕES EM MASSA ==========
 
     // ========== APLICAR PARÂMETROS AUTO ==========
-    function aplicarParametrosAuto(extratos) {
-      const parametros = JSON.parse(localStorage.getItem('parametros_auto') || '[]');
+    async function aplicarParametrosAuto(extratos) {
+      const parametros = await SupabaseAPI.get('parametros_auto');
       if (parametros.length === 0) return extratos;
 
       return extratos.map(extrato => {
