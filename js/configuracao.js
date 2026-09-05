@@ -764,10 +764,19 @@ function adicionarParametro() {
   document.getElementById('selectParamCategoria').value = '';
   document.getElementById('selectParamSubcategoria').value = '';
 
-  if (document.getElementById('selectLista').value === 'parametros') {
-    carregarLista();
-  }
+  carregarParametros();
   alert('✅ Parâmetro adicionado!');
+}
+
+function deletarParametro(descricao) {
+  if (!confirm(`Deletar parâmetro "${descricao}"?`)) return;
+  
+  let parametros = JSON.parse(localStorage.getItem('parametros_auto') || '[]');
+  parametros = parametros.filter(p => p.descricao !== descricao);
+  localStorage.setItem('parametros_auto', JSON.stringify(parametros));
+  
+  carregarParametros();
+  alert('✅ Parâmetro deletado!');
 }
 
 // ========== FIM LISTAS DO SISTEMA ==========
