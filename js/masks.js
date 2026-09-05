@@ -14,6 +14,15 @@ function maskCNPJ(value) {
   return value;
 }
 
+function maskCPF(value) {
+  value = value.replace(/\D/g, '');
+  if (value.length > 11) value = value.slice(0, 11);
+  if (value.length >= 3) value = value.replace(/^(\d{3})/, '$1.');
+  if (value.length >= 7) value = value.replace(/^(\d{3})\.(\d{3})/, '$1.$2.');
+  if (value.length >= 11) value = value.replace(/^(\d{3})\.(\d{3})\.(\d{3})/, '$1.$2.$3-');
+  return value;
+}
+
 function maskCEP(value) {
   value = value.replace(/\D/g, '');
   if (value.length > 8) value = value.slice(0, 8);

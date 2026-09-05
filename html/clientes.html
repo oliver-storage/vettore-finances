@@ -1,12 +1,12 @@
-<!-- Vettore Finances v1.9.2.1 • Desenvolvido por OliverStorage -->
+<!-- Vettore Finances v1.9.3.0 • Desenvolvido por OliverStorage -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vettore Finances - Clientes</title>
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.2.1">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.2.1">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.3.0">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.3.0">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -59,112 +59,312 @@
 
   <div class="container">
     <h2 style="color: var(--tinta);">Clientes</h2>
-    <p class="subtitle">Cadastro de clientes por franquia</p>
+    <p class="subtitle">Cadastro de clientes Pessoa Física e Pessoa Jurídica</p>
 
-    <div class="card">
-      <div class="form-group" id="grupoFranquiaCliente" style="display:none; max-width:320px;">
-        <label>Franquia</label>
-        <select id="franquiaFilterCliente" onchange="trocarFranquiaCliente()"></select>
-      </div>
-
-      <h3 style="margin-top:16px;">Novo Cliente</h3>
-      <form onsubmit="salvarCliente(event)">
-        <div class="form-row-3">
-          <div class="form-group">
-            <label>Nome / Razão Social *</label>
-            <input type="text" id="inputNomeCliente" required>
-          </div>
-          <div class="form-group">
-            <label>CPF/CNPJ</label>
-            <input type="text" id="inputCpfCnpjCliente" placeholder="00.000.000/0000-00" oninput="this.value = maskCNPJ(this.value)">
-          </div>
-          <div class="form-group">
-            <label>Email</label>
-            <input type="email" id="inputEmailCliente">
-          </div>
-        </div>
-
-        <div class="form-row-3">
-          <div class="form-group">
-            <label>Telefone</label>
-            <input type="text" id="inputTelefoneCliente" placeholder="(00) 00000-0000" oninput="this.value = maskPhone(this.value)">
-          </div>
-          <div class="form-group">
-            <label>CEP</label>
-            <input type="text" id="inputCEPCliente" placeholder="00000-000" oninput="this.value = maskCEP(this.value)" onblur="buscarCEPCliente()">
-          </div>
-          <div class="form-group">
-            <label>Número</label>
-            <input type="text" id="inputNumeroCliente">
-          </div>
-        </div>
-
-        <div class="form-row-3">
-          <div class="form-group">
-            <label>Rua</label>
-            <input type="text" id="inputRuaCliente">
-          </div>
-          <div class="form-group">
-            <label>Bairro</label>
-            <input type="text" id="inputBairroCliente">
-          </div>
-          <div class="form-group">
-            <label>Complemento</label>
-            <input type="text" id="inputComplementoCliente">
-          </div>
-        </div>
-
-        <div class="form-row-3">
-          <div class="form-group">
-            <label>Cidade</label>
-            <input type="text" id="inputCidadeCliente">
-          </div>
-          <div class="form-group">
-            <label>Estado</label>
-            <input type="text" id="inputEstadoCliente" maxlength="2">
-          </div>
-          <div class="form-group">
-            <label>Observação</label>
-            <input type="text" id="inputObservacaoCliente">
-          </div>
-        </div>
-
-        <input type="hidden" id="inputClienteId" value="">
-        <button type="submit" class="btn-primary" style="margin-top:12px;">Salvar Cliente</button>
-        <button type="button" class="btn-danger" style="margin-top:12px; display:none;" id="btnCancelarEdicao" onclick="cancelarEdicaoCliente()">Cancelar Edição</button>
-      </form>
+    <div class="form-group" id="grupoFranquiaCliente" style="display:none; max-width:320px; margin-bottom:16px;">
+      <label>Franquia</label>
+      <select id="franquiaFilterCliente" onchange="trocarFranquiaCliente()"></select>
     </div>
 
-    <div class="card" style="margin-top:20px;">
-      <h3>Clientes Cadastrados</h3>
+    <div class="sub-tabs">
+      <button class="sub-tab-btn active" onclick="switchTabCliente('pf')">Pessoa Física</button>
+      <button class="sub-tab-btn" onclick="switchTabCliente('pj')">Pessoa Jurídica</button>
+    </div>
 
-      <div id="acoesMassaClientes" style="display:none; margin-bottom:16px; padding:12px; background:var(--papel); border-radius:6px; border-left:4px solid var(--marca);">
-        <strong style="font-size:12px;">Ações em Massa:</strong>
-        <div style="display:flex; gap:8px; margin-top:8px;">
-          <button class="action-button delete" onclick="deletarClientesSelecionados()" title="Deletar Selecionados" style="width:auto; padding:0 12px;">🗑️ Deletar</button>
-        </div>
+    <!-- ========== PESSOA FÍSICA ========== -->
+    <div id="tabPF" class="sub-tab-content active">
+      <div class="card">
+        <h3>Novo Cliente - Pessoa Física</h3>
+        <form onsubmit="salvarPF(event)">
+          <div class="form-row-3">
+            <div class="form-group">
+              <label>Nome *</label>
+              <input type="text" id="pfNome" required>
+            </div>
+            <div class="form-group">
+              <label>Data de Nascimento</label>
+              <input type="date" id="pfDataNascimento">
+            </div>
+            <div class="form-group">
+              <label>Nacionalidade</label>
+              <input type="text" id="pfNacionalidade">
+            </div>
+          </div>
+
+          <div class="form-row-3">
+            <div class="form-group">
+              <label>Estado Civil</label>
+              <select id="pfEstadoCivil">
+                <option value="">Selecione...</option>
+                <option value="Solteiro(a)">Solteiro(a)</option>
+                <option value="Casado(a)">Casado(a)</option>
+                <option value="Divorciado(a)">Divorciado(a)</option>
+                <option value="Viúvo(a)">Viúvo(a)</option>
+                <option value="União Estável">União Estável</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Profissão</label>
+              <input type="text" id="pfProfissao">
+            </div>
+            <div class="form-group">
+              <label>CPF</label>
+              <input type="text" id="pfCPF" placeholder="000.000.000-00" oninput="this.value = maskCPF(this.value)">
+            </div>
+          </div>
+
+          <div class="form-row-3">
+            <div class="form-group">
+              <label>Telefone</label>
+              <input type="text" id="pfTelefone" placeholder="(00) 00000-0000" oninput="this.value = maskPhone(this.value)">
+            </div>
+            <div class="form-group">
+              <label>Município</label>
+              <input type="text" id="pfMunicipio">
+            </div>
+            <div class="form-group">
+              <label>E-Mail</label>
+              <input type="email" id="pfEmail">
+            </div>
+          </div>
+
+          <div class="form-row-3">
+            <div class="form-group" style="grid-column: span 3;">
+              <label>Endereço</label>
+              <input type="text" id="pfEndereco">
+            </div>
+          </div>
+
+          <div class="form-row-3">
+            <div class="form-group">
+              <label>CNAE</label>
+              <input type="text" id="pfCNAE">
+            </div>
+            <div class="form-group">
+              <label>Senha Gov</label>
+              <input type="text" id="pfSenhaGov">
+            </div>
+            <div class="form-group">
+              <label>Capital Social</label>
+              <input type="text" id="pfCapitalSocial">
+            </div>
+          </div>
+
+          <div class="form-row-3">
+            <div class="form-group">
+              <label>Sequência</label>
+              <input type="text" id="pfSequencia">
+            </div>
+            <div class="form-group" style="grid-column: span 2;">
+              <label>Observações</label>
+              <input type="text" id="pfObservacoes">
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top:12px;">
+            <label>Pessoas Jurídicas vinculadas</label>
+            <div id="pfVinculosPJ" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:6px;"></div>
+          </div>
+
+          <input type="hidden" id="pfId" value="">
+          <button type="submit" class="btn-primary" style="margin-top:12px;">Salvar Pessoa Física</button>
+          <button type="button" class="btn-danger" style="margin-top:12px; display:none;" id="btnCancelarPF" onclick="cancelarEdicaoPF()">Cancelar Edição</button>
+        </form>
       </div>
 
-      <table style="width:100%;">
-        <thead>
-          <tr>
-            <th style="width:20px; text-align:center; padding:12px 0;">
-              <input type="checkbox" class="checkbox-sistema" id="checkAllClientes" onchange="toggleAllClientes(this.checked)">
-            </th>
-            <th style="padding:12px;">Nome</th>
-            <th style="padding:12px;">CPF/CNPJ</th>
-            <th style="padding:12px;">Telefone</th>
-            <th style="padding:12px;">Cidade</th>
-            <th style="text-align:center; width:100px; padding:12px;">Ações</th>
-          </tr>
-        </thead>
-        <tbody id="tbodyClientes"></tbody>
-      </table>
+      <div class="card" style="margin-top:20px;">
+        <h3>Pessoas Físicas Cadastradas</h3>
+        <div id="acoesMassaPF" style="display:none; margin-bottom:16px; padding:12px; background:var(--papel); border-radius:6px; border-left:4px solid var(--marca);">
+          <strong style="font-size:12px;">Ações em Massa:</strong>
+          <div style="display:flex; gap:8px; margin-top:8px;">
+            <button class="action-button delete" onclick="deletarPFSelecionados()" title="Deletar Selecionados" style="width:auto; padding:0 12px;">🗑️ Deletar</button>
+          </div>
+        </div>
+        <table style="width:100%;">
+          <thead>
+            <tr>
+              <th style="width:20px; text-align:center; padding:12px 0;">
+                <input type="checkbox" class="checkbox-sistema" id="checkAllPF" onchange="toggleAllPF(this.checked)">
+              </th>
+              <th style="padding:12px;">Nome</th>
+              <th style="padding:12px;">CPF</th>
+              <th style="padding:12px;">Telefone</th>
+              <th style="padding:12px;">Município</th>
+              <th style="text-align:center; width:100px; padding:12px;">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyPF"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ========== PESSOA JURÍDICA ========== -->
+    <div id="tabPJ" class="sub-tab-content">
+      <div class="card">
+        <h3>Novo Cliente - Pessoa Jurídica</h3>
+        <form onsubmit="salvarPJ(event)">
+          <h5 style="margin:0 0 8px 0; color:var(--tinta-70);">Dados da Empresa</h5>
+          <div class="form-row-3">
+            <div class="form-group">
+              <label>Razão Social *</label>
+              <input type="text" id="pjRazaoSocial" required>
+            </div>
+            <div class="form-group">
+              <label>CNPJ</label>
+              <input type="text" id="pjCNPJ" placeholder="00.000.000/0000-00" oninput="this.value = maskCNPJ(this.value)">
+            </div>
+            <div class="form-group">
+              <label>Segmento</label>
+              <input type="text" id="pjSegmento">
+            </div>
+          </div>
+
+          <div class="form-row-3">
+            <div class="form-group">
+              <label>Porte</label>
+              <input type="text" id="pjPorte" placeholder="Ex: MEI, ME, EPP">
+            </div>
+            <div class="form-group">
+              <label>Regime Tributário</label>
+              <input type="text" id="pjRegimeTributario" placeholder="Ex: Simples Nacional">
+            </div>
+            <div class="form-group">
+              <label>Natureza Jurídica</label>
+              <input type="text" id="pjNaturezaJuridica">
+            </div>
+          </div>
+
+          <div class="form-row-3">
+            <div class="form-group">
+              <label>CNAE</label>
+              <input type="text" id="pjCNAE">
+            </div>
+            <div class="form-group">
+              <label>Capital Social</label>
+              <input type="text" id="pjCapitalSocial">
+            </div>
+            <div class="form-group">
+              <label>Senha Gov</label>
+              <input type="text" id="pjSenhaGov">
+            </div>
+          </div>
+
+          <div class="form-row-3">
+            <div class="form-group" style="grid-column: span 2;">
+              <label>Endereço da Empresa</label>
+              <input type="text" id="pjEnderecoEmpresa">
+            </div>
+            <div class="form-group">
+              <label>Município da Empresa</label>
+              <input type="text" id="pjMunicipioEmpresa">
+            </div>
+          </div>
+
+          <h5 style="margin:20px 0 8px 0; color:var(--tinta-70);">Dados do Representante</h5>
+          <div class="form-row-3">
+            <div class="form-group">
+              <label>Nome do Representante</label>
+              <input type="text" id="pjNomeRepresentante">
+            </div>
+            <div class="form-group">
+              <label>Data de Nascimento</label>
+              <input type="date" id="pjDataNascimentoRepresentante">
+            </div>
+            <div class="form-group">
+              <label>Nacionalidade</label>
+              <input type="text" id="pjNacionalidadeRepresentante">
+            </div>
+          </div>
+
+          <div class="form-row-3">
+            <div class="form-group">
+              <label>Estado Civil</label>
+              <select id="pjEstadoCivilRepresentante">
+                <option value="">Selecione...</option>
+                <option value="Solteiro(a)">Solteiro(a)</option>
+                <option value="Casado(a)">Casado(a)</option>
+                <option value="Divorciado(a)">Divorciado(a)</option>
+                <option value="Viúvo(a)">Viúvo(a)</option>
+                <option value="União Estável">União Estável</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Profissão</label>
+              <input type="text" id="pjProfissaoRepresentante">
+            </div>
+            <div class="form-group">
+              <label>CPF</label>
+              <input type="text" id="pjCPFRepresentante" placeholder="000.000.000-00" oninput="this.value = maskCPF(this.value)">
+            </div>
+          </div>
+
+          <div class="form-row-3">
+            <div class="form-group">
+              <label>RG</label>
+              <input type="text" id="pjRGRepresentante">
+            </div>
+            <div class="form-group">
+              <label>Telefone</label>
+              <input type="text" id="pjTelefoneRepresentante" placeholder="(00) 00000-0000" oninput="this.value = maskPhone(this.value)">
+            </div>
+            <div class="form-group">
+              <label>E-Mail</label>
+              <input type="email" id="pjEmailRepresentante">
+            </div>
+          </div>
+
+          <div class="form-row-3">
+            <div class="form-group" style="grid-column: span 3;">
+              <label>Endereço do Representante</label>
+              <input type="text" id="pjEnderecoRepresentante">
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top:12px;">
+            <label>Observações</label>
+            <input type="text" id="pjObservacoes">
+          </div>
+
+          <div class="form-group" style="margin-top:12px;">
+            <label>Pessoas Físicas vinculadas (sócios/representantes já cadastrados)</label>
+            <div id="pjVinculosPF" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:6px;"></div>
+          </div>
+
+          <input type="hidden" id="pjId" value="">
+          <button type="submit" class="btn-primary" style="margin-top:12px;">Salvar Pessoa Jurídica</button>
+          <button type="button" class="btn-danger" style="margin-top:12px; display:none;" id="btnCancelarPJ" onclick="cancelarEdicaoPJ()">Cancelar Edição</button>
+        </form>
+      </div>
+
+      <div class="card" style="margin-top:20px;">
+        <h3>Pessoas Jurídicas Cadastradas</h3>
+        <div id="acoesMassaPJ" style="display:none; margin-bottom:16px; padding:12px; background:var(--papel); border-radius:6px; border-left:4px solid var(--marca);">
+          <strong style="font-size:12px;">Ações em Massa:</strong>
+          <div style="display:flex; gap:8px; margin-top:8px;">
+            <button class="action-button delete" onclick="deletarPJSelecionados()" title="Deletar Selecionados" style="width:auto; padding:0 12px;">🗑️ Deletar</button>
+          </div>
+        </div>
+        <table style="width:100%;">
+          <thead>
+            <tr>
+              <th style="width:20px; text-align:center; padding:12px 0;">
+                <input type="checkbox" class="checkbox-sistema" id="checkAllPJ" onchange="toggleAllPJ(this.checked)">
+              </th>
+              <th style="padding:12px;">Razão Social</th>
+              <th style="padding:12px;">CNPJ</th>
+              <th style="padding:12px;">Representante</th>
+              <th style="padding:12px;">Segmento</th>
+              <th style="text-align:center; width:100px; padding:12px;">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyPJ"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.2.1 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.3.0 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>
