@@ -9,8 +9,8 @@
   <!-- XLSX -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.0.21">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.0.21">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.0.22">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.0.22">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -502,7 +502,11 @@
     <!-- TABELA DE EXTRATOS -->
     <div class="card">
       <h3>Extratos</h3>
-      <div class="form-row-3" style="margin-bottom: 16px;">
+      <div class="form-row-3" id="filtrosRow" style="margin-bottom: 16px;">
+        <div class="form-group" id="grupoFranquia" style="display:none;">
+          <label>Franquia</label>
+          <select id="franquiaFilter" onchange="trocarFranquia()"></select>
+        </div>
         <div class="form-group">
           <label>Mês</label>
           <select id="mesFilter" onchange="loadExtratos()">
@@ -585,7 +589,7 @@
   </div>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.0.21 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.0.22 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>
@@ -638,7 +642,27 @@
         
         const user = JSON.parse(localStorage.getItem('currentUser'));
         const unidades = await SupabaseAPI.get('unidades');
-        const franquia = unidades.find(u => u.id === user.unidade_id);
+
+        // Dropdown de Franquia (somente administrador)
+        if (user.perfil === 'administrador') {
+          document.getElementById('grupoFranquia').style.display = '';
+          const selectFranquia = document.getElementById('franquiaFilter');
+          selectFranquia.innerHTML = '';
+          unidades.forEach(u => {
+            const option = document.createElement('option');
+            option.value = u.id;
+            option.textContent = u.nomefranquia;
+            selectFranquia.appendChild(option);
+          });
+          if (!selectFranquia.value && unidades.length > 0) {
+            selectFranquia.value = unidades[0].id;
+          }
+        }
+
+        const franquiaSelecionadaId = user.perfil === 'administrador'
+          ? parseInt(document.getElementById('franquiaFilter').value)
+          : user.unidade_id;
+        const franquia = unidades.find(u => u.id === franquiaSelecionadaId);
         
         document.getElementById('userName').textContent = `${franquia?.nomefranquia} - ${user.nome}`;
         
@@ -666,22 +690,44 @@
         // Carregar dados
         await loadExtratos(user);
         atualizarSelecionamentos();
-        
+
       } catch (error) {
         console.error('❌ Erro:', error);
       }
+    }
+
+    async function trocarFranquia() {
+      const user = JSON.parse(localStorage.getItem('currentUser'));
+      const unidades = await SupabaseAPI.get('unidades');
+      const franquiaId = parseInt(document.getElementById('franquiaFilter').value);
+      const franquia = unidades.find(u => u.id === franquiaId);
+
+      document.getElementById('userName').textContent = `${franquia?.nomefranquia} - ${user.nome}`;
+      document.getElementById('infoFranquia').textContent = franquia?.nomefranquia || '-';
+      document.getElementById('infoBanco').textContent = franquia?.banco || '-';
+      document.getElementById('infoAgencia').textContent = franquia?.agencia || '-';
+      document.getElementById('infoConta').textContent = franquia?.conta || '-';
+      document.getElementById('inputBanco').value = franquia?.banco || '';
+      document.getElementById('inputAgencia').value = franquia?.agencia || '';
+      document.getElementById('inputConta').value = franquia?.conta || '';
+
+      await loadExtratos(user);
+      atualizarSelecionamentos();
     }
 
     async function loadExtratos(user) {
       const userCurrent = user || JSON.parse(localStorage.getItem('currentUser'));
       const mes = document.getElementById('mesFilter').value;
       const ano = document.getElementById('anoFilter').value;
+      const unidadeFiltro = userCurrent.perfil === 'administrador'
+        ? parseInt(document.getElementById('franquiaFilter').value)
+        : userCurrent.unidade_id;
 
       try {
         let extratos = await SupabaseAPI.get('extratos');
 
         // Filtrar por unidade
-        extratos = extratos.filter(e => e.unidade_id === userCurrent.unidade_id);
+        extratos = extratos.filter(e => e.unidade_id === unidadeFiltro);
 
         if (mes) extratos = extratos.filter(e => e.mes === mes);
         if (ano) extratos = extratos.filter(e => e.ano === ano);

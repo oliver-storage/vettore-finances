@@ -10,6 +10,10 @@ function handleFileUpload(event) {
   console.log('📤 Upload iniciado:', file.name);
   
   const user = JSON.parse(localStorage.getItem('currentUser'));
+  const franquiaFilter = document.getElementById('franquiaFilter');
+  const unidadeIdAtivo = user.perfil === 'administrador' && franquiaFilter
+    ? parseInt(franquiaFilter.value)
+    : user.unidade_id;
   const banco = document.getElementById('inputBanco').value;
   const agencia = document.getElementById('inputAgencia').value;
   const conta = document.getElementById('inputConta').value;
@@ -38,7 +42,7 @@ function handleFileUpload(event) {
       
       console.log(`📅 Detectado: ${mes}/${ano}`);
       
-      const extratos = parseXLS(json, user.unidade_id, mes, ano, banco, agencia, conta);
+      const extratos = parseXLS(json, unidadeIdAtivo, mes, ano, banco, agencia, conta);
       
       if (extratos.length === 0) {
         alert('⚠️ Nenhum extrato válido encontrado');
