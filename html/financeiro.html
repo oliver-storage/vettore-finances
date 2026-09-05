@@ -174,8 +174,6 @@
       left: 0;
       background: var(--papel-alto);
       z-index: 11;
-      width: auto;
-      min-width: 40px;
       text-align: center;
       padding: 12px 6px;
     }
@@ -342,7 +340,7 @@
     }
 
     /* Checkboxes e Ações em Massa */
-    .checkbox-selecao {
+    .checkbox-sistema {
       cursor: pointer;
       width: 18px;
       height: 18px;
@@ -573,7 +571,7 @@
         <table id="tabelaExtratos">
           <thead>
             <tr>
-              <th style="width: auto; text-align: center; padding: 12px 6px;"><input type="checkbox" class="checkbox-sistema" id="selectTodos" onchange="selecionarTodos(this.checked)"></th>
+              <th style="text-align: center; padding: 12px 6px;"><input type="checkbox" class="checkbox-sistema" id="selectTodos" onchange="selecionarTodos(this.checked)"></th>
               <th>Data</th>
               <th>Histórico Banco</th>
               <th>Valor</th>
@@ -594,7 +592,7 @@
   </div>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.0.17 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.0.18 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>
@@ -767,7 +765,7 @@
 
     // ========== AÇÕES EM MASSA ==========
     function obterSelecionados() {
-      const checkboxes = document.querySelectorAll('.checkbox-selecao:checked');
+      const checkboxes = document.querySelectorAll('#tbody .checkbox-sistema:checked');
       return Array.from(checkboxes).map(cb => parseInt(cb.value));
     }
 
@@ -788,7 +786,7 @@
     }
 
     function selecionarTodos(checked) {
-      document.querySelectorAll('.checkbox-selecao').forEach(cb => {
+      document.querySelectorAll('#tbody .checkbox-sistema').forEach(cb => {
         cb.checked = checked;
       });
       atualizarContadorSelecionados();
