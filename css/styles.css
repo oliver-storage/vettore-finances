@@ -421,6 +421,35 @@ table tr:hover {
   background: var(--papel-alto);
 }
 
+/* Variante com texto (largura automática, não ícone) */
+.action-button-text {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--linha);
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  color: var(--tinta-70);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.action-button-text:hover {
+  border-color: var(--marca);
+  background: var(--papel);
+  color: var(--marca);
+}
+
+.action-button-text:active {
+  background: var(--papel-alto);
+}
+
 /* Variante para ações destrutivas (deletar) */
 .action-button.delete:hover {
   border-color: var(--alerta);
