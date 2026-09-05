@@ -568,7 +568,7 @@
           </div>
         </div>
       </div>
-    <p>&copy; Vettore Finances 2026 - v1.9.0.3 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.0.4 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>
@@ -588,6 +588,14 @@
       
       document.getElementById(tabName).classList.add('active');
       event.target.classList.add('active');
+      
+      // Carregar dados específicos da ABA
+      if (tabName === 'financeiro') {
+        setTimeout(() => {
+          carregarParametros();
+          aplicarParametros();
+        }, 100);
+      }
     }
   </script>
 </body>
