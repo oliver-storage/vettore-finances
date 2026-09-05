@@ -52,7 +52,7 @@ async function inicializar() {
     await carregarPrivilegios();
     carregarCategorias();
     carregarServicos();
-    carregarSubcategorias();
+    carregarLista();
     carregarParametros();
     atualizarSelectsParametros();
     
@@ -694,7 +694,56 @@ if (document.readyState === 'loading') {
   inicializar();
 }
 
-// ========== LISTAS DO SISTEMA (NOVO LAYOUT) ==========
+// ========== PARÂMETROS (MODELO ANTIGO - TABELA) ==========
+function atualizarSelectsParametros() {
+  const selectCat = document.getElementById('selectParamCategoria');
+  if (selectCat) {
+    selectCat.innerHTML = '<option value="">Selecione...</option>';
+    CATEGORIAS.forEach(cat => {
+      const option = document.createElement('option');
+      option.value = cat;
+      option.textContent = cat;
+      selectCat.appendChild(option);
+    });
+  }
+  
+  const selectSub = document.getElementById('selectParamSubcategoria');
+  if (selectSub) {
+    selectSub.innerHTML = '<option value="">Nenhuma</option>';
+    let subcategorias = JSON.parse(localStorage.getItem('subcategorias') || '[]');
+    subcategorias.forEach(sub => {
+      const option = document.createElement('option');
+      option.value = sub;
+      option.textContent = sub;
+      selectSub.appendChild(option);
+    });
+  }
+}
+
+function carregarParametros() {
+  const tbody = document.getElementById('tbodyParametros');
+  if (!tbody) return;
+  
+  tbody.innerHTML = '';
+  let parametros = JSON.parse(localStorage.getItem('parametros_auto') || '[]');
+  
+  if (parametros.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:var(--tinta-40);">Nenhum parâmetro cadastrado</td></tr>';
+    return;
+  }
+
+  parametros.forEach(param => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${param.descricao}</td>
+      <td>${param.categoria}</td>
+      <td>${param.subcategoria || '-'}</td>
+      <td style="text-align:center;"><button class="btn-danger" onclick="deletarParametro('${param.descricao}')" style="padding:6px 12px; font-size:12px;">Deletar</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
 function carregarLista() {
   const lista = document.getElementById('selectLista')?.value || 'categorias';
   const container = document.getElementById('containerChips');
@@ -707,8 +756,6 @@ function carregarLista() {
     items = CATEGORIAS;
   } else if (lista === 'subcategorias') {
     items = JSON.parse(localStorage.getItem('subcategorias') || '[]');
-  } else if (lista === 'parametros') {
-    items = JSON.parse(localStorage.getItem('parametros_auto') || '[]');
   }
 
   if (items.length === 0) {
@@ -764,9 +811,6 @@ function adicionarItem() {
     }
     subcategorias.push(item);
     localStorage.setItem('subcategorias', JSON.stringify(subcategorias));
-  } else if (lista === 'parametros') {
-    alert('⚠️ Use o formulário abaixo para adicionar Parâmetros (com Categoria)');
-    return;
   }
 
   input.value = '';
@@ -784,10 +828,6 @@ function removerItemLista(lista, item) {
     let subcategorias = JSON.parse(localStorage.getItem('subcategorias') || '[]');
     subcategorias = subcategorias.filter(s => s !== item);
     localStorage.setItem('subcategorias', JSON.stringify(subcategorias));
-  } else if (lista === 'parametros') {
-    let parametros = JSON.parse(localStorage.getItem('parametros_auto') || '[]');
-    parametros = parametros.filter(p => p.descricao !== item);
-    localStorage.setItem('parametros_auto', JSON.stringify(parametros));
   }
 
   carregarLista();
