@@ -977,9 +977,20 @@ function tabelaClientePJ(lista) {
   return 'cliente_regimes_tributarios';
 }
 
-async function carregarListaClientePJ() {
-  const lista = document.getElementById('selectListaClientePJ')?.value || 'portes';
-  const container = document.getElementById('containerChipsClientePJ');
+function containerClientePJ(lista) {
+  if (lista === 'portes') return 'containerChipsPortes';
+  if (lista === 'segmentos') return 'containerChipsSegmentos';
+  return 'containerChipsRegimes';
+}
+
+function inputClientePJ(lista) {
+  if (lista === 'portes') return 'inputNovoPorte';
+  if (lista === 'segmentos') return 'inputNovoSegmento';
+  return 'inputNovoRegime';
+}
+
+async function carregarListaClientePJ(lista) {
+  const container = document.getElementById(containerClientePJ(lista));
   if (!container) return;
 
   container.innerHTML = '';
@@ -1012,17 +1023,15 @@ async function carregarListaClientePJ() {
   });
 }
 
-async function adicionarItemClientePJ() {
-  const input = document.getElementById('inputNovoItemClientePJ');
+async function adicionarItemClientePJ(lista) {
+  const input = document.getElementById(inputClientePJ(lista));
   const item = input.value.trim().toUpperCase();
   if (!item) {
     alert('⚠️ Digite um item');
     return;
   }
 
-  const lista = document.getElementById('selectListaClientePJ').value;
   const tabela = tabelaClientePJ(lista);
-
   const existentes = await SupabaseAPI.get(tabela);
   if (existentes.some(r => r.nome === item)) {
     alert('⚠️ Este item já existe');
@@ -1032,7 +1041,7 @@ async function adicionarItemClientePJ() {
   await SupabaseAPI.insert(tabela, { nome: item });
 
   input.value = '';
-  await carregarListaClientePJ();
+  await carregarListaClientePJ(lista);
   alert('✅ Item adicionado!');
 }
 
@@ -1044,6 +1053,6 @@ async function removerItemClientePJ(lista, item) {
   const registro = registros.find(r => r.nome === item);
   if (registro) await SupabaseAPI.delete(tabela, registro.id);
 
-  await carregarListaClientePJ();
+  await carregarListaClientePJ(lista);
   alert('✅ Item removido!');
 }

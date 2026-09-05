@@ -5,8 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vettore Finances - Configuração</title>
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.5.1">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.5.1">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.5.2">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.5.2">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -579,21 +579,36 @@
         </p>
 
         <div class="card">
-          <h4>Porte, Segmento e Regime Tributário</h4>
-
-          <select id="selectListaClientePJ" onchange="carregarListaClientePJ()" style="width:100%; padding:12px; border:2px solid var(--marca); border-radius:6px; font-size:14px; margin-bottom:16px;">
-            <option value="portes">Porte</option>
-            <option value="segmentos">Segmento</option>
-            <option value="regimes">Regime Tributário</option>
-          </select>
-
+          <h4>Porte</h4>
           <div style="display:flex; gap:8px; margin:16px 0;">
-            <input type="text" id="inputNovoItemClientePJ" placeholder="Novo item nessa lista..." onkeypress="if(event.key==='Enter') adicionarItemClientePJ()">
-            <button class="btn-primary" onclick="adicionarItemClientePJ()" style="white-space:nowrap;">Adicionar</button>
+            <input type="text" id="inputNovoPorte" placeholder="Novo item nessa lista..." onkeypress="if(event.key==='Enter') adicionarItemClientePJ('portes')">
+            <button class="btn-primary" onclick="adicionarItemClientePJ('portes')" style="white-space:nowrap;">Adicionar</button>
           </div>
+          <div id="containerChipsPortes" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
+          <p style="font-size:12px; color:var(--tinta-40); margin-top:16px;">
+            Remover um item daqui só tira ele das opções futuras — não muda cadastros que já usaram esse valor.
+          </p>
+        </div>
 
-          <div id="containerChipsClientePJ" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
+        <div class="card" style="margin-top:20px;">
+          <h4>Segmento</h4>
+          <div style="display:flex; gap:8px; margin:16px 0;">
+            <input type="text" id="inputNovoSegmento" placeholder="Novo item nessa lista..." onkeypress="if(event.key==='Enter') adicionarItemClientePJ('segmentos')">
+            <button class="btn-primary" onclick="adicionarItemClientePJ('segmentos')" style="white-space:nowrap;">Adicionar</button>
+          </div>
+          <div id="containerChipsSegmentos" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
+          <p style="font-size:12px; color:var(--tinta-40); margin-top:16px;">
+            Remover um item daqui só tira ele das opções futuras — não muda cadastros que já usaram esse valor.
+          </p>
+        </div>
 
+        <div class="card" style="margin-top:20px;">
+          <h4>Regime Tributário</h4>
+          <div style="display:flex; gap:8px; margin:16px 0;">
+            <input type="text" id="inputNovoRegime" placeholder="Novo item nessa lista..." onkeypress="if(event.key==='Enter') adicionarItemClientePJ('regimes')">
+            <button class="btn-primary" onclick="adicionarItemClientePJ('regimes')" style="white-space:nowrap;">Adicionar</button>
+          </div>
+          <div id="containerChipsRegimes" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
           <p style="font-size:12px; color:var(--tinta-40); margin-top:16px;">
             Remover um item daqui só tira ele das opções futuras — não muda cadastros que já usaram esse valor.
           </p>
@@ -601,7 +616,7 @@
       </div>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.5.1 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.5.2 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>
@@ -633,7 +648,9 @@
 
       if (tabName === 'clientes') {
         setTimeout(() => {
-          carregarListaClientePJ();
+          carregarListaClientePJ('portes');
+          carregarListaClientePJ('segmentos');
+          carregarListaClientePJ('regimes');
         }, 50);
       }
     }
