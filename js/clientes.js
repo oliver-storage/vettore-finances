@@ -273,14 +273,9 @@ async function salvarPF(event) {
 
     await salvarVinculosPF(pfId);
 
-    if (id) {
-      alert('✅ Pessoa Física atualizada!');
-      fecharModalCliente();
-    } else {
-      alert('✅ Pessoa Física cadastrada! Pronto para o próximo cadastro.');
-      limparFormularioPF();
-      await popularVinculosPJnoFormPF();
-    }
+    alert(id ? '✅ Pessoa Física atualizada!' : '✅ Pessoa Física cadastrada!');
+    limparFormularioPF();
+    fecharModalCliente();
     await carregarListaUnificada();
   } catch (error) {
     console.error('❌ Erro ao salvar PF:', error);
