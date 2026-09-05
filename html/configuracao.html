@@ -5,8 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vettore Finances - Configuração</title>
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.4.0">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.4.0">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.4.1">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.4.1">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -648,7 +648,7 @@
             </div>
 
             <div id="modalFormPF" style="display:none; padding:32px;">
-              <h3 style="margin:0 0 20px 0;">Pessoa Física</h3>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;"><h3 style="margin:0;">Pessoa Física</h3><a href="#" onclick="event.preventDefault(); mostrarFormPJ();" style="font-size:13px; color:var(--marca);">Cadastrar Pessoa Jurídica em vez disso</a></div>
               <form onsubmit="salvarPF(event)">
                 <div class="form-row-3">
                   <div class="form-group">
@@ -749,7 +749,7 @@
             </div>
 
             <div id="modalFormPJ" style="display:none; padding:32px;">
-              <h3 style="margin:0 0 20px 0;">Pessoa Jurídica</h3>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;"><h3 style="margin:0;">Pessoa Jurídica</h3><a href="#" onclick="event.preventDefault(); mostrarFormPF();" style="font-size:13px; color:var(--marca);">Cadastrar Pessoa Física em vez disso</a></div>
               <form onsubmit="salvarPJ(event)">
                 <h5 style="margin:0 0 8px 0; color:var(--tinta-70);">Dados da Empresa</h5>
                 <div class="form-row-3">
@@ -891,7 +891,7 @@
       </div>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.4.0 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.4.1 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>

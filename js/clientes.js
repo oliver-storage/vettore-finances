@@ -44,11 +44,12 @@ async function trocarFranquiaCliente() {
 // ========== MODAL ==========
 function abrirModalNovoCadastro() {
   document.getElementById('modalCliente').style.display = 'flex';
-  document.getElementById('modalEscolhaTipo').style.display = 'block';
+  document.getElementById('modalEscolhaTipo').style.display = 'none';
   document.getElementById('modalFormPF').style.display = 'none';
-  document.getElementById('modalFormPJ').style.display = 'none';
+  document.getElementById('modalFormPJ').style.display = 'block';
   limparFormularioPF();
   limparFormularioPJ();
+  popularVinculosPFnoFormPJ();
 }
 
 async function escolherTipoCadastro(tipo) {
@@ -64,6 +65,18 @@ async function escolherTipoCadastro(tipo) {
 
 function fecharModalCliente() {
   document.getElementById('modalCliente').style.display = 'none';
+}
+
+async function mostrarFormPF() {
+  document.getElementById('modalFormPJ').style.display = 'none';
+  document.getElementById('modalFormPF').style.display = 'block';
+  await popularVinculosPJnoFormPF();
+}
+
+async function mostrarFormPJ() {
+  document.getElementById('modalFormPF').style.display = 'none';
+  document.getElementById('modalFormPJ').style.display = 'block';
+  await popularVinculosPFnoFormPJ();
 }
 
 // ========== LISTA UNIFICADA ==========
@@ -262,9 +275,14 @@ async function salvarPF(event) {
 
     await salvarVinculosPF(pfId);
 
-    alert(id ? '✅ Pessoa Física atualizada!' : '✅ Pessoa Física cadastrada!');
-    limparFormularioPF();
-    fecharModalCliente();
+    if (id) {
+      alert('✅ Pessoa Física atualizada!');
+      fecharModalCliente();
+    } else {
+      alert('✅ Pessoa Física cadastrada! Pronto para o próximo cadastro.');
+      limparFormularioPF();
+      await popularVinculosPJnoFormPF();
+    }
     await carregarListaUnificada();
   } catch (error) {
     console.error('❌ Erro ao salvar PF:', error);
@@ -403,9 +421,14 @@ async function salvarPJ(event) {
 
     await salvarVinculosPJ(pjId);
 
-    alert(id ? '✅ Pessoa Jurídica atualizada!' : '✅ Pessoa Jurídica cadastrada!');
-    limparFormularioPJ();
-    fecharModalCliente();
+    if (id) {
+      alert('✅ Pessoa Jurídica atualizada!');
+      fecharModalCliente();
+    } else {
+      alert('✅ Pessoa Jurídica cadastrada! Pronto para o próximo cadastro.');
+      limparFormularioPJ();
+      await popularVinculosPFnoFormPJ();
+    }
     await carregarListaUnificada();
   } catch (error) {
     console.error('❌ Erro ao salvar PJ:', error);
