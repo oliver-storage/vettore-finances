@@ -5,8 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vettore Finances - Configuração</title>
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.1.2">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.1.2">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.2.1">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.2.1">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -81,6 +81,7 @@
       <div class="menu">
         <a href="dashboard.html" class="menu-item">Dashboard</a>
         <a href="financeiro.html" class="menu-item">Financeiro</a>
+        <a href="clientes.html" class="menu-item">Clientes</a>
         <a href="configuracao.html" class="menu-item active">Configuração</a>
       </div>
     </div>
@@ -100,6 +101,7 @@
       <button class="tab-btn" onclick="switchTab('usuarios')">Usuários</button>
       <button class="tab-btn" id="tabPrivilegios" style="display:none;" onclick="switchTab('privilegios')">Privilégios</button>
       <button class="tab-btn" onclick="switchTab('financeiro')">Financeiro</button>
+      <button class="tab-btn" onclick="switchTab('clientes')">Clientes</button>
     </div>
 
     <!-- ABA 0: GERAL -->
@@ -567,14 +569,119 @@
         </div>
       </div>
 
+      <!-- SUB ABA CLIENTES -->
+      <div id="clientes" class="tab-content">
+        <div class="card">
+          <div class="form-group" id="grupoFranquiaCliente" style="display:none; max-width:320px;">
+            <label>Franquia</label>
+            <select id="franquiaFilterCliente" onchange="trocarFranquiaCliente()"></select>
+          </div>
+
+          <h3 style="margin-top:16px;">Novo Cliente</h3>
+          <form onsubmit="salvarCliente(event)">
+            <div class="form-row-3">
+              <div class="form-group">
+                <label>Nome / Razão Social *</label>
+                <input type="text" id="inputNomeCliente" required>
+              </div>
+              <div class="form-group">
+                <label>CPF/CNPJ</label>
+                <input type="text" id="inputCpfCnpjCliente" placeholder="00.000.000/0000-00" oninput="this.value = maskCNPJ(this.value)">
+              </div>
+              <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="inputEmailCliente">
+              </div>
+            </div>
+
+            <div class="form-row-3">
+              <div class="form-group">
+                <label>Telefone</label>
+                <input type="text" id="inputTelefoneCliente" placeholder="(00) 00000-0000" oninput="this.value = maskPhone(this.value)">
+              </div>
+              <div class="form-group">
+                <label>CEP</label>
+                <input type="text" id="inputCEPCliente" placeholder="00000-000" oninput="this.value = maskCEP(this.value)" onblur="buscarCEPCliente()">
+              </div>
+              <div class="form-group">
+                <label>Número</label>
+                <input type="text" id="inputNumeroCliente">
+              </div>
+            </div>
+
+            <div class="form-row-3">
+              <div class="form-group">
+                <label>Rua</label>
+                <input type="text" id="inputRuaCliente">
+              </div>
+              <div class="form-group">
+                <label>Bairro</label>
+                <input type="text" id="inputBairroCliente">
+              </div>
+              <div class="form-group">
+                <label>Complemento</label>
+                <input type="text" id="inputComplementoCliente">
+              </div>
+            </div>
+
+            <div class="form-row-3">
+              <div class="form-group">
+                <label>Cidade</label>
+                <input type="text" id="inputCidadeCliente">
+              </div>
+              <div class="form-group">
+                <label>Estado</label>
+                <input type="text" id="inputEstadoCliente" maxlength="2">
+              </div>
+              <div class="form-group">
+                <label>Observação</label>
+                <input type="text" id="inputObservacaoCliente">
+              </div>
+            </div>
+
+            <input type="hidden" id="inputClienteId" value="">
+            <button type="submit" class="btn-primary" style="margin-top:12px;">Salvar Cliente</button>
+            <button type="button" class="btn-danger" style="margin-top:12px; display:none;" id="btnCancelarEdicao" onclick="cancelarEdicaoCliente()">Cancelar Edição</button>
+          </form>
+        </div>
+
+        <div class="card" style="margin-top:20px;">
+          <h3>Clientes Cadastrados</h3>
+
+          <div id="acoesMassaClientes" style="display:none; margin-bottom:16px; padding:12px; background:var(--papel); border-radius:6px; border-left:4px solid var(--marca);">
+            <strong style="font-size:12px;">Ações em Massa:</strong>
+            <div style="display:flex; gap:8px; margin-top:8px;">
+              <button class="action-button delete" onclick="deletarClientesSelecionados()" title="Deletar Selecionados" style="width:auto; padding:0 12px;">🗑️ Deletar</button>
+            </div>
+          </div>
+
+          <table style="width:100%;">
+            <thead>
+              <tr>
+                <th style="width:20px; text-align:center; padding:12px 0;">
+                  <input type="checkbox" class="checkbox-sistema" id="checkAllClientes" onchange="toggleAllClientes(this.checked)">
+                </th>
+                <th style="padding:12px;">Nome</th>
+                <th style="padding:12px;">CPF/CNPJ</th>
+                <th style="padding:12px;">Telefone</th>
+                <th style="padding:12px;">Cidade</th>
+                <th style="text-align:center; width:100px; padding:12px;">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyClientes"></tbody>
+          </table>
+        </div>
+      </div>
+
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.1.2 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.2.1 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>
   <script src="../js/masks.js"></script>
   <script src="../js/supabase-utils.js"></script>
   <script src="../js/configuracao.js"></script>
+  <script src="../js/clientes.js"></script>
 
   <script>
     function switchTab(tabName) {
@@ -595,6 +702,12 @@
           carregarLista();
           atualizarSelectsParametros();
           carregarParametros();
+        }, 50);
+      }
+
+      if (tabName === 'clientes') {
+        setTimeout(() => {
+          inicializarClientes();
         }, 50);
       }
     }
