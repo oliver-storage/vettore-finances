@@ -693,3 +693,134 @@ if (document.readyState === 'loading') {
 } else {
   inicializar();
 }
+
+// ========== LISTAS DO SISTEMA (NOVO LAYOUT) ==========
+function carregarLista() {
+  const lista = document.getElementById('selectLista')?.value || 'categorias';
+  const container = document.getElementById('containerChips');
+  if (!container) return;
+  
+  container.innerHTML = '';
+
+  let items = [];
+  if (lista === 'categorias') {
+    items = CATEGORIAS;
+  } else if (lista === 'subcategorias') {
+    items = JSON.parse(localStorage.getItem('subcategorias') || '[]');
+  } else if (lista === 'parametros') {
+    items = JSON.parse(localStorage.getItem('parametros_auto') || '[]');
+  }
+
+  if (items.length === 0) {
+    container.innerHTML = '<p style="color:var(--tinta-40); font-size:12px;">Nenhum item nessa lista</p>';
+    return;
+  }
+
+  items.forEach(item => {
+    const chip = document.createElement('div');
+    chip.style.cssText = `
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--papel);
+      border: 1px solid var(--linha);
+      padding: 8px 12px;
+      border-radius: 20px;
+      font-size: 13px;
+      color: var(--tinta);
+    `;
+    
+    const itemText = typeof item === 'string' ? item : item.descricao;
+    chip.innerHTML = `
+      ${itemText}
+      <span onclick="removerItemLista('${lista}', '${itemText}')" style="cursor:pointer; font-weight:bold; color:var(--alerta); padding:0 4px; line-height:1;">×</span>
+    `;
+    container.appendChild(chip);
+  });
+}
+
+function adicionarItem() {
+  const input = document.getElementById('inputNovoItem');
+  const item = input.value.trim().toUpperCase();
+  if (!item) {
+    alert('⚠️ Digite um item');
+    return;
+  }
+
+  const lista = document.getElementById('selectLista').value;
+
+  if (lista === 'categorias') {
+    if (CATEGORIAS.includes(item)) {
+      alert('⚠️ Esta categoria já existe');
+      return;
+    }
+    CATEGORIAS.push(item);
+    localStorage.setItem('categorias', JSON.stringify(CATEGORIAS));
+  } else if (lista === 'subcategorias') {
+    let subcategorias = JSON.parse(localStorage.getItem('subcategorias') || '[]');
+    if (subcategorias.includes(item)) {
+      alert('⚠️ Esta subcategoria já existe');
+      return;
+    }
+    subcategorias.push(item);
+    localStorage.setItem('subcategorias', JSON.stringify(subcategorias));
+  } else if (lista === 'parametros') {
+    alert('⚠️ Use o formulário abaixo para adicionar Parâmetros (com Categoria)');
+    return;
+  }
+
+  input.value = '';
+  carregarLista();
+  alert('✅ Item adicionado!');
+}
+
+function removerItemLista(lista, item) {
+  if (!confirm(`Remover "${item}"?`)) return;
+
+  if (lista === 'categorias') {
+    CATEGORIAS = CATEGORIAS.filter(c => c !== item);
+    localStorage.setItem('categorias', JSON.stringify(CATEGORIAS));
+  } else if (lista === 'subcategorias') {
+    let subcategorias = JSON.parse(localStorage.getItem('subcategorias') || '[]');
+    subcategorias = subcategorias.filter(s => s !== item);
+    localStorage.setItem('subcategorias', JSON.stringify(subcategorias));
+  } else if (lista === 'parametros') {
+    let parametros = JSON.parse(localStorage.getItem('parametros_auto') || '[]');
+    parametros = parametros.filter(p => p.descricao !== item);
+    localStorage.setItem('parametros_auto', JSON.stringify(parametros));
+  }
+
+  carregarLista();
+  alert('✅ Item removido!');
+}
+
+function adicionarParametro() {
+  const descricao = document.getElementById('inputParamDescricao')?.value.trim().toUpperCase();
+  const categoria = document.getElementById('selectParamCategoria')?.value;
+  const subcategoria = document.getElementById('selectParamSubcategoria')?.value;
+
+  if (!descricao || !categoria) {
+    alert('⚠️ Preencha Descrição e Categoria');
+    return;
+  }
+
+  let parametros = JSON.parse(localStorage.getItem('parametros_auto') || '[]');
+  if (parametros.some(p => p.descricao === descricao)) {
+    alert('⚠️ Este parâmetro já existe');
+    return;
+  }
+
+  parametros.push({ descricao, categoria, subcategoria: subcategoria || '' });
+  localStorage.setItem('parametros_auto', JSON.stringify(parametros));
+
+  document.getElementById('inputParamDescricao').value = '';
+  document.getElementById('selectParamCategoria').value = '';
+  document.getElementById('selectParamSubcategoria').value = '';
+
+  if (document.getElementById('selectLista').value === 'parametros') {
+    carregarLista();
+  }
+  alert('✅ Parâmetro adicionado!');
+}
+
+// ========== FIM LISTAS DO SISTEMA ==========
