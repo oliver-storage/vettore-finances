@@ -637,6 +637,7 @@ function carregarParametros() {
   if (parametros.length === 0) {
     tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--tinta-40);">Nenhum parâmetro cadastrado</td></tr>';
     document.getElementById('acoesMassaParametros').style.display = 'none';
+    document.getElementById('checkAllParametros').checked = false;
     return;
   }
 
@@ -644,21 +645,22 @@ function carregarParametros() {
     const tr = document.createElement('tr');
     tr.style.borderBottom = '1px solid var(--linha)';
     tr.innerHTML = `
-      <td style="text-align:center; padding:10px;">
-        <input type="checkbox" class="checkboxParametro" data-index="${index}" onchange="atualizarAcoesMassa()">
+      <td style="text-align:center; padding:12px;">
+        <input type="checkbox" class="checkbox-sistema checkboxParametro" data-index="${index}" onchange="atualizarAcoesMassa()">
       </td>
-      <td style="padding:10px;">${param.descricao}</td>
-      <td style="padding:10px;">${param.categoria}</td>
-      <td style="padding:10px;">${param.subcategoria || '-'}</td>
-      <td style="padding:10px; text-align:center;">
-        <button class="btn-primary" onclick="abrirModalEditarParametro(${index})" style="padding:6px 12px; font-size:12px; margin-right:4px;">✏️ Editar</button>
-        <button class="btn-danger" onclick="deletarParametro('${param.descricao}')" style="padding:6px 12px; font-size:12px;">🗑️ Del</button>
+      <td style="padding:12px;">${param.descricao}</td>
+      <td style="padding:12px;">${param.categoria}</td>
+      <td style="padding:12px;">${param.subcategoria || '-'}</td>
+      <td style="padding:12px; text-align:center; display:flex; gap:6px; justify-content:center;">
+        <button class="action-button" onclick="abrirModalEditarParametro(${index})" title="Editar Parâmetro">✏️</button>
+        <button class="action-button delete" onclick="deletarParametro('${param.descricao}')" title="Deletar Parâmetro">🗑️</button>
       </td>
     `;
     tbody.appendChild(tr);
   });
   
   document.getElementById('acoesMassaParametros').style.display = 'none';
+  document.getElementById('checkAllParametros').checked = false;
 }
 
 function carregarLista() {
@@ -896,6 +898,13 @@ function atualizarAcoesMassa() {
   } else {
     container.style.display = 'none';
   }
+}
+
+function toggleAllParametros(checked) {
+  document.querySelectorAll('.checkboxParametro').forEach(cb => {
+    cb.checked = checked;
+  });
+  atualizarAcoesMassa();
 }
 
 function editarCategoryEmLote() {

@@ -357,3 +357,74 @@ table tr:hover {
     font-size: 22px;
   }
 }
+
+/* ========== PADRÃO: AÇÕES E SELEÇÃO (v1.9.0.12) ========== */
+
+/* Checkbox do Sistema (não input nativo) */
+.checkbox-sistema {
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--linha);
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  appearance: none;
+  -webkit-appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.checkbox-sistema:hover {
+  border-color: var(--marca);
+  background: var(--papel-alto);
+}
+
+.checkbox-sistema:checked {
+  background: var(--marca);
+  border-color: var(--marca);
+  color: white;
+}
+
+.checkbox-sistema:checked::after {
+  content: '✓';
+  font-size: 12px;
+  font-weight: bold;
+  color: white;
+}
+
+/* Botão de Ação (Editar, Deletar, etc) */
+.action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--linha);
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  color: var(--tinta-70);
+  font-size: 16px;
+  padding: 0;
+  transition: all 0.2s ease;
+}
+
+.action-button:hover {
+  border-color: var(--marca);
+  background: var(--papel);
+  color: var(--tinta);
+}
+
+.action-button:active {
+  background: var(--papel-alto);
+}
+
+/* Variante para ações destrutivas (deletar) */
+.action-button.delete:hover {
+  border-color: var(--alerta);
+  color: var(--alerta);
+}
+
+/* ========== FIM PADRÃO ========== */
