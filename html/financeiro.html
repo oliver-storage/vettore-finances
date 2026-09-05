@@ -9,8 +9,8 @@
   <!-- XLSX -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.1.1">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.1.1">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.1.2">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.1.2">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -174,14 +174,15 @@
       left: 0;
       background: var(--papel-alto);
       z-index: 11;
+      width: 20px;
       text-align: center;
-      padding: 12px 6px;
+      padding: 12px 0;
     }
 
     #tabelaExtratos th:nth-child(2),
     #tabelaExtratos td:nth-child(2) {
       position: sticky;
-      left: 40px;
+      left: 20px;
       background: var(--papel-alto);
       z-index: 10;
       min-width: 80px;
@@ -193,7 +194,7 @@
     #tabelaExtratos th:nth-child(3),
     #tabelaExtratos td:nth-child(3) {
       position: sticky;
-      left: 120px;
+      left: 100px;
       background: var(--papel-alto);
       z-index: 10;
       min-width: 320px;
@@ -203,7 +204,7 @@
     #tabelaExtratos th:nth-child(4),
     #tabelaExtratos td:nth-child(4) {
       position: sticky;
-      left: 440px;
+      left: 420px;
       background: var(--papel-alto);
       z-index: 10;
       width: 1%;
@@ -570,7 +571,7 @@
         <table id="tabelaExtratos">
           <thead>
             <tr>
-              <th style="text-align: center; padding: 12px 6px;"><input type="checkbox" class="checkbox-sistema" id="selectTodos" onchange="selecionarTodos(this.checked)"></th>
+              <th style="width: 20px; text-align: center; padding: 12px 0;"><input type="checkbox" class="checkbox-sistema" id="selectTodos" onchange="selecionarTodos(this.checked)"></th>
               <th>Data</th>
               <th>Histórico Banco</th>
               <th>Valor</th>
@@ -591,7 +592,7 @@
   </div>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.1.1 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.1.2 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>
@@ -752,7 +753,7 @@
           const historicoCorrecao = e.historico_correcao || e.descricao;
           
           tr.innerHTML = `
-            <td style="text-align:center; padding: 12px 6px;"><input type="checkbox" class="checkbox-sistema" value="${e.id}" onchange="atualizarContadorSelecionados()"></td>
+            <td style="text-align:center; padding: 12px 0;"><input type="checkbox" class="checkbox-sistema" value="${e.id}" onchange="atualizarContadorSelecionados()"></td>
             <td style="font-weight:400; color:var(--tinta); font-size:13px;">${dataFormatada}</td>
             <td style="font-size:13px; color:var(--tinta);">${e.descricao}</td>
             <td style="font-weight:600; color:${corVal}; font-size:14px;">${valorFormatado}</td>

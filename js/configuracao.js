@@ -587,7 +587,7 @@ async function carregarParametros() {
       ? '<span style="color:var(--tinta-40);">Todas</span>'
       : param.unidade_ids.map(id => UNIDADES_CACHE.find(u => u.id === id)?.nomefranquia || id).join(', ');
     tr.innerHTML = `
-      <td style="text-align:center; padding: 12px 6px;">
+      <td style="width: 20px; text-align:center; padding: 12px 0;">
         <input type="checkbox" class="checkbox-sistema checkboxParametro" data-id="${param.id}" onchange="atualizarAcoesMassa()">
       </td>
       <td style="padding:12px;">${param.descricao}</td>
