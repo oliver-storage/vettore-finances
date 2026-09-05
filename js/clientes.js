@@ -247,7 +247,6 @@ async function salvarPF(event) {
     estado: document.getElementById('pfEstado').value.trim().toUpperCase() || null,
     telefone: document.getElementById('pfTelefone').value.trim() || null,
     municipio: document.getElementById('pfMunicipio').value.trim() || null,
-    cnae: document.getElementById('pfCNAE').value.trim() || null,
     senha_gov: document.getElementById('pfSenhaGov').value.trim() || null,
     email: document.getElementById('pfEmail').value.trim() || null,
     capital_social: document.getElementById('pfCapitalSocial').value.trim() || null,
@@ -325,7 +324,6 @@ async function editarPF(id) {
   document.getElementById('pfEstado').value = p.estado || '';
   document.getElementById('pfTelefone').value = p.telefone || '';
   document.getElementById('pfMunicipio').value = p.municipio || '';
-  document.getElementById('pfCNAE').value = p.cnae || '';
   document.getElementById('pfSenhaGov').value = p.senha_gov || '';
   document.getElementById('pfEmail').value = p.email || '';
   document.getElementById('pfCapitalSocial').value = p.capital_social || '';
@@ -337,7 +335,7 @@ async function editarPF(id) {
 function limparFormularioPF() {
   document.getElementById('pfId').value = '';
   ['pfNome','pfDataNascimento','pfNacionalidade','pfEstadoCivil','pfProfissao','pfCPF','pfEndereco','pfEstado',
-   'pfTelefone','pfMunicipio','pfCNAE','pfSenhaGov','pfEmail','pfCapitalSocial','pfObservacoes']
+   'pfTelefone','pfMunicipio','pfSenhaGov','pfEmail','pfCapitalSocial','pfObservacoes']
     .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   document.querySelectorAll('.pjVinculoCheckbox').forEach(cb => cb.checked = false);
 }
