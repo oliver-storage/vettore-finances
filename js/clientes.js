@@ -50,6 +50,7 @@ function abrirModalNovoCadastro() {
   limparFormularioPF();
   limparFormularioPJ();
   popularVinculosPFnoFormPJ();
+  popularDropdownsPJ();
 }
 
 async function escolherTipoCadastro(tipo) {
@@ -77,6 +78,30 @@ async function mostrarFormPJ() {
   document.getElementById('modalFormPF').style.display = 'none';
   document.getElementById('modalFormPJ').style.display = 'block';
   await popularVinculosPFnoFormPJ();
+  await popularDropdownsPJ();
+}
+
+async function popularDropdownsPJ() {
+  const [portes, segmentos, regimes] = await Promise.all([
+    SupabaseAPI.get('cliente_portes'),
+    SupabaseAPI.get('cliente_segmentos'),
+    SupabaseAPI.get('cliente_regimes_tributarios')
+  ]);
+
+  const valorAtualPorte = document.getElementById('pjPorte').value;
+  const valorAtualSegmento = document.getElementById('pjSegmento').value;
+  const valorAtualRegime = document.getElementById('pjRegimeTributario').value;
+
+  document.getElementById('pjPorte').innerHTML = '<option value="">Selecione...</option>' +
+    portes.map(p => `<option value="${p.nome}">${p.nome}</option>`).join('');
+  document.getElementById('pjSegmento').innerHTML = '<option value="">Selecione...</option>' +
+    segmentos.map(s => `<option value="${s.nome}">${s.nome}</option>`).join('');
+  document.getElementById('pjRegimeTributario').innerHTML = '<option value="">Selecione...</option>' +
+    regimes.map(r => `<option value="${r.nome}">${r.nome}</option>`).join('');
+
+  if (valorAtualPorte) document.getElementById('pjPorte').value = valorAtualPorte;
+  if (valorAtualSegmento) document.getElementById('pjSegmento').value = valorAtualSegmento;
+  if (valorAtualRegime) document.getElementById('pjRegimeTributario').value = valorAtualRegime;
 }
 
 // ========== LISTA UNIFICADA ==========
@@ -441,6 +466,8 @@ async function salvarVinculosPJ(pjId) {
 async function editarPJ(id) {
   const j = PJ_CACHE.find(x => x.id === id) || (await SupabaseAPI.get('clientes_pj')).find(x => x.id === id);
   if (!j) return;
+
+  await popularDropdownsPJ();
 
   document.getElementById('pjId').value = j.id;
   document.getElementById('pjRazaoSocial').value = j.razao_social || '';

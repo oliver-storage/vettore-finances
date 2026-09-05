@@ -969,3 +969,81 @@ if (document.readyState === 'loading') {
 } else {
   inicializar();
 }
+
+// ========== LISTAS: PORTE / SEGMENTO / REGIME TRIBUTÁRIO (Clientes PJ) ==========
+function tabelaClientePJ(lista) {
+  if (lista === 'portes') return 'cliente_portes';
+  if (lista === 'segmentos') return 'cliente_segmentos';
+  return 'cliente_regimes_tributarios';
+}
+
+async function carregarListaClientePJ() {
+  const lista = document.getElementById('selectListaClientePJ')?.value || 'portes';
+  const container = document.getElementById('containerChipsClientePJ');
+  if (!container) return;
+
+  container.innerHTML = '';
+  const tabela = tabelaClientePJ(lista);
+  const itens = (await SupabaseAPI.get(tabela)).map(r => r.nome);
+
+  if (itens.length === 0) {
+    container.innerHTML = '<p style="color:var(--tinta-40); font-size:12px;">Nenhum item nessa lista</p>';
+    return;
+  }
+
+  itens.forEach(itemText => {
+    const chip = document.createElement('div');
+    chip.style.cssText = `
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--papel);
+      border: 1px solid var(--linha);
+      padding: 8px 12px;
+      border-radius: 20px;
+      font-size: 13px;
+      color: var(--tinta);
+    `;
+    chip.innerHTML = `
+      ${itemText}
+      <span onclick="removerItemClientePJ('${lista}', '${itemText}')" style="cursor:pointer; font-weight:bold; color:var(--alerta); padding:0 4px; line-height:1;">×</span>
+    `;
+    container.appendChild(chip);
+  });
+}
+
+async function adicionarItemClientePJ() {
+  const input = document.getElementById('inputNovoItemClientePJ');
+  const item = input.value.trim().toUpperCase();
+  if (!item) {
+    alert('⚠️ Digite um item');
+    return;
+  }
+
+  const lista = document.getElementById('selectListaClientePJ').value;
+  const tabela = tabelaClientePJ(lista);
+
+  const existentes = await SupabaseAPI.get(tabela);
+  if (existentes.some(r => r.nome === item)) {
+    alert('⚠️ Este item já existe');
+    return;
+  }
+
+  await SupabaseAPI.insert(tabela, { nome: item });
+
+  input.value = '';
+  await carregarListaClientePJ();
+  alert('✅ Item adicionado!');
+}
+
+async function removerItemClientePJ(lista, item) {
+  if (!confirm(`Remover "${item}"?`)) return;
+
+  const tabela = tabelaClientePJ(lista);
+  const registros = await SupabaseAPI.get(tabela);
+  const registro = registros.find(r => r.nome === item);
+  if (registro) await SupabaseAPI.delete(tabela, registro.id);
+
+  await carregarListaClientePJ();
+  alert('✅ Item removido!');
+}
