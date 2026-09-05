@@ -870,3 +870,9 @@ async function deletarSelecionados() {
 }
 
 // ========== FIM LISTAS DO SISTEMA ==========
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', inicializar);
+} else {
+  inicializar();
+}
