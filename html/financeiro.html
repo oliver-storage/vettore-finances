@@ -9,8 +9,8 @@
   <!-- XLSX -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.14.5">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.14.5">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.15.0">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.15.0">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -741,16 +741,16 @@
           <thead>
             <tr>
               <th style="width: 20px; text-align: center; padding: 12px 0;"><input type="checkbox" class="checkbox-sistema" id="selectTodos" onchange="selecionarTodos(this.checked)"></th>
-              <th>Data</th>
-              <th>Histórico Banco</th>
-              <th>Valor</th>
-              <th>CÓD</th>
-              <th>Data Ref.</th>
-              <th>Histórico Correção</th>
-              <th>Categoria</th>
-              <th>Serviços</th>
-              <th>Cliente</th>
-              <th>Observação</th>
+              <th>Data<br><input type="text" id="filtroColData" oninput="aplicarFiltrosColunas()" placeholder="Filtrar..." style="width:100%; margin-top:4px; font-size:11px; padding:4px; font-weight:400; text-transform:none;"></th>
+              <th>Histórico Banco<br><input type="text" id="filtroColHistorico" oninput="aplicarFiltrosColunas()" placeholder="Filtrar..." style="width:100%; margin-top:4px; font-size:11px; padding:4px; font-weight:400; text-transform:none;"></th>
+              <th>Valor<br><input type="text" id="filtroColValor" oninput="aplicarFiltrosColunas()" placeholder="Filtrar..." style="width:100%; margin-top:4px; font-size:11px; padding:4px; font-weight:400; text-transform:none;"></th>
+              <th>CÓD<br><input type="text" id="filtroColCodigo" oninput="aplicarFiltrosColunas()" placeholder="Filtrar..." style="width:100%; margin-top:4px; font-size:11px; padding:4px; font-weight:400; text-transform:none;"></th>
+              <th>Data Ref.<br><input type="text" id="filtroColDataRef" oninput="aplicarFiltrosColunas()" placeholder="Filtrar..." style="width:100%; margin-top:4px; font-size:11px; padding:4px; font-weight:400; text-transform:none;"></th>
+              <th>Histórico Correção<br><input type="text" id="filtroColHistCorrecao" oninput="aplicarFiltrosColunas()" placeholder="Filtrar..." style="width:100%; margin-top:4px; font-size:11px; padding:4px; font-weight:400; text-transform:none;"></th>
+              <th>Categoria<br><input type="text" id="filtroColCategoria" oninput="aplicarFiltrosColunas()" placeholder="Filtrar..." style="width:100%; margin-top:4px; font-size:11px; padding:4px; font-weight:400; text-transform:none;"></th>
+              <th>Serviços<br><input type="text" id="filtroColServicos" oninput="aplicarFiltrosColunas()" placeholder="Filtrar..." style="width:100%; margin-top:4px; font-size:11px; padding:4px; font-weight:400; text-transform:none;"></th>
+              <th>Cliente<br><input type="text" id="filtroColCliente" oninput="aplicarFiltrosColunas()" placeholder="Filtrar..." style="width:100%; margin-top:4px; font-size:11px; padding:4px; font-weight:400; text-transform:none;"></th>
+              <th>Observação<br><input type="text" id="filtroColObservacao" oninput="aplicarFiltrosColunas()" placeholder="Filtrar..." style="width:100%; margin-top:4px; font-size:11px; padding:4px; font-weight:400; text-transform:none;"></th>
               <th>Ações</th>
             </tr>
           </thead>
@@ -856,17 +856,17 @@
                 <th style="width:20px; text-align:center; padding:12px 0;">
                   <input type="checkbox" class="checkbox-sistema" id="selectTodosBoleto" onchange="selecionarTodosBoleto(this.checked)">
                 </th>
-                <th style="padding:12px;">Pagador</th>
-                <th style="padding:12px;">Liquidação</th>
-                <th style="padding:12px; text-align:right;">Valor</th>
-                <th style="padding:12px;">Vencimento</th>
-                <th style="padding:12px; text-align:right;">Valor Liq.</th>
-                <th style="padding:12px;">Situação</th>
-                <th style="padding:12px;">Data Ref.</th>
-                <th style="padding:12px;">Categoria</th>
-                <th style="padding:12px;">Serviços</th>
-                <th style="padding:12px;">Cliente</th>
-                <th style="padding:12px;">Observações</th>
+                <th style="padding:12px;">Pagador<br><input type="text" id="filtroBColPagador" oninput="aplicarFiltrosColunasBoleto()" placeholder="Filtrar..." style="width:100%; margin-top:4px; font-size:11px; padding:4px; font-weight:400; text-transform:none;"></th>
+                <th style="padding:12px;">Liquidação<br><input type="text" id="filtroBColLiquidacao" oninput="aplicarFiltrosColunasBoleto()" placeholder="Filtrar..." style="width:100%; margin-top:4px; font-size:11px; padding:4px; font-weight:400; text-transform:none;"></th>
+                <th style="padding:12px; text-align:right;">Valor<br><input type="text" id="filtroBColValor" oninput="aplicarFiltrosColunasBoleto()" placeholder="Filtrar..." style="width:100%; margin-top:4px; font-size:11px; padding:4px; font-weight:400; text-transform:none;"></th>
+                <th style="padding:12px;">Vencimento<br><input type="text" id="filtroBColVencimento" oninput="aplicarFiltrosColunasBoleto()" placeholder="Filtrar..." style="width:100%; margin-top:4px; font-size:11px; padding:4px; font-weight:400; text-transform:none;"></th>
+                <th style="padding:12px; text-align:right;">Valor Liq.<br><input type="text" id="filtroBColValorLiq" oninput="aplicarFiltrosColunasBoleto()" placeholder="Filtrar..." style="width:100%; margin-top:4px; font-size:11px; padding:4px; font-weight:400; text-transform:none;"></th>
+                <th style="padding:12px;">Situação<br><input type="text" id="filtroBColSituacao" oninput="aplicarFiltrosColunasBoleto()" placeholder="Filtrar..." style="width:100%; margin-top:4px; font-size:11px; padding:4px; font-weight:400; text-transform:none;"></th>
+                <th style="padding:12px;">Data Ref.<br><input type="text" id="filtroBColDataRef" oninput="aplicarFiltrosColunasBoleto()" placeholder="Filtrar..." style="width:100%; margin-top:4px; font-size:11px; padding:4px; font-weight:400; text-transform:none;"></th>
+                <th style="padding:12px;">Categoria<br><input type="text" id="filtroBColCategoria" oninput="aplicarFiltrosColunasBoleto()" placeholder="Filtrar..." style="width:100%; margin-top:4px; font-size:11px; padding:4px; font-weight:400; text-transform:none;"></th>
+                <th style="padding:12px;">Serviços<br><input type="text" id="filtroBColServicos" oninput="aplicarFiltrosColunasBoleto()" placeholder="Filtrar..." style="width:100%; margin-top:4px; font-size:11px; padding:4px; font-weight:400; text-transform:none;"></th>
+                <th style="padding:12px;">Cliente<br><input type="text" id="filtroBColCliente" oninput="aplicarFiltrosColunasBoleto()" placeholder="Filtrar..." style="width:100%; margin-top:4px; font-size:11px; padding:4px; font-weight:400; text-transform:none;"></th>
+                <th style="padding:12px;">Observações<br><input type="text" id="filtroBColObservacoes" oninput="aplicarFiltrosColunasBoleto()" placeholder="Filtrar..." style="width:100%; margin-top:4px; font-size:11px; padding:4px; font-weight:400; text-transform:none;"></th>
                 <th style="text-align:center; width:60px; padding:12px;">Ações</th>
               </tr>
             </thead>
@@ -881,7 +881,7 @@
   <datalist id="listaClientesPJ"></datalist>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.14.5 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.15.0 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>
@@ -1051,60 +1051,94 @@
           extratos = extratos.filter(e => String(e.ano) === anoSel && String(e.mes).padStart(2, '0') === mesSel);
         }
 
-        const tbody = document.getElementById('tbody');
-        tbody.innerHTML = '';
-
-        if (extratos.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:20px;">Nenhum extrato</td></tr>';
-          return;
-        }
-
         // Aplicar parâmetros de auto-preenchimento
         extratos = await aplicarParametrosAuto(extratos);
         extratos = await aplicarClientesParametros(extratos);
         EXTRATOS_CACHE = extratos;
 
-        extratos.forEach(e => {
-          const tr = document.createElement('tr');
-          const valorFormatado = formatarValorComSinal(e.valor);
-          const corVal = corValor(e.valor);
-          const dataFormatada = formatarDataBR(e.data);
-          const dataRef = e.data_referencia || e.data;
-          const historicoCorrecao = e.historico_correcao || e.descricao;
-          
-          tr.innerHTML = `
-            <td style="text-align:center; padding: 12px 0;"><input type="checkbox" class="checkbox-sistema" value="${e.id}" onchange="atualizarContadorSelecionados()"></td>
-            <td style="font-weight:400; color:var(--tinta); font-size:13px;">${dataFormatada}</td>
-            <td style="font-size:13px; color:var(--tinta);">${e.descricao}</td>
-            <td style="font-weight:600; color:${corVal}; font-size:14px;">${valorFormatado}</td>
-            <td style="text-align:center; color:var(--tinta-40); font-size:12px;">${e.codigo || '-'}</td>
-            <td><input type="date" value="${dataRef}" onchange="atualizarCampo(${e.id}, 'data_referencia', this.value)"></td>
-            <td><input type="text" placeholder="Descrição do lançamento" value="${historicoCorrecao}" onchange="atualizarCampo(${e.id}, 'historico_correcao', this.value)"></td>
-            <td>
-              <select onchange="atualizarCampo(${e.id}, 'categoria', this.value); this.style.backgroundColor = '';" style="${e._autoPreenchido ? 'background-color: #FFFACD;' : ''}">
-                <option value="">Selecione...</option>
-                ${CATEGORIAS.map(c => `<option value="${c}" ${e.categoria === c ? 'selected' : ''}>${c}</option>`).join('')}
-              </select>
-            </td>
-            <td>
-              <select onchange="atualizarCampo(${e.id}, 'servicos', this.value)">
-                <option value="">Selecione...</option>
-                ${SERVICOS.map(s => `<option value="${s}" ${e.servicos === s ? 'selected' : ''}>${s}</option>`).join('')}
-              </select>
-            </td>
-            <td><input type="text" list="listaClientesPJ" placeholder="Ex: Empresa X" value="${e.cliente || ''}" style="${e._clienteAutoPreenchido ? 'background-color: #FFFACD;' : ''}" onchange="atualizarCampoCliente(${e.id}, this.value); this.style.backgroundColor = '';"></td>
-            <td><input type="text" placeholder="Observações" value="${e.observacao || ''}" onchange="atualizarCampo(${e.id}, 'observacao', this.value)"></td>
-            <td><button class="btn-danger" onclick="deletarExtrato(${e.id})">×</button></td>
-          `;
-          tbody.appendChild(tr);
-        });
-
-        // Atualizar resumo de categorias
-        atualizarResumoCategorias(extratos);
+        aplicarFiltrosColunas();
 
       } catch (error) {
         console.error('❌ Erro ao carregar:', error);
       }
+    }
+
+    function aplicarFiltrosColunas() {
+      const f = {
+        data: (document.getElementById('filtroColData')?.value || '').toUpperCase(),
+        historico: (document.getElementById('filtroColHistorico')?.value || '').toUpperCase(),
+        valor: (document.getElementById('filtroColValor')?.value || '').toUpperCase(),
+        codigo: (document.getElementById('filtroColCodigo')?.value || '').toUpperCase(),
+        dataRef: (document.getElementById('filtroColDataRef')?.value || '').toUpperCase(),
+        histCorrecao: (document.getElementById('filtroColHistCorrecao')?.value || '').toUpperCase(),
+        categoria: (document.getElementById('filtroColCategoria')?.value || '').toUpperCase(),
+        servicos: (document.getElementById('filtroColServicos')?.value || '').toUpperCase(),
+        cliente: (document.getElementById('filtroColCliente')?.value || '').toUpperCase(),
+        observacao: (document.getElementById('filtroColObservacao')?.value || '').toUpperCase()
+      };
+
+      let filtrados = EXTRATOS_CACHE;
+
+      if (f.data) filtrados = filtrados.filter(e => formatarDataBR(e.data).toUpperCase().includes(f.data));
+      if (f.historico) filtrados = filtrados.filter(e => (e.descricao || '').toUpperCase().includes(f.historico));
+      if (f.valor) filtrados = filtrados.filter(e => formatarValorComSinal(e.valor).toUpperCase().includes(f.valor));
+      if (f.codigo) filtrados = filtrados.filter(e => (e.codigo || '').toUpperCase().includes(f.codigo));
+      if (f.dataRef) filtrados = filtrados.filter(e => formatarDataBR(e.data_referencia || e.data).toUpperCase().includes(f.dataRef));
+      if (f.histCorrecao) filtrados = filtrados.filter(e => (e.historico_correcao || e.descricao || '').toUpperCase().includes(f.histCorrecao));
+      if (f.categoria) filtrados = filtrados.filter(e => (e.categoria || '').toUpperCase().includes(f.categoria));
+      if (f.servicos) filtrados = filtrados.filter(e => (e.servicos || '').toUpperCase().includes(f.servicos));
+      if (f.cliente) filtrados = filtrados.filter(e => (e.cliente || '').toUpperCase().includes(f.cliente));
+      if (f.observacao) filtrados = filtrados.filter(e => (e.observacao || '').toUpperCase().includes(f.observacao));
+
+      renderizarExtratos(filtrados);
+    }
+
+    function renderizarExtratos(extratos) {
+      const tbody = document.getElementById('tbody');
+      tbody.innerHTML = '';
+
+      if (extratos.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:20px;">Nenhum extrato</td></tr>';
+        atualizarResumoCategorias(extratos);
+        return;
+      }
+
+      extratos.forEach(e => {
+        const tr = document.createElement('tr');
+        const valorFormatado = formatarValorComSinal(e.valor);
+        const corVal = corValor(e.valor);
+        const dataFormatada = formatarDataBR(e.data);
+        const dataRef = e.data_referencia || e.data;
+        const historicoCorrecao = e.historico_correcao || e.descricao;
+
+        tr.innerHTML = `
+          <td style="text-align:center; padding: 12px 0;"><input type="checkbox" class="checkbox-sistema" value="${e.id}" onchange="atualizarContadorSelecionados()"></td>
+          <td style="font-weight:400; color:var(--tinta); font-size:13px;">${dataFormatada}</td>
+          <td style="font-size:13px; color:var(--tinta);">${e.descricao}</td>
+          <td style="font-weight:600; color:${corVal}; font-size:14px;">${valorFormatado}</td>
+          <td style="text-align:center; color:var(--tinta-40); font-size:12px;">${e.codigo || '-'}</td>
+          <td><input type="date" value="${dataRef}" onchange="atualizarCampo(${e.id}, 'data_referencia', this.value)"></td>
+          <td><input type="text" placeholder="Descrição do lançamento" value="${historicoCorrecao}" onchange="atualizarCampo(${e.id}, 'historico_correcao', this.value)"></td>
+          <td>
+            <select onchange="atualizarCampo(${e.id}, 'categoria', this.value); this.style.backgroundColor = '';" style="${e._autoPreenchido ? 'background-color: #FFFACD;' : ''}">
+              <option value="">Selecione...</option>
+              ${CATEGORIAS.map(c => `<option value="${c}" ${e.categoria === c ? 'selected' : ''}>${c}</option>`).join('')}
+            </select>
+          </td>
+          <td>
+            <select onchange="atualizarCampo(${e.id}, 'servicos', this.value)">
+              <option value="">Selecione...</option>
+              ${SERVICOS.map(s => `<option value="${s}" ${e.servicos === s ? 'selected' : ''}>${s}</option>`).join('')}
+            </select>
+          </td>
+          <td><input type="text" list="listaClientesPJ" placeholder="Ex: Empresa X" value="${e.cliente || ''}" style="${e._clienteAutoPreenchido ? 'background-color: #FFFACD;' : ''}" onchange="atualizarCampoCliente(${e.id}, this.value); this.style.backgroundColor = '';"></td>
+          <td><input type="text" placeholder="Observações" value="${e.observacao || ''}" onchange="atualizarCampo(${e.id}, 'observacao', this.value)"></td>
+          <td><button class="btn-danger" onclick="deletarExtrato(${e.id})">×</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      atualizarResumoCategorias(extratos);
     }
 
     async function atualizarCampo(id, campo, valor) {

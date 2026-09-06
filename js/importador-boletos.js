@@ -297,9 +297,8 @@ async function loadBoletos() {
 
     boletos = await aplicarClientesParametrosBoleto(boletos);
     boletos = await aplicarCategoriaPadraoBoleto(boletos);
-    atualizarResumoBoletos(boletos);
     BOLETOS_CACHE = boletos;
-    renderizarBoletos(boletos);
+    aplicarFiltrosColunasBoleto();
 
     if (boletos.length > 0 && boletos[0].agencia) {
       document.getElementById('infoAgenciaBoleto').textContent = boletos[0].agencia;
@@ -308,6 +307,39 @@ async function loadBoletos() {
   } catch (error) {
     console.error('❌ Erro ao carregar boletos:', error);
   }
+}
+
+function aplicarFiltrosColunasBoleto() {
+  const f = {
+    pagador: (document.getElementById('filtroBColPagador')?.value || '').toUpperCase(),
+    liquidacao: (document.getElementById('filtroBColLiquidacao')?.value || '').toUpperCase(),
+    valor: (document.getElementById('filtroBColValor')?.value || '').toUpperCase(),
+    vencimento: (document.getElementById('filtroBColVencimento')?.value || '').toUpperCase(),
+    valorLiq: (document.getElementById('filtroBColValorLiq')?.value || '').toUpperCase(),
+    situacao: (document.getElementById('filtroBColSituacao')?.value || '').toUpperCase(),
+    dataRef: (document.getElementById('filtroBColDataRef')?.value || '').toUpperCase(),
+    categoria: (document.getElementById('filtroBColCategoria')?.value || '').toUpperCase(),
+    servicos: (document.getElementById('filtroBColServicos')?.value || '').toUpperCase(),
+    cliente: (document.getElementById('filtroBColCliente')?.value || '').toUpperCase(),
+    observacoes: (document.getElementById('filtroBColObservacoes')?.value || '').toUpperCase()
+  };
+
+  let filtrados = BOLETOS_CACHE;
+
+  if (f.pagador) filtrados = filtrados.filter(b => (b.pagador || '').toUpperCase().includes(f.pagador));
+  if (f.liquidacao) filtrados = filtrados.filter(b => formatarDataBR(b.data_liquidacao).toUpperCase().includes(f.liquidacao));
+  if (f.valor) filtrados = filtrados.filter(b => formatarValorBR(b.valor).toUpperCase().includes(f.valor));
+  if (f.vencimento) filtrados = filtrados.filter(b => formatarDataBR(b.data_vencimento).toUpperCase().includes(f.vencimento));
+  if (f.valorLiq) filtrados = filtrados.filter(b => formatarValorBR(b.valor_liquidacao).toUpperCase().includes(f.valorLiq));
+  if (f.situacao) filtrados = filtrados.filter(b => (b.situacao || '').toUpperCase().includes(f.situacao));
+  if (f.dataRef) filtrados = filtrados.filter(b => formatarDataBR(b.data_referencia || b.data_liquidacao).toUpperCase().includes(f.dataRef));
+  if (f.categoria) filtrados = filtrados.filter(b => (b.categoria || '').toUpperCase().includes(f.categoria));
+  if (f.servicos) filtrados = filtrados.filter(b => (b.servicos || '').toUpperCase().includes(f.servicos));
+  if (f.cliente) filtrados = filtrados.filter(b => (b.cliente || '').toUpperCase().includes(f.cliente));
+  if (f.observacoes) filtrados = filtrados.filter(b => (b.observacao || '').toUpperCase().includes(f.observacoes));
+
+  atualizarResumoBoletos(filtrados);
+  renderizarBoletos(filtrados);
 }
 
 function formatarDataBR(iso) {
