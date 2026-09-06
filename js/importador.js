@@ -45,7 +45,8 @@ function handleFileUpload(event) {
       const extratos = parseXLS(json, unidadeIdAtivo, mes, ano, banco, agencia, conta);
       
       if (extratos.length === 0) {
-        alert('⚠️ Nenhum extrato válido encontrado');
+        const descartados = extratos._descartadosPorData || 0;
+        alert(`⚠️ Nenhum extrato válido encontrado${descartados > 0 ? ` (${descartados} linha(s) descartada(s) por data não reconhecida — veja o Console)` : ''}`);
         return;
       }
       
@@ -153,6 +154,8 @@ function parseXLS(dados, unidadeId, mes, ano, banco, agencia, conta) {
     throw new Error('Não foi possível detectar o formato');
   }
 
+  let descartadosPorData = 0;
+
   for (let i = headerIdx + 1; i < dados.length; i++) {
     const row = dados[i];
     if (!row || row.length < 2) continue;
@@ -164,21 +167,32 @@ function parseXLS(dados, unidadeId, mes, ano, banco, agencia, conta) {
 
     if (!data || !descricao || valor === 0) continue;
 
-    let dataFormatada = data;
+    let dataFormatada = null;
     if (typeof data === 'number') {
       const d = new Date((data - 25569) * 86400 * 1000);
-      dataFormatada = String(d.getFullYear()) + '-' + 
-                      String(d.getMonth() + 1).padStart(2, '0') + '-' + 
+      dataFormatada = String(d.getFullYear()) + '-' +
+                      String(d.getMonth() + 1).padStart(2, '0') + '-' +
                       String(d.getDate()).padStart(2, '0');
+    } else if (data instanceof Date) {
+      dataFormatada = String(data.getFullYear()) + '-' +
+                      String(data.getMonth() + 1).padStart(2, '0') + '-' +
+                      String(data.getDate()).padStart(2, '0');
     } else if (typeof data === 'string') {
-      const parts = data.split('/');
+      const parts = data.trim().split('/');
       if (parts.length === 3) {
-        dataFormatada = `${parts[2]}-${parts[1]}-${parts[0]}`;
+        const dia = parts[0].padStart(2, '0');
+        const mesP = parts[1].padStart(2, '0');
+        const anoP = parts[2].length === 2 ? '20' + parts[2] : parts[2];
+        dataFormatada = `${anoP}-${mesP}-${dia}`;
       }
     }
 
     // Validação: só aceita se dataFormatada for realmente uma data (YYYY-MM-DD)
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(dataFormatada)) continue;
+    if (!dataFormatada || !/^\d{4}-\d{2}-\d{2}$/.test(dataFormatada)) {
+      descartadosPorData++;
+      console.warn('Linha descartada (data não reconhecida):', data, row);
+      continue;
+    }
 
     extratos.push({
       unidade_id: unidadeId,
@@ -200,6 +214,7 @@ function parseXLS(dados, unidadeId, mes, ano, banco, agencia, conta) {
     });
   }
 
+  extratos._descartadosPorData = descartadosPorData;
   return extratos;
 }
 
