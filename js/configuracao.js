@@ -51,7 +51,7 @@ async function inicializar() {
     await carregarFranquiasSelect(unidades, user);
     await carregarUsuarios(user);
     await carregarPrivilegios();
-    carregarServicos();
+    await carregarServicos();
     await carregarCategorias();
     await carregarLista();
     await carregarParametros();
@@ -473,53 +473,48 @@ async function deletarCategoria(categoria) {
 }
 
 // GERENCIAR SERVIÇOS
-const SERVICOS_KEY = 'servicos_list';
-
 async function adicionarServico() {
   const input = document.getElementById('inputNovoServico');
   const servico = input.value.trim();
-  
+
   if (!servico) {
     alert('⚠️ Digite um nome para o serviço');
     return;
   }
-  
-  let servicos = JSON.parse(localStorage.getItem(SERVICOS_KEY) || '[]');
-  
-  if (servicos.includes(servico)) {
+
+  const existentes = await SupabaseAPI.get('servicos');
+  if (existentes.some(r => r.nome === servico)) {
     alert('⚠️ Serviço já existe');
     return;
   }
-  
-  servicos.push(servico);
-  localStorage.setItem(SERVICOS_KEY, JSON.stringify(servicos));
+
+  await SupabaseAPI.insert('servicos', { nome: servico });
   input.value = '';
-  carregarServicos();
+  await carregarServicos();
   alert('✅ Serviço adicionado!');
 }
 
-function carregarServicos() {
-  const servicos = JSON.parse(localStorage.getItem(SERVICOS_KEY) || '[]');
+async function carregarServicos() {
+  const servicos = await SupabaseAPI.get('servicos');
   const tbody = document.getElementById('tbodyServicos');
+  if (!tbody) return;
   tbody.innerHTML = '';
-  
+
   servicos.forEach(srv => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td>${srv}</td>
-      <td><button class="btn-danger" onclick="deletarServico('${srv}')">Deletar</button></td>
+      <td>${srv.nome}</td>
+      <td><button class="btn-danger" onclick="deletarServico(${srv.id})">Deletar</button></td>
     `;
     tbody.appendChild(tr);
   });
 }
 
-function deletarServico(servico) {
-  if (!confirm(`Deletar serviço "${servico}"?`)) return;
-  
-  let servicos = JSON.parse(localStorage.getItem(SERVICOS_KEY) || '[]');
-  servicos = servicos.filter(s => s !== servico);
-  localStorage.setItem(SERVICOS_KEY, JSON.stringify(servicos));
-  carregarServicos();
+async function deletarServico(id) {
+  if (!confirm('Deletar este serviço?')) return;
+
+  await SupabaseAPI.delete('servicos', id);
+  await carregarServicos();
   alert('✅ Serviço deletado!');
 }
 

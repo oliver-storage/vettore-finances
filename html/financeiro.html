@@ -9,8 +9,8 @@
   <!-- XLSX -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.7.2">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.7.2">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.8.0">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.8.0">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -556,7 +556,9 @@
           </div>
           <div class="form-group">
             <label>Serviço</label>
-            <input type="text" id="inputServicoEmMassa" placeholder="Ex: Consultoria">
+            <select id="selectServicoEmMassa">
+              <option value="">Selecione...</option>
+            </select>
             <button class="btn-primary" onclick="aplicarServicoEmMassa()" style="margin-top: 8px; width: 100%; padding: 8px;">Aplicar</button>
           </div>
           <div class="form-group">
@@ -652,10 +654,38 @@
           </div>
         </div>
 
-        <p style="margin: 8px 0;">
-          <span id="contadorSelecionadosBoleto">0</span> boleto(s) selecionado(s)
-          <button class="btn-danger" id="btnDeletarSelecionadosBoleto" onclick="deletarSelecionadosBoleto()" style="display:none; margin-left: 12px; padding: 6px 14px;">🗑️ Deletar Selecionados</button>
-        </p>
+        <!-- AÇÕES EM MASSA -->
+        <div class="acoes-em-massa card" style="background: var(--papel); padding: 16px; border-radius: 8px; margin-bottom: 16px; display: none;" id="secaoAcoesEmMassaBoleto">
+          <h4 style="margin-top: 0;">🎯 Ações em Massa</h4>
+          <div class="form-row-4" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+            <div class="form-group">
+              <label>Categoria</label>
+              <select id="selectCategoriaEmMassaBoleto">
+                <option value="">Selecione...</option>
+              </select>
+              <button class="btn-primary" onclick="aplicarCategoriaEmMassaBoleto()" style="margin-top: 8px; width: 100%; padding: 8px;">Aplicar</button>
+            </div>
+            <div class="form-group">
+              <label>Serviço</label>
+              <select id="selectServicoEmMassaBoleto">
+                <option value="">Selecione...</option>
+              </select>
+              <button class="btn-primary" onclick="aplicarServicoEmMassaBoleto()" style="margin-top: 8px; width: 100%; padding: 8px;">Aplicar</button>
+            </div>
+            <div class="form-group">
+              <label>Cliente</label>
+              <input type="text" id="inputClienteEmMassaBoleto" placeholder="Ex: Empresa X">
+              <button class="btn-primary" onclick="aplicarClienteEmMassaBoleto()" style="margin-top: 8px; width: 100%; padding: 8px;">Aplicar</button>
+            </div>
+            <div class="form-group">
+              <label>&nbsp;</label>
+              <button class="btn-danger" onclick="deletarSelecionadosBoleto()" style="width: 100%; padding: 10px; margin-top: 0;">🗑️ Deletar Selecionados</button>
+            </div>
+          </div>
+          <p style="font-size: 12px; color: var(--tinta-70); margin: 12px 0 0 0;">
+            <span id="contadorSelecionadosBoleto">0</span> boleto(s) selecionado(s)
+          </p>
+        </div>
 
         <div class="table-wrapper" style="overflow-x:auto;">
           <table id="tabelaBoletos" style="width:100%;">
@@ -690,7 +720,7 @@
   </div>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.7.2 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.8.0 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>
@@ -700,6 +730,7 @@
 
   <script>
     let CATEGORIAS = [];
+    let SERVICOS = [];
 
     function formatarMoedaBR(valor) {
       return parseFloat(valor || 0).toLocaleString('pt-BR', {
@@ -742,6 +773,7 @@
         const user = JSON.parse(localStorage.getItem('currentUser'));
         const unidades = await SupabaseAPI.get('unidades');
         CATEGORIAS = (await SupabaseAPI.get('categorias')).map(r => r.nome);
+        SERVICOS = (await SupabaseAPI.get('servicos')).map(r => r.nome);
 
         // Dropdown de Franquia (somente administrador)
         if (user.perfil === 'administrador') {
@@ -867,7 +899,12 @@
                 ${CATEGORIAS.map(c => `<option value="${c}" ${e.categoria === c ? 'selected' : ''}>${c}</option>`).join('')}
               </select>
             </td>
-            <td><input type="text" placeholder="Ex: Consultoria" value="${e.servicos || ''}" onchange="atualizarCampo(${e.id}, 'servicos', this.value)"></td>
+            <td>
+              <select onchange="atualizarCampo(${e.id}, 'servicos', this.value)">
+                <option value="">Selecione...</option>
+                ${SERVICOS.map(s => `<option value="${s}" ${e.servicos === s ? 'selected' : ''}>${s}</option>`).join('')}
+              </select>
+            </td>
             <td><input type="text" placeholder="Ex: Empresa X" value="${e.cliente || ''}" onchange="atualizarCampo(${e.id}, 'cliente', this.value)"></td>
             <td><input type="text" placeholder="Observações" value="${e.observacao || ''}" onchange="atualizarCampo(${e.id}, 'observacao', this.value)"></td>
             <td><button class="btn-danger" onclick="deletarExtrato(${e.id})">×</button></td>
@@ -968,9 +1005,9 @@
         return;
       }
 
-      const servico = document.getElementById('inputServicoEmMassa').value;
+      const servico = document.getElementById('selectServicoEmMassa').value;
       if (!servico) {
-        alert('⚠️ Digite um serviço');
+        alert('⚠️ Selecione um serviço');
         return;
       }
 
@@ -981,7 +1018,7 @@
           await SupabaseAPI.update('extratos', id, { servicos: servico });
         }
         alert(`✅ Serviço aplicado a ${selecionados.length} lançamento(s)`);
-        document.getElementById('inputServicoEmMassa').value = '';
+        document.getElementById('selectServicoEmMassa').value = '';
         const user = JSON.parse(localStorage.getItem('currentUser'));
         await loadExtratos(user);
       } catch (error) {
@@ -1047,6 +1084,15 @@
         option.value = cat;
         option.textContent = cat;
         selectCategoriaEmMassa.appendChild(option);
+      });
+
+      const selectServicoEmMassa = document.getElementById('selectServicoEmMassa');
+      selectServicoEmMassa.innerHTML = '<option value="">Selecione...</option>';
+      SERVICOS.forEach(srv => {
+        const option = document.createElement('option');
+        option.value = srv;
+        option.textContent = srv;
+        selectServicoEmMassa.appendChild(option);
       });
     }
     // ========== FIM AÇÕES EM MASSA ==========

@@ -236,6 +236,7 @@ function renderizarBoletos(boletos) {
   boletos.forEach(b => {
     const tr = document.createElement('tr');
     const corSituacao = (b.situacao || '').toUpperCase().includes('LIQUIDADO') ? 'var(--destaque)' : 'var(--alerta)';
+    const dataRef = b.data_referencia || b.data_liquidacao || '';
     tr.innerHTML = `
       <td style="width:20px; text-align:center; padding:12px 0;">
         <input type="checkbox" class="checkbox-sistema checkboxBoleto" value="${b.id}" onchange="atualizarContadorSelecionadosBoleto()">
@@ -249,14 +250,19 @@ function renderizarBoletos(boletos) {
       <td style="padding:12px; text-align:right;">${formatarValorBR(b.valor)}</td>
       <td style="padding:12px; text-align:right;">${formatarValorBR(b.valor_liquidacao)}</td>
       <td style="padding:12px; color:${corSituacao}; font-weight:600;">${b.situacao || '-'}</td>
-      <td><input type="date" value="${b.data_referencia || ''}" onchange="atualizarCampoBoleto(${b.id}, 'data_referencia', this.value)"></td>
+      <td><input type="date" value="${dataRef}" onchange="atualizarCampoBoleto(${b.id}, 'data_referencia', this.value)"></td>
       <td>
         <select onchange="atualizarCampoBoleto(${b.id}, 'categoria', this.value)">
           <option value="">Selecione...</option>
           ${CATEGORIAS.map(c => `<option value="${c}" ${b.categoria === c ? 'selected' : ''}>${c}</option>`).join('')}
         </select>
       </td>
-      <td><input type="text" placeholder="Ex: Consultoria" value="${b.servicos || ''}" onchange="atualizarCampoBoleto(${b.id}, 'servicos', this.value)"></td>
+      <td>
+        <select onchange="atualizarCampoBoleto(${b.id}, 'servicos', this.value)">
+          <option value="">Selecione...</option>
+          ${SERVICOS.map(s => `<option value="${s}" ${b.servicos === s ? 'selected' : ''}>${s}</option>`).join('')}
+        </select>
+      </td>
       <td><input type="text" placeholder="Ex: Empresa X" value="${b.cliente || ''}" onchange="atualizarCampoBoleto(${b.id}, 'cliente', this.value)"></td>
       <td><input type="text" placeholder="Observações" value="${b.observacao || ''}" onchange="atualizarCampoBoleto(${b.id}, 'observacao', this.value)"></td>
       <td style="padding:12px; text-align:center;">
@@ -266,9 +272,28 @@ function renderizarBoletos(boletos) {
     tbody.appendChild(tr);
   });
 
-  document.getElementById('btnDeletarSelecionadosBoleto').style.display = 'none';
+  document.getElementById('secaoAcoesEmMassaBoleto').style.display = 'none';
   document.getElementById('contadorSelecionadosBoleto').textContent = '0';
   document.getElementById('selectTodosBoleto').checked = false;
+  atualizarSelectsMassaBoleto();
+}
+
+function atualizarSelectsMassaBoleto() {
+  const selectCat = document.getElementById('selectCategoriaEmMassaBoleto');
+  if (selectCat) {
+    selectCat.innerHTML = '<option value="">Selecione...</option>' +
+      CATEGORIAS.map(c => `<option value="${c}">${c}</option>`).join('');
+  }
+  const selectSrv = document.getElementById('selectServicoEmMassaBoleto');
+  if (selectSrv) {
+    selectSrv.innerHTML = '<option value="">Selecione...</option>' +
+      SERVICOS.map(s => `<option value="${s}">${s}</option>`).join('');
+  }
+}
+
+function obterSelecionadosBoleto() {
+  const checkboxes = document.querySelectorAll('#tbodyBoleto .checkboxBoleto:checked');
+  return Array.from(checkboxes).map(cb => parseInt(cb.value));
 }
 
 function selecionarTodosBoleto(checked) {
@@ -277,9 +302,72 @@ function selecionarTodosBoleto(checked) {
 }
 
 function atualizarContadorSelecionadosBoleto() {
-  const selecionados = document.querySelectorAll('.checkboxBoleto:checked').length;
-  document.getElementById('contadorSelecionadosBoleto').textContent = selecionados;
-  document.getElementById('btnDeletarSelecionadosBoleto').style.display = selecionados > 0 ? 'inline-block' : 'none';
+  const selecionados = obterSelecionadosBoleto();
+  document.getElementById('contadorSelecionadosBoleto').textContent = selecionados.length;
+  const secao = document.getElementById('secaoAcoesEmMassaBoleto');
+  if (selecionados.length > 0) {
+    secao.style.display = 'block';
+  } else {
+    secao.style.display = 'none';
+    document.getElementById('selectTodosBoleto').checked = false;
+  }
+}
+
+async function aplicarCategoriaEmMassaBoleto() {
+  const selecionados = obterSelecionadosBoleto();
+  if (selecionados.length === 0) {
+    alert('⚠️ Selecione pelo menos um boleto');
+    return;
+  }
+  const categoria = document.getElementById('selectCategoriaEmMassaBoleto').value;
+  if (!categoria) {
+    alert('⚠️ Selecione uma categoria');
+    return;
+  }
+  if (!confirm(`Aplicar categoria "${categoria}" a ${selecionados.length} boleto(s)?`)) return;
+
+  await Promise.all(selecionados.map(id => SupabaseAPI.update('boletos', id, { categoria })));
+  alert(`✅ Categoria aplicada a ${selecionados.length} boleto(s)`);
+  document.getElementById('selectCategoriaEmMassaBoleto').value = '';
+  await loadBoletos();
+}
+
+async function aplicarServicoEmMassaBoleto() {
+  const selecionados = obterSelecionadosBoleto();
+  if (selecionados.length === 0) {
+    alert('⚠️ Selecione pelo menos um boleto');
+    return;
+  }
+  const servico = document.getElementById('selectServicoEmMassaBoleto').value;
+  if (!servico) {
+    alert('⚠️ Selecione um serviço');
+    return;
+  }
+  if (!confirm(`Aplicar serviço "${servico}" a ${selecionados.length} boleto(s)?`)) return;
+
+  await Promise.all(selecionados.map(id => SupabaseAPI.update('boletos', id, { servicos: servico })));
+  alert(`✅ Serviço aplicado a ${selecionados.length} boleto(s)`);
+  document.getElementById('selectServicoEmMassaBoleto').value = '';
+  await loadBoletos();
+}
+
+async function aplicarClienteEmMassaBoleto() {
+  const selecionados = obterSelecionadosBoleto();
+  if (selecionados.length === 0) {
+    alert('⚠️ Selecione pelo menos um boleto');
+    return;
+  }
+  const cliente = document.getElementById('inputClienteEmMassaBoleto').value;
+  if (!cliente) {
+    alert('⚠️ Digite um cliente');
+    return;
+  }
+  if (!confirm(`Aplicar cliente "${cliente}" a ${selecionados.length} boleto(s)?`)) return;
+
+  await Promise.all(selecionados.map(id => SupabaseAPI.update('boletos', id, { cliente })));
+  alert(`✅ Cliente aplicado a ${selecionados.length} boleto(s)`);
+  document.getElementById('inputClienteEmMassaBoleto').value = '';
+  await loadBoletos();
 }
 
 async function atualizarCampoBoleto(id, campo, valor) {
