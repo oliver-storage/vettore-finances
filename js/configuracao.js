@@ -1082,3 +1082,90 @@ async function removerItemClientePJ(lista, item) {
   await carregarListaClientePJ(lista);
   alert('✅ Item removido!');
 }
+
+// ========== CONTRATO: OBRIGAÇÕES POR REGIME TRIBUTÁRIO ==========
+const REGIMES_CONTRATO = ['MEI', 'Simples Nacional', 'Lucro Presumido', 'Lucro Real'];
+const SECOES_CONTRATO = ['Fiscal', 'Contábil', 'Departamento Pessoal'];
+let CONTRATO_CACHE = [];
+
+function chaveContrato(regime, secao) {
+  return `${regime}|${secao}`.replace(/[^a-zA-Z0-9]/g, '_');
+}
+
+function renderizarLinhasContrato(conteudo) {
+  if (!conteudo) return '<p style="font-size:12px; color:var(--tinta-40);">Nenhum conteúdo cadastrado ainda.</p>';
+  const linhas = conteudo.split('\n').filter(l => l.trim());
+  return '<ul style="font-size:13px; color:var(--tinta); line-height:1.6; margin:0; padding-left:20px;">' +
+    linhas.map(linha => {
+      const [rotulo, ...resto] = linha.split('|');
+      const texto = resto.join('|');
+      return texto
+        ? `<li><strong>${rotulo}:</strong> ${texto}</li>`
+        : `<li>${rotulo}</li>`;
+    }).join('') +
+    '</ul>';
+}
+
+async function carregarContrato() {
+  const container = document.getElementById('containerContrato');
+  if (!container) return;
+
+  CONTRATO_CACHE = await SupabaseAPI.get('contrato_obrigacoes');
+
+  container.innerHTML = REGIMES_CONTRATO.map((regime, idx) => `
+    <div class="card" style="${idx > 0 ? 'margin-top:20px;' : ''}">
+      <h4>${idx + 1}. ${regime}</h4>
+      ${SECOES_CONTRATO.map(secao => {
+        const chave = chaveContrato(regime, secao);
+        const registro = CONTRATO_CACHE.find(c => c.regime === regime && c.secao === secao);
+        return `
+          <div style="margin-top:16px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <h5 style="color:var(--marca); margin:0;">${secao}</h5>
+              <button class="action-button" onclick="editarSecaoContrato('${regime}', '${secao}')" title="Editar">✏️</button>
+            </div>
+            <div id="view_${chave}" style="margin-top:8px;">
+              ${renderizarLinhasContrato(registro?.conteudo)}
+            </div>
+            <div id="edit_${chave}" style="display:none; margin-top:8px;">
+              <textarea id="textarea_${chave}" rows="6" style="width:100%; font-family:monospace; font-size:12px; padding:10px; border:1px solid var(--linha); border-radius:4px;" placeholder="Rótulo|Descrição (uma linha por item)">${registro?.conteudo || ''}</textarea>
+              <p style="font-size:11px; color:var(--tinta-40); margin:4px 0;">Formato: Rótulo|Descrição — uma linha por item da lista.</p>
+              <div style="display:flex; gap:8px;">
+                <button class="btn-primary" onclick="salvarSecaoContrato('${regime}', '${secao}')" style="padding:8px 14px; font-size:12px;">Salvar</button>
+                <button class="btn-danger" onclick="cancelarEdicaoContrato('${regime}', '${secao}')" style="padding:8px 14px; font-size:12px;">Cancelar</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `).join('');
+}
+
+function editarSecaoContrato(regime, secao) {
+  const chave = chaveContrato(regime, secao);
+  document.getElementById(`view_${chave}`).style.display = 'none';
+  document.getElementById(`edit_${chave}`).style.display = 'block';
+}
+
+function cancelarEdicaoContrato(regime, secao) {
+  const chave = chaveContrato(regime, secao);
+  document.getElementById(`view_${chave}`).style.display = 'block';
+  document.getElementById(`edit_${chave}`).style.display = 'none';
+}
+
+async function salvarSecaoContrato(regime, secao) {
+  const chave = chaveContrato(regime, secao);
+  const conteudo = document.getElementById(`textarea_${chave}`).value;
+
+  const registro = CONTRATO_CACHE.find(c => c.regime === regime && c.secao === secao);
+
+  if (registro) {
+    await SupabaseAPI.update('contrato_obrigacoes', registro.id, { conteudo });
+  } else {
+    await SupabaseAPI.insert('contrato_obrigacoes', { regime, secao, conteudo });
+  }
+
+  await carregarContrato();
+  alert('✅ Seção atualizada!');
+}

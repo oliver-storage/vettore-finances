@@ -5,8 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vettore Finances - Configuração</title>
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.16.0">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.16.0">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.17.0">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.17.0">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -595,124 +595,15 @@
       <div id="contrato" class="tab-content">
         <h3>Contrato — Obrigações por Regime Tributário</h3>
         <p style="font-size:13px; color:var(--tinta-70); margin-bottom:24px;">
-          Referência das obrigações Fiscais, Contábeis e de Departamento Pessoal por regime tributário do cliente.
+          Referência das obrigações Fiscais, Contábeis e de Departamento Pessoal por regime tributário do cliente. Editável — clique em "Editar" em cada seção.
         </p>
 
-        <!-- MEI -->
-        <div class="card">
-          <h4>1. MEI (Microempreendedor Individual)</h4>
-
-          <h5 style="margin-top:16px; color:var(--marca);">Fiscal</h5>
-          <ul style="font-size:13px; color:var(--tinta); line-height:1.6;">
-            <li><strong>Guias:</strong> Emissão mensal da guia DAS-MEI (valor fixo de INSS + ICMS/ISS).</li>
-            <li><strong>Declarações:</strong> Transmissão da Declaração Anual Simplificada (DASN-SIMEI).</li>
-            <li><strong>Relatórios:</strong> Preenchimento do Relatório Mensal das Receitas Brutas (obrigatório para controle interno).</li>
-            <li><strong>Notas Fiscais:</strong> Emissão de NFS-e (Portal Nacional) para serviços prestados a pessoas jurídicas e NF-e de vendas interestaduais ou exigidas pelo comprador.</li>
-          </ul>
-
-          <h5 style="margin-top:16px; color:var(--marca);">Contábil</h5>
-          <ul style="font-size:13px; color:var(--tinta); line-height:1.6;">
-            <li><strong>Livro Caixa:</strong> Escrituração do Livro Caixa com entradas e saídas.</li>
-            <li><strong>Contabilidade:</strong> Não é obrigatória por lei para o MEI, mas a escrituração contábil regular permite distribuir lucros acima da taxa de presunção legal com isenção total de Imposto de Renda na pessoa física do titular.</li>
-          </ul>
-
-          <h5 style="margin-top:16px; color:var(--marca);">Departamento Pessoal</h5>
-          <ul style="font-size:13px; color:var(--tinta); line-height:1.6;">
-            <li><strong>Limite:</strong> Permitida a contratação de até 1 empregado (recebendo um salário mínimo ou o piso da categoria).</li>
-            <li><strong>Folha & Obrigações:</strong> Elaboração do contracheque e folha mensal.</li>
-            <li><strong>SPED Social (eSocial):</strong> Prestação das informações trabalhistas e de SST no eSocial.</li>
-            <li><strong>Encargos:</strong> Emissão da guia única DAE/FGTS-INSS do MEI.</li>
-            <li><strong>Nota:</strong> Substituição de obrigações antigas (CAGED, GFIP, RAIS) efetuada via eSocial e DCTFWeb.</li>
-          </ul>
-        </div>
-
-        <!-- SIMPLES NACIONAL -->
-        <div class="card" style="margin-top:20px;">
-          <h4>2. Simples Nacional</h4>
-
-          <h5 style="margin-top:16px; color:var(--marca);">Fiscal</h5>
-          <ul style="font-size:13px; color:var(--tinta); line-height:1.6;">
-            <li><strong>Guias:</strong> Apuração do DAS (Documento de Arrecadação do Simples Nacional) via PGDAS-D, cobrindo IRPJ, CSLL, PIS, COFINS, IPI, CPP, ICMS e ISS em alíquota progressiva única.</li>
-            <li><strong>Declarações:</strong> Transmissão da DEFIS (Declaração de Informações Socioambientais e Fiscais) e PGDAS-D mensal.</li>
-            <li><strong>Relatórios:</strong> Emissão de relatórios mensais de faturamento acumulado (RBT12) e segregação de receitas por anexo (I a V).</li>
-            <li><strong>Notas Fiscais:</strong> Emissão regular de NFS-e (municipais) e NF-e (estaduais), observando regras de destaque de crédito de ICMS quando permitido.</li>
-          </ul>
-
-          <h5 style="margin-top:16px; color:var(--marca);">Contábil</h5>
-          <ul style="font-size:13px; color:var(--tinta); line-height:1.6;">
-            <li><strong>Contabilidade:</strong> Escrituração contábil completa (Balanço Patrimonial, DRE, DFC) de acordo com o ITG 1000 / NBC TG.</li>
-            <li><strong>Livro Caixa:</strong> Exigido por lei caso a empresa opte por não manter contabilidade completa (embora a contabilidade regular seja indispensável para distribuição isenta de lucros sem limite de presunção).</li>
-          </ul>
-
-          <h5 style="margin-top:16px; color:var(--marca);">Departamento Pessoal</h5>
-          <ul style="font-size:13px; color:var(--tinta); line-height:1.6;">
-            <li><strong>Admissão/Demissão:</strong> Processamento completo do fluxo admissional, demissional e rescisões.</li>
-            <li><strong>Folha:</strong> Apuração da folha de pagamento, pró-labore e emissão de contracheques.</li>
-            <li><strong>eSocial & DCTFWeb:</strong> Envio dos eventos do eSocial e geração do DARF Numerado para recolhimento unificado de INSS e Imposto de Renda Retido na Fonte (IRRF).</li>
-            <li><strong>FGTS:</strong> Emissão da guia digital de FGTS (FGTS Digital).</li>
-            <li><strong>Obrigações Gerais:</strong> Cumprimento da CIPA, SST, controle de PIS e dados anuais automatizados via eSocial (substituindo RAIS e CAGED).</li>
-          </ul>
-        </div>
-
-        <!-- LUCRO PRESUMIDO -->
-        <div class="card" style="margin-top:20px;">
-          <h4>3. Lucro Presumido</h4>
-
-          <h5 style="margin-top:16px; color:var(--marca);">Fiscal</h5>
-          <ul style="font-size:13px; color:var(--tinta); line-height:1.6;">
-            <li><strong>Guias:</strong> Apuração e emissão dos DARFs trimestrais de IRPJ e CSLL (baseados nos percentuais de presunção da atividade), e DARFs mensais de PIS e COFINS (regime cumulativo). Emissão de guias estaduais (ICMS) e municipais (ISS).</li>
-            <li><strong>Declarações:</strong> Transmissão do SPED EFD-Contribuições (PIS/COFINS), EFD ICMS/IPI, DCTF Web e DCTF Mensal.</li>
-            <li><strong>Relatórios:</strong> Relatórios de apuração fiscal, mapas de retenção na fonte (IRRF, PCC) e demonstrativos do volume de faturamento.</li>
-            <li><strong>Notas Fiscais:</strong> Emissão de NF-e, NFC-e e NFS-e, com aplicação rigorosa das alíquotas de retenção na fonte quando aplicável.</li>
-          </ul>
-
-          <h5 style="margin-top:16px; color:var(--marca);">Contábil</h5>
-          <ul style="font-size:13px; color:var(--tinta); line-height:1.6;">
-            <li><strong>Contabilidade:</strong> Escrituração contábil digital completa alinhada às normas NBC TG.</li>
-            <li><strong>SPED Contábil:</strong> Transmissão da ECD (Escrituração Contábil Digital) e da ECF (Escrituração Contábil Fiscal).</li>
-            <li><strong>Livro Caixa:</strong> Admitido fiscalmente apenas se a empresa não distribuir lucros acima da presunção deduzida dos tributos, porém a escrituração contábil é o padrão normativo obrigatório para PJs dessa envergadura.</li>
-          </ul>
-
-          <h5 style="margin-top:16px; color:var(--marca);">Departamento Pessoal</h5>
-          <ul style="font-size:13px; color:var(--tinta); line-height:1.6;">
-            <li><strong>Admissão/Demissão:</strong> Registro, qualificação cadastral, homologação de rescisões e gestão de obrigações trabalhistas.</li>
-            <li><strong>Folha:</strong> Apuração da folha mensal, pró-labore e cálculo do INSS patronal (20% + RAT + Terceiros/Outras Entidades).</li>
-            <li><strong>eSocial & FGTS Digital:</strong> Transmissão periódica dos eventos de folha e emissão de guias do FGTS Digital e DARF Previdenciário (via DCTFWeb).</li>
-            <li><strong>Contribuições e Relatórios:</strong> Controle de contribuições sindicais (quando autorizadas), conectividade social e acompanhamento de afastamentos.</li>
-          </ul>
-        </div>
-
-        <!-- LUCRO REAL -->
-        <div class="card" style="margin-top:20px;">
-          <h4>4. Lucro Real</h4>
-
-          <h5 style="margin-top:16px; color:var(--marca);">Fiscal</h5>
-          <ul style="font-size:13px; color:var(--tinta); line-height:1.6;">
-            <li><strong>Guias:</strong> Apuração e emissão de IRPJ e CSLL com base no lucro líquido real ajustado (Adições e Exclusões do LALUR/LACS), em periodicidade mensal (por estimativa) ou trimestral. Apuração de PIS e COFINS (regime não cumulativo, aproveitando créditos sobre insumos/compras). Guias de ICMS e ISS.</li>
-            <li><strong>Declarações:</strong> Transmissão rigorosa de EFD-Contribuições, EFD ICMS/IPI, DCTFWeb, Reinf e Siscoserv (quando aplicável).</li>
-            <li><strong>Relatórios:</strong> Memória de cálculo dos créditos de PIS/COFINS, relatórios fiscais de conciliação de impostos retidos e mapas de incentivos fiscais.</li>
-            <li><strong>Notas Fiscais:</strong> Emissão com detalhamento de impostos e tributação adequada para aproveitamento de créditos pelos clientes.</li>
-          </ul>
-
-          <h5 style="margin-top:16px; color:var(--marca);">Contábil</h5>
-          <ul style="font-size:13px; color:var(--tinta); line-height:1.6;">
-            <li><strong>Contabilidade:</strong> Escrituração contábil completa de alto rigor, atendendo integralmente ao padrão IFRS / NBC TG.</li>
-            <li><strong>Livros Obrigatórios:</strong> Escrituração do Livro LALUR (Livro de Apuração do Lucro Real) e LACS, além dos Livros Diário e Razão.</li>
-            <li><strong>SPED:</strong> Envio obrigatório da ECD (Escrituração Contábil Digital) e ECF (Escrituração Contábil Fiscal).</li>
-          </ul>
-
-          <h5 style="margin-top:16px; color:var(--marca);">Departamento Pessoal</h5>
-          <ul style="font-size:13px; color:var(--tinta); line-height:1.6;">
-            <li><strong>Admissão/Demissão:</strong> Fluxo operacional completo e integrado à contabilidade para provisionamento exato de férias, 13º salário e encargos.</li>
-            <li><strong>Folha:</strong> Processamento de folhas complexas (turnos, horas extras, adicionais de periculosidade/insalubridade, PPR/PLR) e cálculo de INSS patronal completo.</li>
-            <li><strong>eSocial & Obrigações:</strong> Cumprimento de 100% dos eventos trabalhistas e de Saúde e Segurança do Trabalho (SST) no eSocial.</li>
-            <li><strong>Guia de Encargos:</strong> Emissão de FGTS Digital e DARFs previdenciários via DCTFWeb, além do controle exato dos impactos trabalhistas no resultado dedutível da empresa.</li>
-          </ul>
-        </div>
+        <div id="containerContrato"></div>
       </div>
 
+
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.16.0 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.17.0 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>
@@ -740,6 +631,12 @@
           atualizarSelectsParametros();
           carregarParametros();
           carregarCategoriaPadraoBoleto();
+        }, 50);
+      }
+
+      if (tabName === 'contrato') {
+        setTimeout(() => {
+          carregarContrato();
         }, 50);
       }
 
