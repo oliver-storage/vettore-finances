@@ -9,8 +9,8 @@
   <!-- XLSX -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.10.1">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.10.1">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.10.2">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.10.2">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -331,7 +331,7 @@
       border-spacing: 0;
     }
 
-    /* COLUNAS FIXAS - Checkbox, Cart, Nº Doc */
+    /* COLUNAS FIXAS - Checkbox, Pagador, Liquidação */
     #tabelaBoletos th:nth-child(1),
     #tabelaBoletos td:nth-child(1) {
       position: sticky;
@@ -349,13 +349,13 @@
       left: 20px;
       background: var(--papel-alto);
       z-index: 10;
-      min-width: 90px;
+      min-width: 220px;
     }
 
     #tabelaBoletos th:nth-child(3),
     #tabelaBoletos td:nth-child(3) {
       position: sticky;
-      left: 110px;
+      left: 240px;
       background: var(--papel-alto);
       z-index: 10;
       min-width: 100px;
@@ -376,41 +376,41 @@
     }
 
     /* Data Ref. - mesma largura do Extrato */
-    #tabelaBoletos th:nth-child(11),
-    #tabelaBoletos td:nth-child(11) {
+    #tabelaBoletos th:nth-child(8),
+    #tabelaBoletos td:nth-child(8) {
       width: 1%;
       white-space: nowrap;
       text-align: center;
     }
-    #tabelaBoletos td:nth-child(11) input[type="date"] {
+    #tabelaBoletos td:nth-child(8) input[type="date"] {
       width: 130px;
     }
 
     /* Categoria - ajusta ao tamanho do texto (aumentado) */
-    #tabelaBoletos th:nth-child(12),
-    #tabelaBoletos td:nth-child(12) {
+    #tabelaBoletos th:nth-child(9),
+    #tabelaBoletos td:nth-child(9) {
       width: 1%;
       white-space: nowrap;
     }
-    #tabelaBoletos td:nth-child(12) select {
+    #tabelaBoletos td:nth-child(9) select {
       width: auto;
       min-width: 180px;
     }
 
     /* Serviços - ajusta ao tamanho do texto (aumentado) */
-    #tabelaBoletos th:nth-child(13),
-    #tabelaBoletos td:nth-child(13) {
+    #tabelaBoletos th:nth-child(10),
+    #tabelaBoletos td:nth-child(10) {
       width: 1%;
       white-space: nowrap;
     }
-    #tabelaBoletos td:nth-child(13) select {
+    #tabelaBoletos td:nth-child(10) select {
       width: auto;
       min-width: 180px;
     }
 
     /* Cliente e Observações - 159px */
-    #tabelaBoletos td:nth-child(14) input,
-    #tabelaBoletos td:nth-child(15) input {
+    #tabelaBoletos td:nth-child(11) input,
+    #tabelaBoletos td:nth-child(12) input {
       width: 159px;
     }
 
@@ -783,13 +783,10 @@
                 <th style="width:20px; text-align:center; padding:12px 0;">
                   <input type="checkbox" class="checkbox-sistema" id="selectTodosBoleto" onchange="selecionarTodosBoleto(this.checked)">
                 </th>
-                <th style="padding:12px;">Cart</th>
-                <th style="padding:12px;">Nº Doc</th>
-                <th style="padding:12px;">Nosso Nº</th>
                 <th style="padding:12px;">Pagador</th>
-                <th style="padding:12px;">Vencimento</th>
                 <th style="padding:12px;">Liquidação</th>
                 <th style="padding:12px; text-align:right;">Valor</th>
+                <th style="padding:12px;">Vencimento</th>
                 <th style="padding:12px; text-align:right;">Valor Liq.</th>
                 <th style="padding:12px;">Situação</th>
                 <th style="padding:12px;">Data Ref.</th>
@@ -811,7 +808,7 @@
   <datalist id="listaClientesPJ"></datalist>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.10.1 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.10.2 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>

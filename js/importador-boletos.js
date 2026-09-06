@@ -268,7 +268,7 @@ function renderizarBoletos(boletos) {
   tbody.innerHTML = '';
 
   if (boletos.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="16" style="text-align:center; padding:20px;">Nenhum boleto encontrado</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="13" style="text-align:center; padding:20px;">Nenhum boleto encontrado</td></tr>';
     return;
   }
 
@@ -280,13 +280,10 @@ function renderizarBoletos(boletos) {
       <td style="width:20px; text-align:center; padding:12px 0;">
         <input type="checkbox" class="checkbox-sistema checkboxBoleto" value="${b.id}" onchange="atualizarContadorSelecionadosBoleto()">
       </td>
-      <td style="padding:12px;">${b.carteira || '-'}</td>
-      <td style="padding:12px;">${b.num_doc || '-'}</td>
-      <td style="padding:12px;">${b.nosso_numero || '-'}</td>
       <td style="padding:12px;">${b.pagador || '-'}</td>
-      <td style="padding:12px;">${formatarDataBR(b.data_vencimento)}</td>
       <td style="padding:12px;">${formatarDataBR(b.data_liquidacao)}</td>
       <td style="padding:12px; text-align:right;">${formatarValorBR(b.valor)}</td>
+      <td style="padding:12px;">${formatarDataBR(b.data_vencimento)}</td>
       <td style="padding:12px; text-align:right;">${formatarValorBR(b.valor_liquidacao)}</td>
       <td style="padding:12px; color:${corSituacao}; font-weight:600;">${b.situacao || '-'}</td>
       <td><input type="date" value="${dataRef}" onchange="atualizarCampoBoleto(${b.id}, 'data_referencia', this.value)"></td>
