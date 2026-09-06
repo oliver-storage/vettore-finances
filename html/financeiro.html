@@ -9,8 +9,8 @@
   <!-- XLSX -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.12.0">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.12.0">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.12.1">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.12.1">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -897,7 +897,7 @@
   <datalist id="listaClientesPJ"></datalist>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.12.0 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.12.1 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>
@@ -1005,16 +1005,6 @@
         document.getElementById('inputAgencia').value = franquia?.agencia || '';
         document.getElementById('inputConta').value = franquia?.conta || '';
 
-        // Preencher anos
-        const selectAno = document.getElementById('anoFilter');
-        const anoAtual = new Date().getFullYear();
-        for (let i = anoAtual - 5; i <= anoAtual; i++) {
-          const option = document.createElement('option');
-          option.value = i;
-          option.textContent = i;
-          selectAno.appendChild(option);
-        }
-
         // Carregar dados
         await loadExtratos(user);
         atualizarSelecionamentos();
@@ -1061,6 +1051,13 @@
 
         // Filtrar por unidade
         extratos = extratos.filter(e => e.unidade_id === unidadeFiltro);
+
+        // Popular select de Ano só com anos que existem de fato nos dados dessa franquia
+        const selectAno = document.getElementById('anoFilter');
+        const anosExistentes = [...new Set(extratos.map(e => String(e.ano)).filter(Boolean))].sort();
+        const anoSelecionadoAtual = selectAno.value;
+        selectAno.innerHTML = '<option value="">Todos</option>' + anosExistentes.map(a => `<option value="${a}">${a}</option>`).join('');
+        selectAno.value = anoSelecionadoAtual;
 
         if (mes) extratos = extratos.filter(e => String(e.mes) === String(mes));
         if (ano) extratos = extratos.filter(e => String(e.ano) === String(ano));
