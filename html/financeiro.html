@@ -9,8 +9,8 @@
   <!-- XLSX -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.11.5">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.11.5">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.11.6">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.11.6">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -896,7 +896,7 @@
   <datalist id="listaClientesPJ"></datalist>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.11.5 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.11.6 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>
@@ -959,11 +959,13 @@
         CATEGORIAS = (await SupabaseAPI.get('categorias')).map(r => r.nome);
         SERVICOS = (await SupabaseAPI.get('servicos')).map(r => r.nome);
 
-        // Dropdown de Franquia (somente administrador)
+        // Dropdown de Franquia (visível pra todos; só administrador pode trocar)
+        document.getElementById('grupoFranquia').style.display = '';
+        const selectFranquia = document.getElementById('franquiaFilter');
+        selectFranquia.innerHTML = '';
+
         if (user.perfil === 'administrador') {
-          document.getElementById('grupoFranquia').style.display = '';
-          const selectFranquia = document.getElementById('franquiaFilter');
-          selectFranquia.innerHTML = '';
+          selectFranquia.disabled = false;
           unidades.forEach(u => {
             const option = document.createElement('option');
             option.value = u.id;
@@ -973,6 +975,13 @@
           if (!selectFranquia.value && unidades.length > 0) {
             selectFranquia.value = unidades[0].id;
           }
+        } else {
+          selectFranquia.disabled = true;
+          const franquiaDoUsuario = unidades.find(u => u.id === user.unidade_id);
+          const option = document.createElement('option');
+          option.value = user.unidade_id;
+          option.textContent = franquiaDoUsuario?.nomefranquia || '-';
+          selectFranquia.appendChild(option);
         }
 
         const franquiaSelecionadaId = user.perfil === 'administrador'
