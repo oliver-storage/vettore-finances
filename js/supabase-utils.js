@@ -8,15 +8,30 @@ const SUPABASE_KEY = 'sb_publishable_GKc2bhpVTzbQdVhJVEQBUw_HE4bxwWD';
 
 class SupabaseAPI {
   static async get(table) {
-    const url = `${SUPABASE_URL}/rest/v1/${table}?select=*`;
-    const response = await fetch(url, {
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${SUPABASE_KEY}`,
-        'Content-Type': 'application/json'
-      }
-    });
-    return response.json();
+    const PAGE_SIZE = 1000;
+    let allRows = [];
+    let offset = 0;
+
+    while (true) {
+      const url = `${SUPABASE_URL}/rest/v1/${table}?select=*&limit=${PAGE_SIZE}&offset=${offset}`;
+      const response = await fetch(url, {
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      const page = await response.json();
+
+      if (!Array.isArray(page) || page.length === 0) break;
+
+      allRows = allRows.concat(page);
+
+      if (page.length < PAGE_SIZE) break;
+      offset += PAGE_SIZE;
+    }
+
+    return allRows;
   }
 
   static async insert(table, data) {
