@@ -629,6 +629,7 @@ async function salvarPJ(event) {
     data_contrato: document.getElementById('pjDataContrato').value || null,
     inicio_cobranca: document.getElementById('pjInicioCobranca').value ? document.getElementById('pjInicioCobranca').value + '-01' : null,
     final_contrato: document.getElementById('pjFinalContrato').value ? document.getElementById('pjFinalContrato').value + '-01' : null,
+    valor_contrato: document.getElementById('pjValorContrato').value.trim().replace(/\./g, '').replace(',', '.') || null,
     razao_social: document.getElementById('pjRazaoSocial').value.trim(),
     cnpj: document.getElementById('pjCNPJ').value.trim() || null,
     segmento: document.getElementById('pjSegmento').value.trim() || null,
@@ -711,6 +712,13 @@ async function editarPJ(id) {
   document.getElementById('pjDataContrato').value = j.data_contrato || '';
   document.getElementById('pjInicioCobranca').value = j.inicio_cobranca ? j.inicio_cobranca.slice(0, 7) : '';
   document.getElementById('pjFinalContrato').value = j.final_contrato ? j.final_contrato.slice(0, 7) : '';
+  if (j.valor_contrato) {
+    const partes = parseFloat(j.valor_contrato).toFixed(2).split('.');
+    partes[0] = partes[0].replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.');
+    document.getElementById('pjValorContrato').value = partes[0] + ',' + partes[1];
+  } else {
+    document.getElementById('pjValorContrato').value = '';
+  }
   document.getElementById('pjRazaoSocial').value = j.razao_social || '';
   document.getElementById('pjCNPJ').value = j.cnpj || '';
   document.getElementById('pjSegmento').value = j.segmento || '';
@@ -734,7 +742,7 @@ async function editarPJ(id) {
 
 function limparFormularioPJ() {
   document.getElementById('pjId').value = '';
-  ['pjDataContrato','pjInicioCobranca','pjFinalContrato','pjRazaoSocial','pjCNPJ','pjSegmento','pjPorte','pjRegimeTributario','pjNaturezaJuridica','pjCNAE',
+  ['pjDataContrato','pjInicioCobranca','pjFinalContrato','pjValorContrato','pjRazaoSocial','pjCNPJ','pjSegmento','pjPorte','pjRegimeTributario','pjNaturezaJuridica','pjCNAE',
    'pjCapitalSocial','pjSenhaGov','pjEnderecoEmpresa','pjEstadoEmpresa','pjMunicipioEmpresa','pjObservacoes']
     .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   pfVinculadosAtuais = [];

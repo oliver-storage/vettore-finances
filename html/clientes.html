@@ -1,12 +1,12 @@
-<!-- Vettore Finances v1.9.11.2 • Desenvolvido por OliverStorage -->
+<!-- Vettore Finances v1.9.11.3 • Desenvolvido por OliverStorage -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vettore Finances - Clientes</title>
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.11.2">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.11.2">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.11.3">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.11.3">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -303,6 +303,13 @@
               </div>
             </div>
 
+            <div class="form-row-3">
+              <div class="form-group">
+                <label>Valor do Contrato (mensalidade)</label>
+                <input type="text" id="pjValorContrato" placeholder="Ex: 250,00" oninput="this.value = maskMoeda(this.value)">
+              </div>
+            </div>
+
             <h5 style="margin:20px 0 8px 0; color:var(--tinta-70);">Dados da Empresa</h5>
             <div class="form-row-3">
               <div class="form-group">
@@ -408,7 +415,7 @@
   </div>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.11.2 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.11.3 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>

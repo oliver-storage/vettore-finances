@@ -23,6 +23,14 @@ function maskCPF(value) {
   return value;
 }
 
+function maskMoeda(value) {
+  value = value.replace(/\D/g, '');
+  value = (parseInt(value || '0', 10) / 100).toFixed(2);
+  const partes = value.split('.');
+  partes[0] = partes[0].replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.');
+  return partes[0] + ',' + partes[1];
+}
+
 function maskCEP(value) {
   value = value.replace(/\D/g, '');
   if (value.length > 8) value = value.slice(0, 8);
