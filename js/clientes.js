@@ -88,6 +88,94 @@ async function inicializarClientes() {
 async function trocarFranquiaCliente() {
   unidadeAtivaCliente = parseInt(document.getElementById('franquiaFilterCliente').value);
   await carregarListaUnificada();
+  await carregarSituacaoClientes();
+}
+
+function switchTabClienteLista(tab) {
+  document.getElementById('tabListaClientes').classList.toggle('active', tab === 'lista');
+  document.getElementById('tabSituacaoClientes').classList.toggle('active', tab === 'situacao');
+  document.querySelectorAll('.sub-tab-btn').forEach((btn, i) => {
+    btn.classList.toggle('active', (i === 0 && tab === 'lista') || (i === 1 && tab === 'situacao'));
+  });
+  if (tab === 'situacao') carregarSituacaoClientes();
+}
+
+function gerarMesesEntre(inicioStr, fimStr) {
+  const meses = [];
+  const [anoIni, mesIni] = inicioStr.split('-').map(Number);
+  const [anoFim, mesFim] = fimStr.split('-').map(Number);
+  let ano = anoIni, mes = mesIni;
+  while (ano < anoFim || (ano === anoFim && mes <= mesFim)) {
+    meses.push(`${ano}-${String(mes).padStart(2, '0')}`);
+    mes++;
+    if (mes > 12) { mes = 1; ano++; }
+  }
+  return meses;
+}
+
+function formatarMesAno(mesStr) {
+  const [ano, mes] = mesStr.split('-');
+  const nomes = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  return `${nomes[parseInt(mes) - 1]}/${ano.slice(2)}`;
+}
+
+async function carregarSituacaoClientes() {
+  const tbody = document.getElementById('tbodySituacaoClientes');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:var(--tinta-40);">Calculando...</td></tr>';
+
+  const todosPj = (await SupabaseAPI.get('clientes_pj')).filter(pj => pj.unidade_id === unidadeAtivaCliente);
+  const todosBoletos = (await SupabaseAPI.get('boletos')).filter(b => b.unidade_id === unidadeAtivaCliente);
+
+  const hoje = new Date();
+  const mesAtual = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
+
+  const devedores = [];
+
+  for (const pj of todosPj) {
+    if (!pj.inicio_cobranca) continue;
+    if (!pj.valor_contrato) continue;
+
+    const inicioStr = pj.inicio_cobranca.slice(0, 7);
+    const fimStr = pj.final_contrato ? pj.final_contrato.slice(0, 7) : mesAtual;
+
+    const mesesEsperados = gerarMesesEntre(inicioStr, fimStr);
+
+    const boletosDoCliente = todosBoletos.filter(b =>
+      b.cliente === pj.razao_social &&
+      (b.situacao || '').toUpperCase().includes('LIQUIDADO') &&
+      b.data_vencimento
+    );
+    const mesesPagos = new Set(boletosDoCliente.map(b => b.data_vencimento.slice(0, 7)));
+
+    const mesesEmAberto = mesesEsperados.filter(m => !mesesPagos.has(m));
+
+    if (mesesEmAberto.length > 0) {
+      devedores.push({
+        cliente: pj.razao_social,
+        meses: mesesEmAberto,
+        valorTotal: mesesEmAberto.length * parseFloat(pj.valor_contrato || 0)
+      });
+    }
+  }
+
+  if (devedores.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:var(--tinta-40);">Nenhum cliente devedor 🎉</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = '';
+  devedores.forEach(d => {
+    const tr = document.createElement('tr');
+    tr.style.borderBottom = '1px solid var(--linha)';
+    tr.innerHTML = `
+      <td style="padding:12px;">${d.cliente}</td>
+      <td style="padding:12px; font-size:12px;">${d.meses.map(formatarMesAno).join(', ')}</td>
+      <td style="padding:12px; text-align:center; color:var(--alerta); font-weight:600;">${d.meses.length}</td>
+      <td style="padding:12px; text-align:right; color:var(--alerta); font-weight:600;">${d.valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
+    `;
+    tbody.appendChild(tr);
+  });
 }
 
 // ========== MODAL ==========
@@ -481,6 +569,9 @@ async function salvarPJ(event) {
   const id = document.getElementById('pjId').value;
   const dados = {
     unidade_id: unidadeAtivaCliente,
+    data_contrato: document.getElementById('pjDataContrato').value || null,
+    inicio_cobranca: document.getElementById('pjInicioCobranca').value ? document.getElementById('pjInicioCobranca').value + '-01' : null,
+    final_contrato: document.getElementById('pjFinalContrato').value ? document.getElementById('pjFinalContrato').value + '-01' : null,
     razao_social: document.getElementById('pjRazaoSocial').value.trim(),
     cnpj: document.getElementById('pjCNPJ').value.trim() || null,
     segmento: document.getElementById('pjSegmento').value.trim() || null,
@@ -560,6 +651,9 @@ async function editarPJ(id) {
   await popularDropdownsPJ();
 
   document.getElementById('pjId').value = j.id;
+  document.getElementById('pjDataContrato').value = j.data_contrato || '';
+  document.getElementById('pjInicioCobranca').value = j.inicio_cobranca ? j.inicio_cobranca.slice(0, 7) : '';
+  document.getElementById('pjFinalContrato').value = j.final_contrato ? j.final_contrato.slice(0, 7) : '';
   document.getElementById('pjRazaoSocial').value = j.razao_social || '';
   document.getElementById('pjCNPJ').value = j.cnpj || '';
   document.getElementById('pjSegmento').value = j.segmento || '';
@@ -583,7 +677,7 @@ async function editarPJ(id) {
 
 function limparFormularioPJ() {
   document.getElementById('pjId').value = '';
-  ['pjRazaoSocial','pjCNPJ','pjSegmento','pjPorte','pjRegimeTributario','pjNaturezaJuridica','pjCNAE',
+  ['pjDataContrato','pjInicioCobranca','pjFinalContrato','pjRazaoSocial','pjCNPJ','pjSegmento','pjPorte','pjRegimeTributario','pjNaturezaJuridica','pjCNAE',
    'pjCapitalSocial','pjSenhaGov','pjEnderecoEmpresa','pjEstadoEmpresa','pjMunicipioEmpresa','pjObservacoes']
     .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   pfVinculadosAtuais = [];
