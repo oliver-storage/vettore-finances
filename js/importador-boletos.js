@@ -249,11 +249,16 @@ function renderizarBoletos(boletos) {
       <td style="padding:12px; text-align:right;">${formatarValorBR(b.valor)}</td>
       <td style="padding:12px; text-align:right;">${formatarValorBR(b.valor_liquidacao)}</td>
       <td style="padding:12px; color:${corSituacao}; font-weight:600;">${b.situacao || '-'}</td>
-      <td style="padding:12px;"><input type="text" value="${b.referente || ''}" onchange="atualizarCampoBoleto(${b.id}, 'referente', this.value)"></td>
-      <td style="padding:12px;"><input type="text" value="${b.tipo || ''}" onchange="atualizarCampoBoleto(${b.id}, 'tipo', this.value)"></td>
-      <td style="padding:12px;"><input type="text" value="${b.servicos || ''}" onchange="atualizarCampoBoleto(${b.id}, 'servicos', this.value)"></td>
-      <td style="padding:12px;"><input type="text" value="${b.identificador || ''}" onchange="atualizarCampoBoleto(${b.id}, 'identificador', this.value)"></td>
-      <td style="padding:12px;"><input type="text" value="${b.negociacao || ''}" onchange="atualizarCampoBoleto(${b.id}, 'negociacao', this.value)"></td>
+      <td><input type="date" value="${b.data_referencia || ''}" onchange="atualizarCampoBoleto(${b.id}, 'data_referencia', this.value)"></td>
+      <td>
+        <select onchange="atualizarCampoBoleto(${b.id}, 'categoria', this.value)">
+          <option value="">Selecione...</option>
+          ${CATEGORIAS.map(c => `<option value="${c}" ${b.categoria === c ? 'selected' : ''}>${c}</option>`).join('')}
+        </select>
+      </td>
+      <td><input type="text" placeholder="Ex: Consultoria" value="${b.servicos || ''}" onchange="atualizarCampoBoleto(${b.id}, 'servicos', this.value)"></td>
+      <td><input type="text" placeholder="Ex: Empresa X" value="${b.cliente || ''}" onchange="atualizarCampoBoleto(${b.id}, 'cliente', this.value)"></td>
+      <td><input type="text" placeholder="Observações" value="${b.observacao || ''}" onchange="atualizarCampoBoleto(${b.id}, 'observacao', this.value)"></td>
       <td style="padding:12px; text-align:center;">
         <button class="action-button delete" onclick="deletarBoleto(${b.id})" title="Deletar">🗑️</button>
       </td>
