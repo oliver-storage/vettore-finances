@@ -9,8 +9,8 @@
   <!-- XLSX -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.10.5">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.10.5">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.10.6">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.10.6">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -157,6 +157,7 @@
 
     .table-wrapper {
       overflow-x: auto;
+      overflow-y: visible;
       border-radius: 8px;
       border: 1px solid var(--linha);
     }
@@ -349,7 +350,8 @@
     /* Override: manter azul nas colunas fixas do header */
     #tabelaBoletos thead th:nth-child(1),
     #tabelaBoletos thead th:nth-child(2),
-    #tabelaBoletos thead th:nth-child(3) {
+    #tabelaBoletos thead th:nth-child(3),
+    #tabelaBoletos thead th:nth-child(4) {
       background: var(--marca);
       color: white;
     }
@@ -382,6 +384,16 @@
       background: var(--papel-alto);
       z-index: 10;
       min-width: 100px;
+    }
+
+    #tabelaBoletos th:nth-child(4),
+    #tabelaBoletos td:nth-child(4) {
+      position: sticky;
+      left: 340px;
+      background: var(--papel-alto);
+      z-index: 10;
+      min-width: 110px;
+      text-align: right;
     }
 
     #tabelaBoletos input:not([type="checkbox"]),
@@ -831,7 +843,7 @@
   <datalist id="listaClientesPJ"></datalist>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.10.5 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.10.6 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>
