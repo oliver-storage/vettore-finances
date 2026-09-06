@@ -601,6 +601,12 @@ async function carregarParametros() {
   document.getElementById('checkAllParametros').checked = false;
 }
 
+function tabelaLista(lista) {
+  if (lista === 'categorias') return 'categorias';
+  if (lista === 'subcategorias') return 'subcategorias';
+  return 'servicos';
+}
+
 async function carregarLista() {
   const lista = document.getElementById('selectLista')?.value || 'categorias';
   const container = document.getElementById('containerChips');
@@ -608,9 +614,7 @@ async function carregarLista() {
 
   container.innerHTML = '';
 
-  const items = lista === 'categorias'
-    ? (await SupabaseAPI.get('categorias')).map(r => r.nome)
-    : (await SupabaseAPI.get('subcategorias')).map(r => r.nome);
+  const items = (await SupabaseAPI.get(tabelaLista(lista))).map(r => r.nome);
 
   if (lista === 'categorias') CATEGORIAS = items;
 
@@ -649,7 +653,7 @@ async function adicionarItem() {
   }
 
   const lista = document.getElementById('selectLista').value;
-  const tabela = lista === 'categorias' ? 'categorias' : 'subcategorias';
+  const tabela = tabelaLista(lista);
 
   const existentes = await SupabaseAPI.get(tabela);
   if (existentes.some(r => r.nome === item)) {
@@ -668,7 +672,7 @@ async function adicionarItem() {
 async function removerItemLista(lista, item) {
   if (!confirm(`Remover "${item}"?`)) return;
 
-  const tabela = lista === 'categorias' ? 'categorias' : 'subcategorias';
+  const tabela = tabelaLista(lista);
   const registros = await SupabaseAPI.get(tabela);
   const registro = registros.find(r => r.nome === item);
   if (registro) await SupabaseAPI.delete(tabela, registro.id);
