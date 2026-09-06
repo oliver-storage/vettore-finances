@@ -229,7 +229,7 @@ function renderizarBoletos(boletos) {
   tbody.innerHTML = '';
 
   if (boletos.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="11" style="text-align:center; padding:20px;">Nenhum boleto encontrado</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="16" style="text-align:center; padding:20px;">Nenhum boleto encontrado</td></tr>';
     return;
   }
 
@@ -249,6 +249,11 @@ function renderizarBoletos(boletos) {
       <td style="padding:12px; text-align:right;">${formatarValorBR(b.valor)}</td>
       <td style="padding:12px; text-align:right;">${formatarValorBR(b.valor_liquidacao)}</td>
       <td style="padding:12px; color:${corSituacao}; font-weight:600;">${b.situacao || '-'}</td>
+      <td style="padding:12px;"><input type="text" value="${b.referente || ''}" onchange="atualizarCampoBoleto(${b.id}, 'referente', this.value)"></td>
+      <td style="padding:12px;"><input type="text" value="${b.tipo || ''}" onchange="atualizarCampoBoleto(${b.id}, 'tipo', this.value)"></td>
+      <td style="padding:12px;"><input type="text" value="${b.servicos || ''}" onchange="atualizarCampoBoleto(${b.id}, 'servicos', this.value)"></td>
+      <td style="padding:12px;"><input type="text" value="${b.identificador || ''}" onchange="atualizarCampoBoleto(${b.id}, 'identificador', this.value)"></td>
+      <td style="padding:12px;"><input type="text" value="${b.negociacao || ''}" onchange="atualizarCampoBoleto(${b.id}, 'negociacao', this.value)"></td>
       <td style="padding:12px; text-align:center;">
         <button class="action-button delete" onclick="deletarBoleto(${b.id})" title="Deletar">🗑️</button>
       </td>
@@ -270,6 +275,14 @@ function atualizarContadorSelecionadosBoleto() {
   const selecionados = document.querySelectorAll('.checkboxBoleto:checked').length;
   document.getElementById('contadorSelecionadosBoleto').textContent = selecionados;
   document.getElementById('btnDeletarSelecionadosBoleto').style.display = selecionados > 0 ? 'inline-block' : 'none';
+}
+
+async function atualizarCampoBoleto(id, campo, valor) {
+  try {
+    await SupabaseAPI.update('boletos', id, { [campo]: valor || null });
+  } catch (error) {
+    console.error('❌ Erro ao atualizar campo:', error);
+  }
 }
 
 async function deletarBoleto(id) {
