@@ -294,7 +294,7 @@ async function loadBoletos() {
       });
     }
 
-    boletos.sort((a, b) => (a.data_vencimento || '').localeCompare(b.data_vencimento || ''));
+    boletos.sort((a, b) => (a.data_liquidacao || '').localeCompare(b.data_liquidacao || ''));
 
     // Popular select de anos
     const selectAno = document.getElementById('anoFilterBoleto');
