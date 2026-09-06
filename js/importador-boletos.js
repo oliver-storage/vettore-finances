@@ -2,6 +2,9 @@
  * Vettore Finances - Módulo Boletos v1.9.7.0
  */
 
+let BOLETOS_CACHE = [];
+let UNIDADE_ATIVA_BOLETO = null;
+
 function handleFileUploadBoleto(event) {
   const file = event.target.files[0];
   if (!file) return;
@@ -187,6 +190,7 @@ async function aplicarClientesParametrosBoleto(boletos) {
 
     if (param && pjMap[param.pj_id]) {
       boleto.cliente = pjMap[param.pj_id];
+      boleto._clienteAutoPreenchido = true;
       atualizacoes.push(SupabaseAPI.update('boletos', boleto.id, { cliente: boleto.cliente }));
     }
 
@@ -214,6 +218,7 @@ async function loadBoletos() {
   try {
     let boletos = await SupabaseAPI.get('boletos');
     boletos = boletos.filter(b => b.unidade_id === unidadeIdAtivo);
+    UNIDADE_ATIVA_BOLETO = unidadeIdAtivo;
 
     if (mes || ano) {
       boletos = boletos.filter(b => {
@@ -235,6 +240,7 @@ async function loadBoletos() {
     selectAno.value = anoAtual;
 
     boletos = await aplicarClientesParametrosBoleto(boletos);
+    BOLETOS_CACHE = boletos;
     renderizarBoletos(boletos);
 
     if (boletos.length > 0 && boletos[0].agencia) {
@@ -296,7 +302,7 @@ function renderizarBoletos(boletos) {
           ${SERVICOS.map(s => `<option value="${s}" ${b.servicos === s ? 'selected' : ''}>${s}</option>`).join('')}
         </select>
       </td>
-      <td><input type="text" list="listaClientesPJ" placeholder="Ex: Empresa X" value="${b.cliente || ''}" onchange="atualizarCampoBoleto(${b.id}, 'cliente', this.value)"></td>
+      <td><input type="text" list="listaClientesPJ" placeholder="Ex: Empresa X" value="${b.cliente || ''}" style="${b._clienteAutoPreenchido ? 'background-color: #FFFACD;' : ''}" onchange="atualizarCampoClienteBoleto(${b.id}, this.value); this.style.backgroundColor = '';"></td>
       <td><input type="text" placeholder="Observações" value="${b.observacao || ''}" onchange="atualizarCampoBoleto(${b.id}, 'observacao', this.value)"></td>
       <td style="padding:12px; text-align:center;">
         <button class="action-button delete" onclick="deletarBoleto(${b.id})" title="Deletar">🗑️</button>
@@ -408,6 +414,27 @@ async function atualizarCampoBoleto(id, campo, valor) {
     await SupabaseAPI.update('boletos', id, { [campo]: valor || null });
   } catch (error) {
     console.error('❌ Erro ao atualizar campo:', error);
+  }
+}
+
+// Wrapper do campo Cliente: salva + "aprende" a palavra-chave pra próxima vez
+async function atualizarCampoClienteBoleto(id, valor) {
+  await atualizarCampoBoleto(id, 'cliente', valor);
+  if (!valor) return;
+
+  const pj = (await SupabaseAPI.get('clientes_pj')).find(p => p.razao_social === valor && p.unidade_id === UNIDADE_ATIVA_BOLETO);
+  if (!pj) return;
+
+  const boleto = BOLETOS_CACHE.find(b => b.id === id);
+  if (!boleto || !boleto.pagador) return;
+
+  const palavraChave = boleto.pagador.trim().toUpperCase();
+  const parametrosExistentes = await SupabaseAPI.get('clientes_parametros');
+  const jaExiste = parametrosExistentes.some(p => p.pj_id === pj.id && p.palavra_chave === palavraChave);
+
+  if (!jaExiste) {
+    await SupabaseAPI.insert('clientes_parametros', { pj_id: pj.id, palavra_chave: palavraChave });
+    console.log(`🧠 Aprendido: "${palavraChave}" → ${pj.razao_social}`);
   }
 }
 

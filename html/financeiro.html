@@ -9,8 +9,8 @@
   <!-- XLSX -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.9.3">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.9.3">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.10.0">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.10.0">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -776,7 +776,7 @@
   <datalist id="listaClientesPJ"></datalist>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.9.3 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.10.0 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>
@@ -788,6 +788,8 @@
     let CATEGORIAS = [];
     let SERVICOS = [];
     let CLIENTES_PJ = [];
+    let EXTRATOS_CACHE = [];
+    let UNIDADE_ATIVA_FINANCEIRO = null;
 
     function formatarMoedaBR(valor) {
       return parseFloat(valor || 0).toLocaleString('pt-BR', {
@@ -922,6 +924,7 @@
       const unidadeFiltro = userCurrent.perfil === 'administrador'
         ? parseInt(document.getElementById('franquiaFilter').value)
         : userCurrent.unidade_id;
+      UNIDADE_ATIVA_FINANCEIRO = unidadeFiltro;
 
       try {
         let extratos = await SupabaseAPI.get('extratos');
@@ -943,6 +946,7 @@
         // Aplicar parâmetros de auto-preenchimento
         extratos = await aplicarParametrosAuto(extratos);
         extratos = await aplicarClientesParametros(extratos);
+        EXTRATOS_CACHE = extratos;
 
         extratos.forEach(e => {
           const tr = document.createElement('tr');
@@ -972,7 +976,7 @@
                 ${SERVICOS.map(s => `<option value="${s}" ${e.servicos === s ? 'selected' : ''}>${s}</option>`).join('')}
               </select>
             </td>
-            <td><input type="text" list="listaClientesPJ" placeholder="Ex: Empresa X" value="${e.cliente || ''}" onchange="atualizarCampo(${e.id}, 'cliente', this.value)"></td>
+            <td><input type="text" list="listaClientesPJ" placeholder="Ex: Empresa X" value="${e.cliente || ''}" style="${e._clienteAutoPreenchido ? 'background-color: #FFFACD;' : ''}" onchange="atualizarCampoCliente(${e.id}, this.value); this.style.backgroundColor = '';"></td>
             <td><input type="text" placeholder="Observações" value="${e.observacao || ''}" onchange="atualizarCampo(${e.id}, 'observacao', this.value)"></td>
             <td><button class="btn-danger" onclick="deletarExtrato(${e.id})">×</button></td>
           `;
@@ -993,6 +997,27 @@
         console.log(`✅ ${campo} atualizado`);
       } catch (error) {
         console.error('❌ Erro:', error);
+      }
+    }
+
+    // Wrapper do campo Cliente: salva + "aprende" a palavra-chave pra próxima vez
+    async function atualizarCampoCliente(id, valor) {
+      await atualizarCampo(id, 'cliente', valor);
+      if (!valor) return;
+
+      const pj = (await SupabaseAPI.get('clientes_pj')).find(p => p.razao_social === valor && p.unidade_id === UNIDADE_ATIVA_FINANCEIRO);
+      if (!pj) return; // valor digitado não corresponde a um PJ cadastrado, não aprende nada
+
+      const extrato = EXTRATOS_CACHE.find(e => e.id === id);
+      if (!extrato || !extrato.descricao) return;
+
+      const palavraChave = extrato.descricao.trim().toUpperCase();
+      const parametrosExistentes = await SupabaseAPI.get('clientes_parametros');
+      const jaExiste = parametrosExistentes.some(p => p.pj_id === pj.id && p.palavra_chave === palavraChave);
+
+      if (!jaExiste) {
+        await SupabaseAPI.insert('clientes_parametros', { pj_id: pj.id, palavra_chave: palavraChave });
+        console.log(`🧠 Aprendido: "${palavraChave}" → ${pj.razao_social}`);
       }
     }
 
@@ -1205,6 +1230,7 @@
 
         if (param && pjMap[param.pj_id]) {
           extrato.cliente = pjMap[param.pj_id];
+          extrato._clienteAutoPreenchido = true;
           atualizacoes.push(SupabaseAPI.update('extratos', extrato.id, { cliente: extrato.cliente }));
         }
 
