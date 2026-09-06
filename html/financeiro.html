@@ -9,8 +9,8 @@
   <!-- XLSX -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.11.4">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.11.4">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.11.5">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.11.5">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -638,6 +638,11 @@
 
     <div id="extrato" class="tab-content active">
 
+    <div class="form-group" id="grupoFranquia" style="display:none; max-width:320px;">
+      <label>Franquia</label>
+      <select id="franquiaFilter" onchange="trocarFranquia()"></select>
+    </div>
+
     <!-- INFORMAÇÕES DA CONTA -->
     <div class="conta-info">
       <div class="conta-item">
@@ -689,10 +694,6 @@
     <div class="card">
       <h3>Extratos</h3>
       <div class="form-row-3" id="filtrosRow" style="margin-bottom: 16px;">
-        <div class="form-group" id="grupoFranquia" style="display:none;">
-          <label>Franquia</label>
-          <select id="franquiaFilter" onchange="trocarFranquia()"></select>
-        </div>
         <div class="form-group">
           <label>Mês</label>
           <select id="mesFilter" onchange="loadExtratos()">
@@ -895,7 +896,7 @@
   <datalist id="listaClientesPJ"></datalist>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.11.4 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.11.5 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>
