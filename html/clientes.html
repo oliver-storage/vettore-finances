@@ -1,12 +1,12 @@
-<!-- Vettore Finances v1.9.11.1 • Desenvolvido por OliverStorage -->
+<!-- Vettore Finances v1.9.11.2 • Desenvolvido por OliverStorage -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vettore Finances - Clientes</title>
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.11.1">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.11.1">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.11.2">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.11.2">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -131,6 +131,21 @@
     </div>
 
     <div id="tabSituacaoClientes" class="sub-tab-content">
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:16px; margin-top:20px; margin-bottom:20px;">
+        <div class="card" style="margin:0;">
+          <p style="font-size:12px; color:var(--tinta-70); margin:0 0 8px 0; text-transform:uppercase; letter-spacing:0.5px;">Clientes Ativos</p>
+          <p id="cardClientesAtivos" style="font-size:32px; font-weight:700; color:var(--tinta); margin:0;">-</p>
+        </div>
+        <div class="card" style="margin:0;">
+          <p style="font-size:12px; color:var(--tinta-70); margin:0 0 8px 0; text-transform:uppercase; letter-spacing:0.5px;">Clientes Inadimplentes</p>
+          <p id="cardClientesInadimplentes" style="font-size:32px; font-weight:700; color:var(--alerta); margin:0;">-</p>
+        </div>
+        <div class="card" style="margin:0;">
+          <p style="font-size:12px; color:var(--tinta-70); margin:0 0 8px 0; text-transform:uppercase; letter-spacing:0.5px;">Índice de Inadimplência</p>
+          <p id="cardIndiceInadimplencia" style="font-size:32px; font-weight:700; color:var(--alerta); margin:0;">-</p>
+        </div>
+      </div>
+
       <div class="card" style="margin-top:20px;">
         <h3>Situação — Clientes Devedores</h3>
         <p style="font-size:13px; color:var(--tinta-70); margin-bottom:16px;">
@@ -393,7 +408,7 @@
   </div>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.11.1 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.11.2 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>

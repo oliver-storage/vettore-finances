@@ -129,12 +129,20 @@ async function carregarSituacaoClientes() {
   const todosBoletos = (await SupabaseAPI.get('boletos')).filter(b => b.unidade_id === unidadeAtivaCliente);
 
   const hoje = new Date();
+  const hojeStr = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
   const mesAtual = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
 
   const devedores = [];
+  let clientesAtivos = 0;
+  let clientesInadimplentes = 0;
 
   for (const pj of todosPj) {
     if (!pj.inicio_cobranca) continue;
+
+    // Cliente ativo: hoje está entre início da cobrança e final do contrato (ou sem final = sempre ativo)
+    const ativo = pj.inicio_cobranca <= hojeStr && (!pj.final_contrato || pj.final_contrato >= hojeStr);
+    if (ativo) clientesAtivos++;
+
     if (!pj.valor_contrato) continue;
 
     const inicioStr = pj.inicio_cobranca.slice(0, 7);
@@ -157,8 +165,14 @@ async function carregarSituacaoClientes() {
         meses: mesesEmAberto,
         valorTotal: mesesEmAberto.length * parseFloat(pj.valor_contrato || 0)
       });
+      if (ativo) clientesInadimplentes++;
     }
   }
+
+  const indice = clientesAtivos > 0 ? ((clientesInadimplentes / clientesAtivos) * 100).toFixed(1) : '0.0';
+  document.getElementById('cardClientesAtivos').textContent = clientesAtivos;
+  document.getElementById('cardClientesInadimplentes').textContent = clientesInadimplentes;
+  document.getElementById('cardIndiceInadimplencia').textContent = `${indice}%`;
 
   if (devedores.length === 0) {
     tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:var(--tinta-40);">Nenhum cliente devedor 🎉</td></tr>';
