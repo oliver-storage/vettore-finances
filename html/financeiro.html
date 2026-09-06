@@ -9,8 +9,8 @@
   <!-- XLSX -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.9.1">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.9.1">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.9.2">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.9.2">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -773,8 +773,10 @@
 
   </div>
 
+  <datalist id="listaClientesPJ"></datalist>
+
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.9.1 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.9.2 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>
@@ -785,6 +787,7 @@
   <script>
     let CATEGORIAS = [];
     let SERVICOS = [];
+    let CLIENTES_PJ = [];
 
     function formatarMoedaBR(valor) {
       return parseFloat(valor || 0).toLocaleString('pt-BR', {
@@ -800,6 +803,11 @@
         currency: 'BRL'
       });
       return v >= 0 ? `+ ${formatado}` : `- ${formatado}`;
+    }
+
+    function atualizarDatalistClientesPJ() {
+      const datalist = document.getElementById('listaClientesPJ');
+      datalist.innerHTML = CLIENTES_PJ.map(nome => `<option value="${nome}">`).join('');
     }
 
     function corValor(valor) {
@@ -849,6 +857,8 @@
           ? parseInt(document.getElementById('franquiaFilter').value)
           : user.unidade_id;
         const franquia = unidades.find(u => u.id === franquiaSelecionadaId);
+        CLIENTES_PJ = (await SupabaseAPI.get('clientes_pj')).filter(pj => pj.unidade_id === franquiaSelecionadaId).map(pj => pj.razao_social);
+        atualizarDatalistClientesPJ();
         
         document.getElementById('userName').textContent = `${franquia?.nomefranquia} - ${user.nome}`;
         
@@ -897,6 +907,8 @@
       document.getElementById('inputBanco').value = franquia?.banco || '';
       document.getElementById('inputAgencia').value = franquia?.agencia || '';
       document.getElementById('inputConta').value = franquia?.conta || '';
+      CLIENTES_PJ = (await SupabaseAPI.get('clientes_pj')).filter(pj => pj.unidade_id === franquiaId).map(pj => pj.razao_social);
+      atualizarDatalistClientesPJ();
 
       await loadExtratos(user);
       atualizarSelecionamentos();
@@ -960,7 +972,7 @@
                 ${SERVICOS.map(s => `<option value="${s}" ${e.servicos === s ? 'selected' : ''}>${s}</option>`).join('')}
               </select>
             </td>
-            <td><input type="text" placeholder="Ex: Empresa X" value="${e.cliente || ''}" onchange="atualizarCampo(${e.id}, 'cliente', this.value)"></td>
+            <td><input type="text" list="listaClientesPJ" placeholder="Ex: Empresa X" value="${e.cliente || ''}" onchange="atualizarCampo(${e.id}, 'cliente', this.value)"></td>
             <td><input type="text" placeholder="Observações" value="${e.observacao || ''}" onchange="atualizarCampo(${e.id}, 'observacao', this.value)"></td>
             <td><button class="btn-danger" onclick="deletarExtrato(${e.id})">×</button></td>
           `;

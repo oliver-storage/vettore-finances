@@ -296,7 +296,7 @@ function renderizarBoletos(boletos) {
           ${SERVICOS.map(s => `<option value="${s}" ${b.servicos === s ? 'selected' : ''}>${s}</option>`).join('')}
         </select>
       </td>
-      <td><input type="text" placeholder="Ex: Empresa X" value="${b.cliente || ''}" onchange="atualizarCampoBoleto(${b.id}, 'cliente', this.value)"></td>
+      <td><input type="text" list="listaClientesPJ" placeholder="Ex: Empresa X" value="${b.cliente || ''}" onchange="atualizarCampoBoleto(${b.id}, 'cliente', this.value)"></td>
       <td><input type="text" placeholder="Observações" value="${b.observacao || ''}" onchange="atualizarCampoBoleto(${b.id}, 'observacao', this.value)"></td>
       <td style="padding:12px; text-align:center;">
         <button class="action-button delete" onclick="deletarBoleto(${b.id})" title="Deletar">🗑️</button>
