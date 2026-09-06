@@ -9,8 +9,8 @@
   <!-- XLSX -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.6.0">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.6.0">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.7.0">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.7.0">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -600,20 +600,98 @@
     </div>
 
     <div id="boleto" class="tab-content">
+
+      <!-- INFORMAÇÕES DA CONTA -->
+      <div class="conta-info">
+        <div class="conta-item">
+          <label>Agência</label>
+          <value id="infoAgenciaBoleto">-</value>
+        </div>
+        <div class="conta-item">
+          <label>Conta</label>
+          <value id="infoContaBoleto">-</value>
+        </div>
+      </div>
+
+      <!-- IMPORTAÇÃO -->
       <div class="card">
-        <p style="color: var(--tinta-70);">Estrutura da aba Boleto — conteúdo em breve.</p>
+        <h3>Importar Relatório de Boletos</h3>
+        <button class="btn-primary" onclick="document.getElementById('fileInputBoleto').click()">
+          📤 Importar XLS/XLSX
+        </button>
+        <input type="file" id="fileInputBoleto" accept=".xls,.xlsx" style="display:none;" onchange="handleFileUploadBoleto(event)">
+      </div>
+
+      <!-- TABELA DE BOLETOS -->
+      <div class="card">
+        <h3>Boletos</h3>
+        <div class="form-row-3" style="margin-bottom: 16px;">
+          <div class="form-group">
+            <label>Mês (vencimento)</label>
+            <select id="mesFilterBoleto" onchange="loadBoletos()">
+              <option value="">Todos</option>
+              <option value="01">Janeiro</option>
+              <option value="02">Fevereiro</option>
+              <option value="03">Março</option>
+              <option value="04">Abril</option>
+              <option value="05">Maio</option>
+              <option value="06">Junho</option>
+              <option value="07">Julho</option>
+              <option value="08">Agosto</option>
+              <option value="09">Setembro</option>
+              <option value="10">Outubro</option>
+              <option value="11">Novembro</option>
+              <option value="12">Dezembro</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Ano</label>
+            <select id="anoFilterBoleto" onchange="loadBoletos()">
+              <option value="">Todos</option>
+            </select>
+          </div>
+        </div>
+
+        <p style="margin: 8px 0;">
+          <span id="contadorSelecionadosBoleto">0</span> boleto(s) selecionado(s)
+          <button class="btn-danger" id="btnDeletarSelecionadosBoleto" onclick="deletarSelecionadosBoleto()" style="display:none; margin-left: 12px; padding: 6px 14px;">🗑️ Deletar Selecionados</button>
+        </p>
+
+        <div class="table-wrapper" style="overflow-x:auto;">
+          <table id="tabelaBoletos" style="width:100%;">
+            <thead>
+              <tr>
+                <th style="width:20px; text-align:center; padding:12px 0;">
+                  <input type="checkbox" class="checkbox-sistema" id="selectTodosBoleto" onchange="selecionarTodosBoleto(this.checked)">
+                </th>
+                <th style="padding:12px;">Cart</th>
+                <th style="padding:12px;">Nº Doc</th>
+                <th style="padding:12px;">Nosso Nº</th>
+                <th style="padding:12px;">Pagador</th>
+                <th style="padding:12px;">Vencimento</th>
+                <th style="padding:12px;">Liquidação</th>
+                <th style="padding:12px; text-align:right;">Valor</th>
+                <th style="padding:12px; text-align:right;">Valor Liq.</th>
+                <th style="padding:12px;">Situação</th>
+                <th style="text-align:center; width:60px; padding:12px;">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyBoleto"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
   </div>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.6.0 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.7.0 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>
   <script src="../js/supabase-utils.js"></script>
   <script src="../js/importador.js"></script>
+  <script src="../js/importador-boletos.js"></script>
 
   <script>
     let CATEGORIAS = [];
@@ -707,6 +785,7 @@
         // Carregar dados
         await loadExtratos(user);
         atualizarSelecionamentos();
+        await loadBoletos();
 
       } catch (error) {
         console.error('❌ Erro:', error);
@@ -730,6 +809,7 @@
 
       await loadExtratos(user);
       atualizarSelecionamentos();
+      await loadBoletos();
     }
 
     async function loadExtratos(user) {
