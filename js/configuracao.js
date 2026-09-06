@@ -607,6 +607,33 @@ function tabelaLista(lista) {
   return 'servicos';
 }
 
+async function carregarCategoriaPadraoBoleto() {
+  const select = document.getElementById('selectCategoriaPadraoBoleto');
+  if (!select) return;
+
+  const categorias = (await SupabaseAPI.get('categorias')).map(r => r.nome);
+  const configs = await SupabaseAPI.get('configuracoes_sistema');
+  const atual = configs.find(c => c.chave === 'categoria_padrao_boleto')?.valor || '';
+
+  select.innerHTML = '<option value="">Nenhuma (não preenche automático)</option>' +
+    categorias.map(c => `<option value="${c}" ${c === atual ? 'selected' : ''}>${c}</option>`).join('');
+}
+
+async function salvarCategoriaPadraoBoleto() {
+  const valor = document.getElementById('selectCategoriaPadraoBoleto').value;
+
+  const configs = await SupabaseAPI.get('configuracoes_sistema');
+  const existente = configs.find(c => c.chave === 'categoria_padrao_boleto');
+
+  if (existente) {
+    await SupabaseAPI.update('configuracoes_sistema', existente.id, { valor });
+  } else {
+    await SupabaseAPI.insert('configuracoes_sistema', { chave: 'categoria_padrao_boleto', valor });
+  }
+
+  alert('✅ Categoria padrão dos boletos atualizada!');
+}
+
 async function carregarLista() {
   const lista = document.getElementById('selectLista')?.value || 'categorias';
   const container = document.getElementById('containerChips');

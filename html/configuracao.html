@@ -5,8 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vettore Finances - Configuração</title>
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.15.0">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.15.0">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.15.1">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.15.1">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -471,6 +471,17 @@
           </p>
         </div>
 
+        <!-- CATEGORIA PADRÃO DO BOLETO -->
+        <div class="card" style="margin-top:20px;">
+          <h4>Categoria Padrão dos Boletos</h4>
+          <p style="font-size:12px; color:var(--tinta-70); margin-bottom:16px;">
+            Quando um boleto é importado sem categoria definida, essa é a categoria aplicada automaticamente.
+          </p>
+          <select id="selectCategoriaPadraoBoleto" onchange="salvarCategoriaPadraoBoleto()" style="width:100%; max-width:320px; padding:12px; border:2px solid var(--marca); border-radius:6px; font-size:14px;">
+            <option value="">Selecione...</option>
+          </select>
+        </div>
+
         <!-- PARÂMETROS DE AUTO-PREENCHIMENTO (MODELO ANTIGO) -->
         <div class="card" style="margin-top:20px;">
           <h4>⚙️ Parâmetros de Auto-Preenchimento</h4>
@@ -577,9 +588,10 @@
           </p>
         </div>
       </div>
+    </div>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.15.0 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.15.1 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>
@@ -606,6 +618,7 @@
           carregarLista();
           atualizarSelectsParametros();
           carregarParametros();
+          carregarCategoriaPadraoBoleto();
         }, 50);
       }
 

@@ -245,13 +245,18 @@ function atualizarResumoBoletos(boletos) {
 }
 
 async function aplicarCategoriaPadraoBoleto(boletos) {
+  const configs = await SupabaseAPI.get('configuracoes_sistema');
+  const categoriaPadrao = configs.find(c => c.chave === 'categoria_padrao_boleto')?.valor;
+
+  if (!categoriaPadrao) return boletos;
+
   const atualizacoes = [];
 
   const resultado = boletos.map(b => {
     if (!b.categoria) {
-      b.categoria = 'BOLETOS';
+      b.categoria = categoriaPadrao;
       b._categoriaAutoPreenchida = true;
-      atualizacoes.push(SupabaseAPI.update('boletos', b.id, { categoria: 'BOLETOS' }));
+      atualizacoes.push(SupabaseAPI.update('boletos', b.id, { categoria: categoriaPadrao }));
     }
     return b;
   });
