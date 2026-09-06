@@ -9,6 +9,9 @@ let PJ_CACHE = [];
 let palavrasChaveAtuais = [];
 let pfVinculadosAtuais = [];
 let pjVinculadosAtuais = [];
+let servicosContratadosAtuais = [];
+let CONTRATO_OBRIGACOES_CACHE = [];
+const SECOES_SERVICO = ['Fiscal', 'Contábil', 'Departamento Pessoal'];
 
 function adicionarPalavraChaveTemp() {
   const input = document.getElementById('inputNovaPalavraChave');
@@ -560,6 +563,55 @@ async function deletarPF(id) {
 }
 
 // ========== PESSOA JURÍDICA ==========
+function renderizarLinhasObrigacao(conteudo) {
+  if (!conteudo) return '<p style="font-size:11px; color:var(--tinta-40); margin:0;">Sem obrigações cadastradas.</p>';
+  const linhas = conteudo.split('\n').filter(l => l.trim());
+  return '<ul style="font-size:11px; color:var(--tinta-70); line-height:1.5; margin:8px 0 0 0; padding-left:16px;">' +
+    linhas.map(linha => {
+      const [rotulo, ...resto] = linha.split('|');
+      const texto = resto.join('|');
+      return texto ? `<li><strong>${rotulo}:</strong> ${texto}</li>` : `<li>${rotulo}</li>`;
+    }).join('') +
+    '</ul>';
+}
+
+async function atualizarCardsServicoContratado() {
+  const regime = document.getElementById('pjRegimeTributario').value;
+  const container = document.getElementById('cardsServicoContratado');
+
+  if (!regime) {
+    container.innerHTML = '<p style="font-size:12px; color:var(--tinta-40);">Selecione um Regime Tributário acima pra ver as opções.</p>';
+    return;
+  }
+
+  if (CONTRATO_OBRIGACOES_CACHE.length === 0) {
+    CONTRATO_OBRIGACOES_CACHE = await SupabaseAPI.get('contrato_obrigacoes');
+  }
+
+  container.innerHTML = SECOES_SERVICO.map(secao => {
+    const registro = CONTRATO_OBRIGACOES_CACHE.find(c => c.regime === regime && c.secao === secao);
+    const marcado = servicosContratadosAtuais.includes(secao);
+    return `
+      <div style="border:1px solid var(--linha); border-radius:6px; padding:12px; background:${marcado ? 'var(--papel)' : 'var(--papel-alto)'};">
+        <label style="display:flex; align-items:center; gap:8px; font-weight:600; font-size:13px; cursor:pointer; margin:0;">
+          <input type="checkbox" class="checkbox-sistema" ${marcado ? 'checked' : ''} onchange="toggleServicoContratado('${secao}', this.checked)">
+          ${secao}
+        </label>
+        ${renderizarLinhasObrigacao(registro?.conteudo)}
+      </div>
+    `;
+  }).join('');
+}
+
+function toggleServicoContratado(secao, marcado) {
+  if (marcado && !servicosContratadosAtuais.includes(secao)) {
+    servicosContratadosAtuais.push(secao);
+  } else if (!marcado) {
+    servicosContratadosAtuais = servicosContratadosAtuais.filter(s => s !== secao);
+  }
+  atualizarCardsServicoContratado();
+}
+
 async function popularVinculosPFnoFormPJ() {
   const container = document.getElementById('pjVinculosPF');
   if (!container) return;
@@ -635,6 +687,7 @@ async function salvarPJ(event) {
     segmento: document.getElementById('pjSegmento').value.trim() || null,
     porte: document.getElementById('pjPorte').value.trim() || null,
     regime_tributario: document.getElementById('pjRegimeTributario').value.trim() || null,
+    servicos_contratados: servicosContratadosAtuais.length > 0 ? servicosContratadosAtuais : null,
     natureza_juridica: document.getElementById('pjNaturezaJuridica').value.trim() || null,
     cnae: document.getElementById('pjCNAE').value.trim() || null,
     capital_social: document.getElementById('pjCapitalSocial').value.trim() || null,
@@ -724,6 +777,8 @@ async function editarPJ(id) {
   document.getElementById('pjSegmento').value = j.segmento || '';
   document.getElementById('pjPorte').value = j.porte || '';
   document.getElementById('pjRegimeTributario').value = j.regime_tributario || '';
+  servicosContratadosAtuais = j.servicos_contratados || [];
+  await atualizarCardsServicoContratado();
   document.getElementById('pjNaturezaJuridica').value = j.natureza_juridica || '';
   document.getElementById('pjCNAE').value = j.cnae || '';
   document.getElementById('pjCapitalSocial').value = j.capital_social || '';
@@ -750,6 +805,8 @@ function limparFormularioPJ() {
   renderizarChipsPFVinculadas();
   palavrasChaveAtuais = [];
   renderizarChipsPalavraChave();
+  servicosContratadosAtuais = [];
+  atualizarCardsServicoContratado();
 }
 
 async function deletarPJ(id) {

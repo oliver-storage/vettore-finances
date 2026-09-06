@@ -1,12 +1,12 @@
-<!-- Vettore Finances v1.9.17.2 • Desenvolvido por OliverStorage -->
+<!-- Vettore Finances v1.9.18.0 • Desenvolvido por OliverStorage -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vettore Finances - Clientes</title>
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.17.2">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.17.2">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.18.0">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.18.0">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -337,13 +337,21 @@
               </div>
               <div class="form-group">
                 <label>Regime Tributário</label>
-                <select id="pjRegimeTributario">
+                <select id="pjRegimeTributario" onchange="atualizarCardsServicoContratado()">
                   <option value="">Selecione...</option>
                 </select>
               </div>
               <div class="form-group">
                 <label>Natureza Jurídica</label>
                 <input type="text" id="pjNaturezaJuridica">
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-top:12px;">
+              <label>Serviços Contábeis Contratados</label>
+              <p style="font-size:12px; color:var(--tinta-70); margin:4px 0 12px 0;">Marque quais serviços esse cliente contrata (baseado nas obrigações do regime tributário selecionado).</p>
+              <div id="cardsServicoContratado" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:12px;">
+                <p style="font-size:12px; color:var(--tinta-40);">Selecione um Regime Tributário acima pra ver as opções.</p>
               </div>
             </div>
 
@@ -415,7 +423,7 @@
   </div>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.17.2 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.18.0 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>
