@@ -268,6 +268,25 @@ function atualizarResumoBoletos(boletos) {
   }
 }
 
+async function aplicarCategoriaPadraoBoleto(boletos) {
+  const atualizacoes = [];
+
+  const resultado = boletos.map(b => {
+    if (!b.categoria) {
+      b.categoria = 'BOLETOS';
+      b._categoriaAutoPreenchida = true;
+      atualizacoes.push(SupabaseAPI.update('boletos', b.id, { categoria: 'BOLETOS' }));
+    }
+    return b;
+  });
+
+  if (atualizacoes.length > 0) {
+    await Promise.all(atualizacoes);
+  }
+
+  return resultado;
+}
+
 // ========== LISTAGEM / FILTROS ==========
 async function loadBoletos() {
   const user = JSON.parse(localStorage.getItem('currentUser'));
@@ -276,34 +295,32 @@ async function loadBoletos() {
     ? parseInt(franquiaFilter.value)
     : user.unidade_id;
 
-  const mes = document.getElementById('mesFilterBoleto').value;
-  const ano = document.getElementById('anoFilterBoleto').value;
+  const mesAno = document.getElementById('mesAnoFilterBoleto').value; // formato: YYYY-MM
 
   try {
     let boletos = await SupabaseAPI.get('boletos');
     boletos = boletos.filter(b => b.unidade_id === unidadeIdAtivo);
     UNIDADE_ATIVA_BOLETO = unidadeIdAtivo;
 
-    if (mes || ano) {
-      boletos = boletos.filter(b => {
-        if (!b.data_vencimento) return false;
-        const [anoB, mesB] = b.data_vencimento.split('-');
-        if (mes && mesB !== mes) return false;
-        if (ano && anoB !== ano) return false;
-        return true;
-      });
+    // Popular select de Mês/Ano só com os meses que existem de fato nos dados dessa franquia
+    const nomesMeses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    const selectMesAno = document.getElementById('mesAnoFilterBoleto');
+    const mesesExistentes = [...new Set(boletos.map(b => b.data_vencimento?.slice(0, 7)).filter(Boolean))].sort();
+    const mesAnoAtual = selectMesAno.value;
+    selectMesAno.innerHTML = '<option value="">Todos</option>' + mesesExistentes.map(ma => {
+      const [anoOpt, mesOpt] = ma.split('-');
+      return `<option value="${ma}">${nomesMeses[parseInt(mesOpt) - 1]}/${anoOpt}</option>`;
+    }).join('');
+    selectMesAno.value = mesAnoAtual;
+
+    if (mesAno) {
+      boletos = boletos.filter(b => b.data_vencimento && b.data_vencimento.slice(0, 7) === mesAno);
     }
 
     boletos.sort((a, b) => (a.data_liquidacao || '').localeCompare(b.data_liquidacao || ''));
 
-    // Popular select de anos
-    const selectAno = document.getElementById('anoFilterBoleto');
-    const anosExistentes = [...new Set(boletos.map(b => b.data_vencimento?.split('-')[0]).filter(Boolean))].sort();
-    const anoAtual = selectAno.value;
-    selectAno.innerHTML = '<option value="">Todos</option>' + anosExistentes.map(a => `<option value="${a}">${a}</option>`).join('');
-    selectAno.value = anoAtual;
-
     boletos = await aplicarClientesParametrosBoleto(boletos);
+    boletos = await aplicarCategoriaPadraoBoleto(boletos);
     atualizarResumoBoletos(boletos);
     BOLETOS_CACHE = boletos;
     renderizarBoletos(boletos);
@@ -353,7 +370,7 @@ function renderizarBoletos(boletos) {
       <td style="padding:12px; color:${corSituacao}; font-weight:600;">${b.situacao || '-'}</td>
       <td><input type="date" value="${dataRef}" onchange="atualizarCampoBoleto(${b.id}, 'data_referencia', this.value)"></td>
       <td>
-        <select onchange="atualizarCampoBoleto(${b.id}, 'categoria', this.value)">
+        <select onchange="atualizarCampoBoleto(${b.id}, 'categoria', this.value); this.style.backgroundColor = '';" style="${b._categoriaAutoPreenchida ? 'background-color: #FFFACD;' : ''}">
           <option value="">Selecione...</option>
           ${CATEGORIAS.map(c => `<option value="${c}" ${b.categoria === c ? 'selected' : ''}>${c}</option>`).join('')}
         </select>
