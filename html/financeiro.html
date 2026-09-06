@@ -9,8 +9,8 @@
   <!-- XLSX -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.10.4">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.10.4">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.10.5">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.10.5">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -331,6 +331,27 @@
       border-collapse: separate;
       border-spacing: 0;
       overflow: visible;
+    }
+
+    #tabelaBoletos thead th {
+      background: var(--marca);
+      color: white;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      padding: 14px 12px;
+      font-weight: 600;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Override: manter azul nas colunas fixas do header */
+    #tabelaBoletos thead th:nth-child(1),
+    #tabelaBoletos thead th:nth-child(2),
+    #tabelaBoletos thead th:nth-child(3) {
+      background: var(--marca);
+      color: white;
     }
 
     /* COLUNAS FIXAS - Checkbox, Pagador, Liquidação */
@@ -810,7 +831,7 @@
   <datalist id="listaClientesPJ"></datalist>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.10.4 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.10.5 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>
