@@ -1095,7 +1095,7 @@ function chaveContrato(regime, secao) {
 function renderizarLinhasContrato(conteudo) {
   if (!conteudo) return '<p style="font-size:12px; color:var(--tinta-40);">Nenhum conteúdo cadastrado ainda.</p>';
   const linhas = conteudo.split('\n').filter(l => l.trim());
-  return '<ul style="font-size:13px; color:var(--tinta); line-height:1.6; margin:0; padding-left:20px;">' +
+  return '<ul style="font-size:13px; color:var(--tinta); line-height:1.6; margin:0; padding-left:20px; word-wrap:break-word; overflow-wrap:break-word; max-width:100%;">' +
     linhas.map(linha => {
       const [rotulo, ...resto] = linha.split('|');
       const texto = resto.join('|');
@@ -1128,7 +1128,7 @@ async function carregarContrato() {
               ${renderizarLinhasContrato(registro?.conteudo)}
             </div>
             <div id="edit_${chave}" style="display:none; margin-top:8px;">
-              <textarea id="textarea_${chave}" rows="6" style="width:100%; font-family:monospace; font-size:12px; padding:10px; border:1px solid var(--linha); border-radius:4px;" placeholder="Rótulo|Descrição (uma linha por item)">${registro?.conteudo || ''}</textarea>
+              <textarea id="textarea_${chave}" rows="6" style="width:100%; box-sizing:border-box; font-family:monospace; font-size:12px; padding:10px; border:1px solid var(--linha); border-radius:4px;" placeholder="Rótulo|Descrição (uma linha por item)">${registro?.conteudo || ''}</textarea>
               <p style="font-size:11px; color:var(--tinta-40); margin:4px 0;">Formato: Rótulo|Descrição — uma linha por item da lista.</p>
               <div style="display:flex; gap:8px;">
                 <button class="btn-primary" onclick="salvarSecaoContrato('${regime}', '${secao}')" style="padding:8px 14px; font-size:12px;">Salvar</button>
