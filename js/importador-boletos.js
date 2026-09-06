@@ -237,6 +237,12 @@ function atualizarResumoBoletos(boletos) {
   const valorTotal = boletos.reduce((soma, b) => soma + (parseFloat(b.valor) || 0), 0);
   document.getElementById('cardValorBoletos').textContent = valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
+  const comCliente = boletos.filter(b => b.cliente && b.cliente.trim() !== '');
+  document.getElementById('cardQtdBoletosComCliente').textContent = comCliente.length;
+
+  const valorComCliente = comCliente.reduce((soma, b) => soma + (parseFloat(b.valor) || 0), 0);
+  document.getElementById('cardValorBoletosComCliente').textContent = valorComCliente.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
   const resumo = {};
   (typeof CATEGORIAS !== 'undefined' ? CATEGORIAS : []).forEach(cat => { resumo[cat] = 0; });
 
