@@ -151,23 +151,33 @@ function parseBoletos(dados, unidadeId, agencia, conta) {
 }
 
 async function salvarBoletosSupabase(boletos, agencia, conta) {
-  try {
-    for (const boleto of boletos) {
+  let sucesso = 0;
+  const erros = [];
+
+  for (const boleto of boletos) {
+    try {
       await SupabaseAPI.insert('boletos', boleto);
+      sucesso++;
+    } catch (error) {
+      console.error('❌ Erro ao salvar linha:', boleto, error);
+      erros.push({ pagador: boleto.pagador, vencimento: boleto.data_vencimento, erro: error.message });
     }
+  }
 
-    alert(`✅ ${boletos.length} boletos importados com sucesso!`);
-    document.getElementById('fileInputBoleto').value = '';
+  document.getElementById('fileInputBoleto').value = '';
 
-    if (agencia) document.getElementById('infoAgenciaBoleto').textContent = agencia;
-    if (conta) document.getElementById('infoContaBoleto').textContent = conta;
+  if (agencia) document.getElementById('infoAgenciaBoleto').textContent = agencia;
+  if (conta) document.getElementById('infoContaBoleto').textContent = conta;
 
-    if (typeof loadBoletos === 'function') {
-      loadBoletos();
-    }
-  } catch (error) {
-    console.error('❌ Erro ao salvar:', error);
-    alert('Erro ao salvar: ' + error.message);
+  if (erros.length > 0) {
+    console.warn(`⚠️ ${erros.length} linha(s) falharam ao importar:`, erros);
+    alert(`⚠️ Importado com falhas: ${sucesso} de ${boletos.length} boletos salvos.\n${erros.length} linha(s) falharam — veja o Console (F12) pra detalhes.`);
+  } else {
+    alert(`✅ ${sucesso} boletos importados com sucesso!`);
+  }
+
+  if (typeof loadBoletos === 'function') {
+    loadBoletos();
   }
 }
 

@@ -219,20 +219,29 @@ function parseXLS(dados, unidadeId, mes, ano, banco, agencia, conta) {
 }
 
 async function salvarExtratosSupabase(extratos) {
-  try {
-    for (const extrato of extratos) {
-      await SupabaseAPI.insert('extratos', extrato);
-    }
+  let sucesso = 0;
+  const erros = [];
 
-    console.log('✅ Importados:', extratos.length);
-    alert(`✅ ${extratos.length} extratos importados com sucesso!`);
-    
-    document.getElementById('fileInput').value = '';
-    if (typeof loadExtratos === 'function') {
-      loadExtratos();
+  for (const extrato of extratos) {
+    try {
+      await SupabaseAPI.insert('extratos', extrato);
+      sucesso++;
+    } catch (error) {
+      console.error('❌ Erro ao salvar linha:', extrato, error);
+      erros.push({ descricao: extrato.descricao, data: extrato.data, erro: error.message });
     }
-  } catch (error) {
-    console.error('❌ Erro ao salvar:', error);
-    alert('Erro ao salvar: ' + error.message);
+  }
+
+  document.getElementById('fileInput').value = '';
+
+  if (erros.length > 0) {
+    console.warn(`⚠️ ${erros.length} linha(s) falharam ao importar:`, erros);
+    alert(`⚠️ Importado com falhas: ${sucesso} de ${extratos.length} extratos salvos.\n${erros.length} linha(s) falharam — veja o Console (F12) pra detalhes.`);
+  } else {
+    alert(`✅ ${sucesso} extratos importados com sucesso!`);
+  }
+
+  if (typeof loadExtratos === 'function') {
+    loadExtratos();
   }
 }
