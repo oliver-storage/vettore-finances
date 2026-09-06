@@ -9,8 +9,8 @@
   <!-- XLSX -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.5.2">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.5.2">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.6.0">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.6.0">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -453,7 +453,14 @@
 
   <div class="container">
     <h2 style="color: var(--tinta);">Financeiro</h2>
-    <p class="subtitle">Gestão de extratos bancários por categoria</p>
+    <p class="subtitle">Gestão de extratos bancários e boletos por categoria</p>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTabFinanceiro('extrato')">Extrato</button>
+      <button class="tab-btn" onclick="switchTabFinanceiro('boleto')">Boleto</button>
+    </div>
+
+    <div id="extrato" class="tab-content active">
 
     <!-- INFORMAÇÕES DA CONTA -->
     <div class="conta-info">
@@ -589,10 +596,19 @@
         </table>
       </div>
     </div>
+
+    </div>
+
+    <div id="boleto" class="tab-content">
+      <div class="card">
+        <p style="color: var(--tinta-70);">Estrutura da aba Boleto — conteúdo em breve.</p>
+      </div>
+    </div>
+
   </div>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.5.2 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.6.0 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>
@@ -1005,6 +1021,17 @@
       } else {
         resumoDiv.style.display = 'none';
       }
+    }
+
+    function switchTabFinanceiro(tabName) {
+      document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      document.querySelectorAll('.tabs .tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      document.getElementById(tabName).classList.add('active');
+      event.target.classList.add('active');
     }
 
     if (document.readyState === 'loading') {
