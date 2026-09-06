@@ -305,7 +305,7 @@ async function loadBoletos() {
     // Popular select de Mês/Ano só com os meses que existem de fato nos dados dessa franquia
     const nomesMeses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
     const selectMesAno = document.getElementById('mesAnoFilterBoleto');
-    const mesesExistentes = [...new Set(boletos.map(b => b.data_vencimento?.slice(0, 7)).filter(Boolean))].sort();
+    const mesesExistentes = [...new Set(boletos.map(b => b.data_liquidacao?.slice(0, 7)).filter(Boolean))].sort();
     const mesAnoAtual = selectMesAno.value;
     selectMesAno.innerHTML = '<option value="">Todos</option>' + mesesExistentes.map(ma => {
       const [anoOpt, mesOpt] = ma.split('-');
@@ -314,7 +314,7 @@ async function loadBoletos() {
     selectMesAno.value = mesAnoAtual;
 
     if (mesAno) {
-      boletos = boletos.filter(b => b.data_vencimento && b.data_vencimento.slice(0, 7) === mesAno);
+      boletos = boletos.filter(b => b.data_liquidacao && b.data_liquidacao.slice(0, 7) === mesAno);
     }
 
     boletos.sort((a, b) => (a.data_liquidacao || '').localeCompare(b.data_liquidacao || ''));
