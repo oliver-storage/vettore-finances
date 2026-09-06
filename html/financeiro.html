@@ -9,8 +9,8 @@
   <!-- XLSX -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.10.7">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.10.7">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.10.8">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.10.8">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -262,11 +262,36 @@
       letter-spacing: 0.5px;
     }
 
-    /* Override: manter azul nas colunas fixas do header */
-    #tabelaExtratos thead th:nth-child(1),
-    #tabelaExtratos thead th:nth-child(2),
-    #tabelaExtratos thead th:nth-child(3),
+    /* Células do canto: header + coluna fixa ao mesmo tempo - regra única e explícita */
+    #tabelaExtratos thead th:nth-child(1) {
+      position: sticky;
+      top: 0;
+      left: 0;
+      z-index: 30;
+      background: var(--marca);
+      color: white;
+    }
+    #tabelaExtratos thead th:nth-child(2) {
+      position: sticky;
+      top: 0;
+      left: 20px;
+      z-index: 30;
+      background: var(--marca);
+      color: white;
+    }
+    #tabelaExtratos thead th:nth-child(3) {
+      position: sticky;
+      top: 0;
+      left: 100px;
+      z-index: 30;
+      background: var(--marca);
+      color: white;
+    }
     #tabelaExtratos thead th:nth-child(4) {
+      position: sticky;
+      top: 0;
+      left: 420px;
+      z-index: 30;
       background: var(--marca);
       color: white;
     }
@@ -348,13 +373,39 @@
       letter-spacing: 0.5px;
     }
 
-    /* Override: manter azul nas colunas fixas do header */
-    #tabelaBoletos thead th:nth-child(1),
-    #tabelaBoletos thead th:nth-child(2),
-    #tabelaBoletos thead th:nth-child(3),
-    #tabelaBoletos thead th:nth-child(4) {
+    /* Células do canto: header + coluna fixa ao mesmo tempo - regra única e explícita */
+    #tabelaBoletos thead th:nth-child(1) {
+      position: sticky;
+      top: 0;
+      left: 0;
+      z-index: 30;
       background: var(--marca);
       color: white;
+    }
+    #tabelaBoletos thead th:nth-child(2) {
+      position: sticky;
+      top: 0;
+      left: 20px;
+      z-index: 30;
+      background: var(--marca);
+      color: white;
+    }
+    #tabelaBoletos thead th:nth-child(3) {
+      position: sticky;
+      top: 0;
+      left: 240px;
+      z-index: 30;
+      background: var(--marca);
+      color: white;
+    }
+    #tabelaBoletos thead th:nth-child(4) {
+      position: sticky;
+      top: 0;
+      left: 340px;
+      z-index: 30;
+      background: var(--marca);
+      color: white;
+      text-align: right;
     }
 
     /* COLUNAS FIXAS - Checkbox, Pagador, Liquidação */
@@ -844,7 +895,7 @@
   <datalist id="listaClientesPJ"></datalist>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.10.7 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.10.8 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>
