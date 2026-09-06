@@ -9,8 +9,8 @@
   <!-- XLSX -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.8.1">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.8.1">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.9.0">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.9.0">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -774,7 +774,7 @@
   </div>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.8.1 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.9.0 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>
@@ -930,6 +930,7 @@
 
         // Aplicar parâmetros de auto-preenchimento
         extratos = await aplicarParametrosAuto(extratos);
+        extratos = await aplicarClientesParametros(extratos);
 
         extratos.forEach(e => {
           const tr = document.createElement('tr');
@@ -1170,6 +1171,41 @@
       });
     }
     // ========== FIM PARÂMETROS ==========
+
+    // ========== LOCALIZAR CLIENTE PJ AUTOMATICAMENTE (palavra-chave) ==========
+    async function aplicarClientesParametros(extratos) {
+      const parametros = await SupabaseAPI.get('clientes_parametros');
+      if (parametros.length === 0) return extratos;
+
+      const pjIds = [...new Set(parametros.map(p => p.pj_id))];
+      const todosPj = await SupabaseAPI.get('clientes_pj');
+      const pjMap = {};
+      todosPj.forEach(pj => { pjMap[pj.id] = pj.razao_social; });
+
+      const atualizacoes = [];
+
+      const resultado = extratos.map(extrato => {
+        if (extrato.cliente) return extrato; // não sobrescreve valor já preenchido
+
+        const param = parametros.find(p =>
+          extrato.descricao.toUpperCase().includes(p.palavra_chave)
+        );
+
+        if (param && pjMap[param.pj_id]) {
+          extrato.cliente = pjMap[param.pj_id];
+          atualizacoes.push(SupabaseAPI.update('extratos', extrato.id, { cliente: extrato.cliente }));
+        }
+
+        return extrato;
+      });
+
+      if (atualizacoes.length > 0) {
+        await Promise.all(atualizacoes);
+      }
+
+      return resultado;
+    }
+    // ========== FIM LOCALIZAR CLIENTE ==========
 
     function atualizarResumoCategorias(extratos) {
       const resumo = {};

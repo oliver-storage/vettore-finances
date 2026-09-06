@@ -168,6 +168,38 @@ async function salvarBoletosSupabase(boletos, agencia, conta) {
   }
 }
 
+async function aplicarClientesParametrosBoleto(boletos) {
+  const parametros = await SupabaseAPI.get('clientes_parametros');
+  if (parametros.length === 0) return boletos;
+
+  const todosPj = await SupabaseAPI.get('clientes_pj');
+  const pjMap = {};
+  todosPj.forEach(pj => { pjMap[pj.id] = pj.razao_social; });
+
+  const atualizacoes = [];
+
+  const resultado = boletos.map(boleto => {
+    if (boleto.cliente || !boleto.pagador) return boleto;
+
+    const param = parametros.find(p =>
+      boleto.pagador.toUpperCase().includes(p.palavra_chave)
+    );
+
+    if (param && pjMap[param.pj_id]) {
+      boleto.cliente = pjMap[param.pj_id];
+      atualizacoes.push(SupabaseAPI.update('boletos', boleto.id, { cliente: boleto.cliente }));
+    }
+
+    return boleto;
+  });
+
+  if (atualizacoes.length > 0) {
+    await Promise.all(atualizacoes);
+  }
+
+  return resultado;
+}
+
 // ========== LISTAGEM / FILTROS ==========
 async function loadBoletos() {
   const user = JSON.parse(localStorage.getItem('currentUser'));
@@ -202,6 +234,7 @@ async function loadBoletos() {
     selectAno.innerHTML = '<option value="">Todos</option>' + anosExistentes.map(a => `<option value="${a}">${a}</option>`).join('');
     selectAno.value = anoAtual;
 
+    boletos = await aplicarClientesParametrosBoleto(boletos);
     renderizarBoletos(boletos);
 
     if (boletos.length > 0 && boletos[0].agencia) {

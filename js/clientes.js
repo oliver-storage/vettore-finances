@@ -6,6 +6,54 @@
 let unidadeAtivaCliente = null;
 let PF_CACHE = [];
 let PJ_CACHE = [];
+let palavrasChaveAtuais = [];
+
+function adicionarPalavraChaveTemp() {
+  const input = document.getElementById('inputNovaPalavraChave');
+  const valor = input.value.trim().toUpperCase();
+  if (!valor) return;
+  if (palavrasChaveAtuais.includes(valor)) {
+    alert('⚠️ Esta palavra-chave já foi adicionada');
+    return;
+  }
+  palavrasChaveAtuais.push(valor);
+  input.value = '';
+  renderizarChipsPalavraChave();
+}
+
+function removerPalavraChaveTemp(valor) {
+  palavrasChaveAtuais = palavrasChaveAtuais.filter(p => p !== valor);
+  renderizarChipsPalavraChave();
+}
+
+function renderizarChipsPalavraChave() {
+  const container = document.getElementById('chipsPalavrasChave');
+  if (!container) return;
+  container.innerHTML = palavrasChaveAtuais.map(p => `
+    <div style="display:inline-flex; align-items:center; gap:6px; background:var(--papel); border:1px solid var(--linha); padding:6px 10px; border-radius:16px; font-size:12px; color:var(--tinta);">
+      ${p}
+      <span onclick="removerPalavraChaveTemp('${p}')" style="cursor:pointer; color:var(--alerta); font-weight:bold;">×</span>
+    </div>
+  `).join('') || '<span style="color:var(--tinta-40); font-size:12px;">Nenhuma palavra-chave</span>';
+}
+
+async function salvarPalavrasChavePJ(pjId) {
+  const existentes = await SupabaseAPI.get('clientes_parametros');
+  const dessePj = existentes.filter(p => p.pj_id === pjId);
+
+  for (const p of dessePj) {
+    if (!palavrasChaveAtuais.includes(p.palavra_chave)) {
+      await SupabaseAPI.delete('clientes_parametros', p.id);
+    }
+  }
+
+  const jaExistentes = dessePj.map(p => p.palavra_chave);
+  for (const palavra of palavrasChaveAtuais) {
+    if (!jaExistentes.includes(palavra)) {
+      await SupabaseAPI.insert('clientes_parametros', { pj_id: pjId, palavra_chave: palavra });
+    }
+  }
+}
 
 // ========== INICIALIZAÇÃO ==========
 async function inicializarClientes() {
@@ -427,6 +475,7 @@ async function salvarPJ(event) {
     }
 
     await salvarVinculosPJ(pjId);
+    await salvarPalavrasChavePJ(pjId);
 
     if (id) {
       alert('✅ Pessoa Jurídica atualizada!');
@@ -485,6 +534,10 @@ async function editarPJ(id) {
   document.getElementById('pjObservacoes').value = j.observacoes || '';
 
   await popularVinculosPFnoFormPJ();
+
+  const parametros = await SupabaseAPI.get('clientes_parametros');
+  palavrasChaveAtuais = parametros.filter(p => p.pj_id === j.id).map(p => p.palavra_chave);
+  renderizarChipsPalavraChave();
 }
 
 function limparFormularioPJ() {
@@ -493,6 +546,8 @@ function limparFormularioPJ() {
    'pjCapitalSocial','pjSenhaGov','pjEnderecoEmpresa','pjEstadoEmpresa','pjMunicipioEmpresa','pjObservacoes']
     .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   document.querySelectorAll('.pfVinculoCheckbox').forEach(cb => cb.checked = false);
+  palavrasChaveAtuais = [];
+  renderizarChipsPalavraChave();
 }
 
 async function deletarPJ(id) {
