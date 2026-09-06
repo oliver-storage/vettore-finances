@@ -6,6 +6,7 @@
 function handleFileUpload(event) {
   const file = event.target.files[0];
   if (!file) return;
+  event.target.value = '';
 
   console.log('📤 Upload iniciado:', file.name);
   
@@ -231,8 +232,6 @@ async function salvarExtratosSupabase(extratos) {
       erros.push({ descricao: extrato.descricao, data: extrato.data, erro: error.message });
     }
   }
-
-  document.getElementById('fileInput').value = '';
 
   if (erros.length > 0) {
     console.warn(`⚠️ ${erros.length} linha(s) falharam ao importar:`, erros);

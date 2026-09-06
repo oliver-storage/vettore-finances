@@ -8,6 +8,7 @@ let UNIDADE_ATIVA_BOLETO = null;
 function handleFileUploadBoleto(event) {
   const file = event.target.files[0];
   if (!file) return;
+  event.target.value = '';
 
   const user = JSON.parse(localStorage.getItem('currentUser'));
   const franquiaFilter = document.getElementById('franquiaFilter');
@@ -163,8 +164,6 @@ async function salvarBoletosSupabase(boletos, agencia, conta) {
       erros.push({ pagador: boleto.pagador, vencimento: boleto.data_vencimento, erro: error.message });
     }
   }
-
-  document.getElementById('fileInputBoleto').value = '';
 
   if (agencia) document.getElementById('infoAgenciaBoleto').textContent = agencia;
   if (conta) document.getElementById('infoContaBoleto').textContent = conta;
