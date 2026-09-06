@@ -220,10 +220,27 @@ function parseXLS(dados, unidadeId, mes, ano, banco, agencia, conta) {
 }
 
 async function salvarExtratosSupabase(extratos) {
+  const unidadeId = extratos[0]?.unidade_id;
+  const existentes = await SupabaseAPI.get('extratos');
+  const chavesExistentes = new Set(
+    existentes
+      .filter(e => e.unidade_id === unidadeId)
+      .map(e => `${e.data}|${e.descricao}|${e.codigo}|${e.valor}`)
+  );
+
+  const novos = extratos.filter(e => !chavesExistentes.has(`${e.data}|${e.descricao}|${e.codigo}|${e.valor}`));
+  const duplicados = extratos.length - novos.length;
+
+  if (novos.length === 0) {
+    alert(`⚠️ Todas as ${duplicados} linha(s) desse arquivo já foram importadas antes. Nada novo pra adicionar.`);
+    document.getElementById('fileInput').value = '';
+    return;
+  }
+
   let sucesso = 0;
   const erros = [];
 
-  for (const extrato of extratos) {
+  for (const extrato of novos) {
     try {
       await SupabaseAPI.insert('extratos', extrato);
       sucesso++;
@@ -235,9 +252,9 @@ async function salvarExtratosSupabase(extratos) {
 
   if (erros.length > 0) {
     console.warn(`⚠️ ${erros.length} linha(s) falharam ao importar:`, erros);
-    alert(`⚠️ Importado com falhas: ${sucesso} de ${extratos.length} extratos salvos.\n${erros.length} linha(s) falharam — veja o Console (F12) pra detalhes.`);
+    alert(`⚠️ Importado com falhas: ${sucesso} de ${novos.length} extratos salvos.\n${erros.length} linha(s) falharam — veja o Console (F12) pra detalhes.${duplicados > 0 ? `\n${duplicados} linha(s) já existiam e foram ignoradas.` : ''}`);
   } else {
-    alert(`✅ ${sucesso} extratos importados com sucesso!`);
+    alert(`✅ ${sucesso} extratos importados com sucesso!${duplicados > 0 ? `\n${duplicados} linha(s) já existiam e foram ignoradas (não duplicadas).` : ''}`);
   }
 
   if (typeof loadExtratos === 'function') {

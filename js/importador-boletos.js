@@ -152,10 +152,28 @@ function parseBoletos(dados, unidadeId, agencia, conta) {
 }
 
 async function salvarBoletosSupabase(boletos, agencia, conta) {
+  const unidadeId = boletos[0]?.unidade_id;
+  const existentes = await SupabaseAPI.get('boletos');
+  const chaveBoleto = (b) => b.txid ? `txid:${b.txid}` : `nn:${b.nosso_numero}|${b.data_vencimento}|${b.valor}`;
+  const chavesExistentes = new Set(
+    existentes
+      .filter(b => b.unidade_id === unidadeId)
+      .map(chaveBoleto)
+  );
+
+  const novos = boletos.filter(b => !chavesExistentes.has(chaveBoleto(b)));
+  const duplicados = boletos.length - novos.length;
+
+  if (novos.length === 0) {
+    alert(`⚠️ Todos os ${duplicados} boleto(s) desse arquivo já foram importados antes. Nada novo pra adicionar.`);
+    document.getElementById('fileInputBoleto').value = '';
+    return;
+  }
+
   let sucesso = 0;
   const erros = [];
 
-  for (const boleto of boletos) {
+  for (const boleto of novos) {
     try {
       await SupabaseAPI.insert('boletos', boleto);
       sucesso++;
@@ -170,9 +188,9 @@ async function salvarBoletosSupabase(boletos, agencia, conta) {
 
   if (erros.length > 0) {
     console.warn(`⚠️ ${erros.length} linha(s) falharam ao importar:`, erros);
-    alert(`⚠️ Importado com falhas: ${sucesso} de ${boletos.length} boletos salvos.\n${erros.length} linha(s) falharam — veja o Console (F12) pra detalhes.`);
+    alert(`⚠️ Importado com falhas: ${sucesso} de ${novos.length} boletos salvos.\n${erros.length} linha(s) falharam — veja o Console (F12) pra detalhes.${duplicados > 0 ? `\n${duplicados} boleto(s) já existiam e foram ignorados.` : ''}`);
   } else {
-    alert(`✅ ${sucesso} boletos importados com sucesso!`);
+    alert(`✅ ${sucesso} boletos importados com sucesso!${duplicados > 0 ? `\n${duplicados} boleto(s) já existiam e foram ignorados (não duplicados).` : ''}`);
   }
 
   if (typeof loadBoletos === 'function') {
