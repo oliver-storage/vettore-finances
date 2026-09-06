@@ -9,8 +9,8 @@
   <!-- XLSX -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.10.0">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.10.0">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.10.1">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.10.1">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -326,6 +326,41 @@
     }
 
     /* ========== TABELA DE BOLETOS ========== */
+    #tabelaBoletos {
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+
+    /* COLUNAS FIXAS - Checkbox, Cart, Nº Doc */
+    #tabelaBoletos th:nth-child(1),
+    #tabelaBoletos td:nth-child(1) {
+      position: sticky;
+      left: 0;
+      background: var(--papel-alto);
+      z-index: 11;
+      width: 20px;
+      text-align: center;
+      padding: 12px 0;
+    }
+
+    #tabelaBoletos th:nth-child(2),
+    #tabelaBoletos td:nth-child(2) {
+      position: sticky;
+      left: 20px;
+      background: var(--papel-alto);
+      z-index: 10;
+      min-width: 90px;
+    }
+
+    #tabelaBoletos th:nth-child(3),
+    #tabelaBoletos td:nth-child(3) {
+      position: sticky;
+      left: 110px;
+      background: var(--papel-alto);
+      z-index: 10;
+      min-width: 100px;
+    }
+
     #tabelaBoletos input:not([type="checkbox"]),
     #tabelaBoletos select {
       padding: 8px 10px;
@@ -776,7 +811,7 @@
   <datalist id="listaClientesPJ"></datalist>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.10.0 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.10.1 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>
