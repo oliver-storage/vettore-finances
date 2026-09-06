@@ -177,6 +177,9 @@ function parseXLS(dados, unidadeId, mes, ano, banco, agencia, conta) {
       }
     }
 
+    // Validação: só aceita se dataFormatada for realmente uma data (YYYY-MM-DD)
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dataFormatada)) continue;
+
     extratos.push({
       unidade_id: unidadeId,
       banco: banco,
