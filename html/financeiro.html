@@ -9,8 +9,8 @@
   <!-- XLSX -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.12.1">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.12.1">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.12.2">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.12.2">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -793,6 +793,21 @@
         </div>
       </div>
 
+      <!-- RESUMO QUANTIDADE / VALOR -->
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:16px; margin-bottom:20px;">
+        <div class="card" style="margin:0;">
+          <p style="font-size:12px; color:var(--tinta-70); margin:0 0 8px 0; text-transform:uppercase; letter-spacing:0.5px;">Quantidade de Boletos</p>
+          <p id="cardQtdBoletos" style="font-size:32px; font-weight:700; color:var(--tinta); margin:0;">-</p>
+        </div>
+        <div class="card" style="margin:0;">
+          <p style="font-size:12px; color:var(--tinta-70); margin:0 0 8px 0; text-transform:uppercase; letter-spacing:0.5px;">Valor Total</p>
+          <p id="cardValorBoletos" style="font-size:32px; font-weight:700; color:var(--destaque); margin:0;">-</p>
+        </div>
+      </div>
+
+      <!-- RESUMO POR CATEGORIA -->
+      <div id="resumoCategoriasBoleto" class="resumo-categorias" style="display:none;"></div>
+
       <!-- IMPORTAÇÃO -->
       <div class="card">
         <h3>Importar Relatório de Boletos</h3>
@@ -897,7 +912,7 @@
   <datalist id="listaClientesPJ"></datalist>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.12.1 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.12.2 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>

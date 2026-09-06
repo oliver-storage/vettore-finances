@@ -204,6 +204,43 @@ async function aplicarClientesParametrosBoleto(boletos) {
   return resultado;
 }
 
+function atualizarResumoBoletos(boletos) {
+  document.getElementById('cardQtdBoletos').textContent = boletos.length;
+
+  const valorTotal = boletos.reduce((soma, b) => soma + (parseFloat(b.valor) || 0), 0);
+  document.getElementById('cardValorBoletos').textContent = valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+  const resumo = {};
+  (typeof CATEGORIAS !== 'undefined' ? CATEGORIAS : []).forEach(cat => { resumo[cat] = 0; });
+
+  boletos.forEach(b => {
+    if (b.categoria && resumo.hasOwnProperty(b.categoria)) {
+      resumo[b.categoria] += parseFloat(b.valor) || 0;
+    }
+  });
+
+  const resumoDiv = document.getElementById('resumoCategoriasBoleto');
+  let html = '';
+
+  Object.entries(resumo).forEach(([cat, valor]) => {
+    if (valor !== 0) {
+      html += `
+        <div class="categoria-box">
+          <label>${cat}</label>
+          <value style="color:var(--destaque);">${valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</value>
+        </div>
+      `;
+    }
+  });
+
+  if (html) {
+    resumoDiv.innerHTML = html;
+    resumoDiv.style.display = 'grid';
+  } else {
+    resumoDiv.style.display = 'none';
+  }
+}
+
 // ========== LISTAGEM / FILTROS ==========
 async function loadBoletos() {
   const user = JSON.parse(localStorage.getItem('currentUser'));
@@ -240,6 +277,7 @@ async function loadBoletos() {
     selectAno.value = anoAtual;
 
     boletos = await aplicarClientesParametrosBoleto(boletos);
+    atualizarResumoBoletos(boletos);
     BOLETOS_CACHE = boletos;
     renderizarBoletos(boletos);
 
