@@ -7,6 +7,7 @@ let unidadeAtivaCliente = null;
 let PF_CACHE = [];
 let PJ_CACHE = [];
 let palavrasChaveAtuais = [];
+let pfVinculadosAtuais = [];
 
 function adicionarPalavraChaveTemp() {
   const input = document.getElementById('inputNovaPalavraChave');
@@ -420,18 +421,58 @@ async function popularVinculosPFnoFormPJ() {
   if (PF_CACHE.length === 0) PF_CACHE = (await SupabaseAPI.get('clientes_pf')).filter(p => p.unidade_id === unidadeAtivaCliente);
 
   const pjId = document.getElementById('pjId').value;
-  let vinculadosIds = [];
   if (pjId) {
     const vinculos = await SupabaseAPI.get('clientes_pf_pj');
-    vinculadosIds = vinculos.filter(v => v.pj_id === parseInt(pjId)).map(v => v.pf_id);
+    pfVinculadosAtuais = vinculos.filter(v => v.pj_id === parseInt(pjId)).map(v => v.pf_id);
+  } else {
+    pfVinculadosAtuais = [];
   }
 
-  container.innerHTML = PF_CACHE.map(p => `
-    <label style="display:flex; align-items:center; gap:6px; font-size:13px; font-weight:400; cursor:pointer;">
-      <input type="checkbox" class="checkbox-sistema pfVinculoCheckbox" value="${p.id}" ${vinculadosIds.includes(p.id) ? 'checked' : ''}>
-      ${p.nome}
-    </label>
-  `).join('') || '<span style="color:var(--tinta-40); font-size:12px;">Nenhuma PF cadastrada ainda</span>';
+  atualizarSelectPFParaVincular();
+  renderizarChipsPFVinculadas();
+}
+
+function atualizarSelectPFParaVincular() {
+  const select = document.getElementById('selectPFParaVincular');
+  if (!select) return;
+
+  const disponiveis = PF_CACHE.filter(p => !pfVinculadosAtuais.includes(p.id));
+  select.innerHTML = '<option value="">Selecione uma Pessoa Física...</option>' +
+    disponiveis.map(p => `<option value="${p.id}">${p.nome}</option>`).join('');
+}
+
+function renderizarChipsPFVinculadas() {
+  const container = document.getElementById('pjVinculosPF');
+  if (!container) return;
+
+  container.innerHTML = pfVinculadosAtuais.map(id => {
+    const p = PF_CACHE.find(x => x.id === id);
+    const nome = p ? p.nome : `#${id}`;
+    return `
+      <div style="display:inline-flex; align-items:center; gap:6px; background:var(--papel); border:1px solid var(--linha); padding:6px 10px; border-radius:16px; font-size:13px; color:var(--tinta);">
+        ${nome}
+        <span onclick="removerPFVinculado(${id})" style="cursor:pointer; color:var(--alerta); font-weight:bold;">×</span>
+      </div>
+    `;
+  }).join('') || '<span style="color:var(--tinta-40); font-size:12px;">Nenhuma Pessoa Física vinculada</span>';
+}
+
+function adicionarPFVinculado() {
+  const select = document.getElementById('selectPFParaVincular');
+  const pfId = parseInt(select.value);
+  if (!pfId) {
+    alert('⚠️ Selecione uma Pessoa Física');
+    return;
+  }
+  pfVinculadosAtuais.push(pfId);
+  atualizarSelectPFParaVincular();
+  renderizarChipsPFVinculadas();
+}
+
+function removerPFVinculado(id) {
+  pfVinculadosAtuais = pfVinculadosAtuais.filter(x => x !== id);
+  atualizarSelectPFParaVincular();
+  renderizarChipsPFVinculadas();
 }
 
 async function salvarPJ(event) {
@@ -493,7 +534,7 @@ async function salvarPJ(event) {
 }
 
 async function salvarVinculosPJ(pjId) {
-  const marcadosIds = Array.from(document.querySelectorAll('.pfVinculoCheckbox:checked')).map(cb => parseInt(cb.value));
+  const marcadosIds = pfVinculadosAtuais;
 
   const vinculosAtuais = await SupabaseAPI.get('clientes_pf_pj');
   const vinculosDessePJ = vinculosAtuais.filter(v => v.pj_id === pjId);
@@ -545,7 +586,9 @@ function limparFormularioPJ() {
   ['pjRazaoSocial','pjCNPJ','pjSegmento','pjPorte','pjRegimeTributario','pjNaturezaJuridica','pjCNAE',
    'pjCapitalSocial','pjSenhaGov','pjEnderecoEmpresa','pjEstadoEmpresa','pjMunicipioEmpresa','pjObservacoes']
     .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
-  document.querySelectorAll('.pfVinculoCheckbox').forEach(cb => cb.checked = false);
+  pfVinculadosAtuais = [];
+  atualizarSelectPFParaVincular();
+  renderizarChipsPFVinculadas();
   palavrasChaveAtuais = [];
   renderizarChipsPalavraChave();
 }

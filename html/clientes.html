@@ -1,12 +1,12 @@
-<!-- Vettore Finances v1.9.9.0 • Desenvolvido por OliverStorage -->
+<!-- Vettore Finances v1.9.9.1 • Desenvolvido por OliverStorage -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vettore Finances - Clientes</title>
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.9.0">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.9.0">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.9.1">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.9.1">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -319,6 +319,12 @@
 
             <div class="form-group" style="margin-top:12px;">
               <label>Pessoas Físicas vinculadas (sócios/representantes já cadastrados)</label>
+              <div style="display:flex; gap:8px; margin:8px 0;">
+                <select id="selectPFParaVincular" style="flex:1;">
+                  <option value="">Selecione uma Pessoa Física...</option>
+                </select>
+                <button type="button" class="action-button" onclick="adicionarPFVinculado()" title="Adicionar vínculo">+</button>
+              </div>
               <div id="pjVinculosPF" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:6px;"></div>
             </div>
 
@@ -335,7 +341,7 @@
   </div>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.9.0 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.9.1 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>
