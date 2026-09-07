@@ -170,24 +170,47 @@ async function carregarExtratoCliente() {
     statusEl.style.color = 'var(--tinta-40)';
   }
 
-  // Tabela de movimentação completa
-  boletosDoCliente.sort((a, b) => (a.data_vencimento || '').localeCompare(b.data_vencimento || ''));
+  // Tabela de movimentação completa (Boletos + Extratos)
+  const todosExtratos = (await SupabaseAPI.get('extratos')).filter(e => e.unidade_id === unidadeAtivaCliente);
+  const extratosDoCliente = todosExtratos.filter(e => e.cliente === pj.razao_social);
+
+  const movimentacoes = [
+    ...boletosDoCliente.map(b => ({
+      origem: 'Boleto',
+      data: b.data_vencimento,
+      descricao: b.pagador || '-',
+      valor: b.valor,
+      situacao: b.situacao || '-',
+      liquidado: (b.situacao || '').toUpperCase().includes('LIQUIDADO')
+    })),
+    ...extratosDoCliente.map(e => ({
+      origem: 'Extrato',
+      data: e.data,
+      descricao: e.descricao || '-',
+      valor: e.valor,
+      situacao: e.valor >= 0 ? 'Entrada' : 'Saída',
+      liquidado: e.valor >= 0
+    }))
+  ];
+
+  movimentacoes.sort((a, b) => (a.data || '').localeCompare(b.data || ''));
 
   const tbody = document.getElementById('tbodyExtratoCliente');
-  if (boletosDoCliente.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--tinta-40);">Nenhum boleto encontrado pra esse cliente</td></tr>';
+  if (movimentacoes.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--tinta-40);">Nenhuma movimentação encontrada pra esse cliente</td></tr>';
     return;
   }
 
-  tbody.innerHTML = boletosDoCliente.map(b => {
-    const corSituacao = (b.situacao || '').toUpperCase().includes('LIQUIDADO') ? 'var(--destaque)' : 'var(--alerta)';
+  tbody.innerHTML = movimentacoes.map(m => {
+    const corSituacao = m.liquidado ? 'var(--destaque)' : 'var(--alerta)';
+    const corOrigem = m.origem === 'Boleto' ? 'var(--marca)' : 'var(--tinta-70)';
     return `
       <tr>
-        <td style="padding:12px;">${formatarDataBR(b.data_vencimento)}</td>
-        <td style="padding:12px;">${formatarDataBR(b.data_liquidacao)}</td>
-        <td style="padding:12px; text-align:right;">${formatarValorBRCliente(b.valor)}</td>
-        <td style="padding:12px; text-align:right;">${formatarValorBRCliente(b.valor_liquidacao)}</td>
-        <td style="padding:12px; color:${corSituacao}; font-weight:600;">${b.situacao || '-'}</td>
+        <td style="padding:12px; color:${corOrigem}; font-weight:600; font-size:12px;">${m.origem}</td>
+        <td style="padding:12px;">${formatarDataBR(m.data)}</td>
+        <td style="padding:12px;">${m.descricao}</td>
+        <td style="padding:12px; text-align:right;">${formatarValorBRCliente(m.valor)}</td>
+        <td style="padding:12px; color:${corSituacao}; font-weight:600;">${m.situacao}</td>
       </tr>
     `;
   }).join('');
