@@ -9,8 +9,8 @@
   <!-- XLSX -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.18.0">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.18.0">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.18.1">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.18.1">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -129,25 +129,27 @@
 
     .categoria-box {
       text-align: center;
-      padding: 12px;
+      padding: 24px;
       background: var(--papel-alto);
+      border: 1px solid var(--linha);
       border-radius: 6px;
-      border-top: 2px solid var(--marca);
+      box-shadow: var(--sombra);
     }
 
     .categoria-box label {
-      font-size: 11px;
+      font-size: 12px;
       color: var(--tinta-70);
       text-transform: uppercase;
+      letter-spacing: 0.5px;
       font-weight: 600;
       display: block;
-      margin-bottom: 4px;
+      margin-bottom: 8px;
     }
 
     .categoria-box value {
-      font-size: 14px;
-      color: var(--marca);
-      font-weight: 600;
+      font-size: 32px;
+      color: var(--tinta);
+      font-weight: 700;
       display: block;
     }
 
@@ -881,7 +883,7 @@
   <datalist id="listaClientesPJ"></datalist>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.18.0 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.18.1 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>
