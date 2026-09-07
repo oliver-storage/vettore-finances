@@ -98,10 +98,124 @@ async function trocarFranquiaCliente() {
 function switchTabClienteLista(tab) {
   document.getElementById('tabListaClientes').classList.toggle('active', tab === 'lista');
   document.getElementById('tabSituacaoClientes').classList.toggle('active', tab === 'situacao');
+  document.getElementById('tabExtratoCliente').classList.toggle('active', tab === 'extrato');
   document.querySelectorAll('.sub-tab-btn').forEach((btn, i) => {
-    btn.classList.toggle('active', (i === 0 && tab === 'lista') || (i === 1 && tab === 'situacao'));
+    btn.classList.toggle('active', (i === 0 && tab === 'lista') || (i === 1 && tab === 'situacao') || (i === 2 && tab === 'extrato'));
   });
   if (tab === 'situacao') carregarSituacaoClientes();
+  if (tab === 'extrato') popularListaClientesExtrato();
+}
+
+// ========== SUB ABA EXTRATO DO CLIENTE ==========
+async function popularListaClientesExtrato() {
+  const datalist = document.getElementById('listaClientesExtrato');
+  const pjs = (await SupabaseAPI.get('clientes_pj')).filter(pj => pj.unidade_id === unidadeAtivaCliente);
+  datalist.innerHTML = pjs.map(pj => `<option value="${pj.razao_social}">`).join('');
+}
+
+async function carregarExtratoCliente() {
+  const nomeDigitado = document.getElementById('inputBuscaExtratoCliente').value.trim();
+  const ficha = document.getElementById('fichaExtratoCliente');
+
+  if (!nomeDigitado) {
+    ficha.style.display = 'none';
+    return;
+  }
+
+  const pjs = (await SupabaseAPI.get('clientes_pj')).filter(pj => pj.unidade_id === unidadeAtivaCliente);
+  const pj = pjs.find(p => p.razao_social === nomeDigitado);
+
+  if (!pj) {
+    ficha.style.display = 'none';
+    return;
+  }
+
+  ficha.style.display = 'block';
+  ficha.dataset.pjId = pj.id;
+
+  document.getElementById('nomeExtratoCliente').textContent = pj.razao_social;
+  document.getElementById('dataContratoExtratoCliente').textContent = pj.data_contrato ? formatarDataBR(pj.data_contrato) : '-';
+  document.getElementById('inicioCobrancaExtratoCliente').textContent = pj.inicio_cobranca ? formatarMesAnoExtrato(pj.inicio_cobranca) : '-';
+  document.getElementById('finalContratoExtratoCliente').textContent = pj.final_contrato ? formatarMesAnoExtrato(pj.final_contrato) : 'Sem data final';
+
+  // Calcular status (mesma lógica da Situação)
+  const todosBoletos = (await SupabaseAPI.get('boletos')).filter(b => b.unidade_id === unidadeAtivaCliente);
+  const boletosDoCliente = todosBoletos.filter(b => b.cliente === pj.razao_social);
+
+  const statusEl = document.getElementById('statusExtratoCliente');
+  if (pj.inicio_cobranca && pj.valor_contrato) {
+    const hoje = new Date();
+    const mesAtual = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
+    const inicioStr = pj.inicio_cobranca.slice(0, 7);
+    const fimStr = pj.final_contrato ? pj.final_contrato.slice(0, 7) : mesAtual;
+    const mesesEsperados = gerarMesesEntre(inicioStr, fimStr);
+
+    const mesesPagos = new Set(
+      boletosDoCliente
+        .filter(b => (b.situacao || '').toUpperCase().includes('LIQUIDADO') && b.data_vencimento)
+        .map(b => b.data_vencimento.slice(0, 7))
+    );
+
+    const mesesEmAberto = mesesEsperados.filter(m => !mesesPagos.has(m));
+
+    if (mesesEmAberto.length > 0) {
+      statusEl.textContent = `⚠️ Em Aberto (${mesesEmAberto.length} mês/meses)`;
+      statusEl.style.color = 'var(--alerta)';
+    } else {
+      statusEl.textContent = '✅ Pago em dia';
+      statusEl.style.color = 'var(--destaque)';
+    }
+  } else {
+    statusEl.textContent = 'Sem dados suficientes (falta Início da Cobrança ou Valor do Contrato)';
+    statusEl.style.color = 'var(--tinta-40)';
+  }
+
+  // Tabela de movimentação completa
+  boletosDoCliente.sort((a, b) => (a.data_vencimento || '').localeCompare(b.data_vencimento || ''));
+
+  const tbody = document.getElementById('tbodyExtratoCliente');
+  if (boletosDoCliente.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--tinta-40);">Nenhum boleto encontrado pra esse cliente</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = boletosDoCliente.map(b => {
+    const corSituacao = (b.situacao || '').toUpperCase().includes('LIQUIDADO') ? 'var(--destaque)' : 'var(--alerta)';
+    return `
+      <tr>
+        <td style="padding:12px;">${formatarDataBR(b.data_vencimento)}</td>
+        <td style="padding:12px;">${formatarDataBR(b.data_liquidacao)}</td>
+        <td style="padding:12px; text-align:right;">${formatarValorBRCliente(b.valor)}</td>
+        <td style="padding:12px; text-align:right;">${formatarValorBRCliente(b.valor_liquidacao)}</td>
+        <td style="padding:12px; color:${corSituacao}; font-weight:600;">${b.situacao || '-'}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function formatarDataBR(iso) {
+  if (!iso) return '-';
+  const [ano, mes, dia] = iso.split('-');
+  return `${dia}/${mes}/${ano}`;
+}
+
+function formatarMesAnoExtrato(iso) {
+  if (!iso) return '-';
+  const [ano, mes] = iso.split('-');
+  const nomes = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  return `${nomes[parseInt(mes) - 1]}/${ano}`;
+}
+
+function formatarValorBRCliente(valor) {
+  if (valor === null || valor === undefined) return '-';
+  return parseFloat(valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+function editarClienteExtrato() {
+  const ficha = document.getElementById('fichaExtratoCliente');
+  const pjId = parseInt(ficha.dataset.pjId);
+  if (!pjId) return;
+  editarClienteLista('PJ', pjId);
 }
 
 function gerarMesesEntre(inicioStr, fimStr) {

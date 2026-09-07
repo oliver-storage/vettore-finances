@@ -1,12 +1,12 @@
-<!-- Vettore Finances v1.9.18.2 • Desenvolvido por OliverStorage -->
+<!-- Vettore Finances v1.9.19.0 • Desenvolvido por OliverStorage -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vettore Finances - Clientes</title>
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.18.2">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.18.2">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.19.0">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.19.0">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -77,6 +77,7 @@
     <div class="sub-tabs">
       <button class="sub-tab-btn active" onclick="switchTabClienteLista('lista')">Lista de Clientes</button>
       <button class="sub-tab-btn" onclick="switchTabClienteLista('situacao')">Situação</button>
+      <button class="sub-tab-btn" onclick="switchTabClienteLista('extrato')">Extrato</button>
     </div>
 
     <div id="tabListaClientes" class="sub-tab-content active">
@@ -164,6 +165,61 @@
             </thead>
             <tbody id="tbodySituacaoClientes"></tbody>
           </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- SUB ABA EXTRATO DO CLIENTE -->
+    <div id="tabExtratoCliente" class="sub-tab-content">
+      <div class="card" style="margin-top:20px;">
+        <h3>Extrato do Cliente</h3>
+        <div class="form-group" style="max-width:420px;">
+          <label>Buscar Cliente</label>
+          <input type="text" id="inputBuscaExtratoCliente" list="listaClientesExtrato" placeholder="Digite o nome do cliente..." oninput="carregarExtratoCliente()" style="width:100%;">
+          <datalist id="listaClientesExtrato"></datalist>
+        </div>
+
+        <div id="fichaExtratoCliente" style="display:none; margin-top:20px;">
+          <div style="border:1px solid var(--linha); border-radius:6px; padding:16px; background:var(--papel);">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+              <h4 id="nomeExtratoCliente" style="margin:0;">-</h4>
+              <button class="action-button" onclick="editarClienteExtrato()" title="Editar cadastro">✏️</button>
+            </div>
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:16px; margin-top:12px;">
+              <div>
+                <label style="font-size:11px; color:var(--tinta-70); text-transform:uppercase; display:block;">Data do Contrato</label>
+                <span id="dataContratoExtratoCliente" style="font-size:14px;">-</span>
+              </div>
+              <div>
+                <label style="font-size:11px; color:var(--tinta-70); text-transform:uppercase; display:block;">Início da Cobrança</label>
+                <span id="inicioCobrancaExtratoCliente" style="font-size:14px;">-</span>
+              </div>
+              <div>
+                <label style="font-size:11px; color:var(--tinta-70); text-transform:uppercase; display:block;">Final do Contrato</label>
+                <span id="finalContratoExtratoCliente" style="font-size:14px;">-</span>
+              </div>
+              <div>
+                <label style="font-size:11px; color:var(--tinta-70); text-transform:uppercase; display:block;">Status</label>
+                <span id="statusExtratoCliente" style="font-size:14px; font-weight:700;">-</span>
+              </div>
+            </div>
+          </div>
+
+          <h4 style="margin-top:24px;">Movimentação de Pagamentos</h4>
+          <div class="table-wrapper" style="overflow-x:auto;">
+            <table style="width:100%;" id="tabelaExtratoCliente">
+              <thead>
+                <tr>
+                  <th style="padding:12px;">Vencimento</th>
+                  <th style="padding:12px;">Liquidação</th>
+                  <th style="padding:12px; text-align:right;">Valor</th>
+                  <th style="padding:12px; text-align:right;">Valor Liq.</th>
+                  <th style="padding:12px;">Situação</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyExtratoCliente"></tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
@@ -423,7 +479,7 @@
   </div>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.18.2 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.19.0 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>
