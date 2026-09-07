@@ -294,6 +294,9 @@ async function carregarExtratoCliente() {
   const extratosDoClienteStatus = todosExtratosStatus.filter(e => e.cliente === pj.razao_social);
 
   const statusEl = document.getElementById('statusExtratoCliente');
+  let mesesEmAbertoGlobal = [];
+  let valoresAnoDoClienteGlobal = [];
+
   if (pj.inicio_cobranca && pj.valor_contrato) {
     const hoje = new Date();
     const mesAtual = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
@@ -311,10 +314,11 @@ async function carregarExtratoCliente() {
     ]);
 
     const mesesEmAberto = mesesEsperados.filter(m => !mesesPagos.has(m));
+    mesesEmAbertoGlobal = mesesEmAberto;
+    valoresAnoDoClienteGlobal = (await SupabaseAPI.get('valor_contrato_ano')).filter(v => v.pj_id === pj.id);
 
     if (mesesEmAberto.length > 0) {
-      const valoresAnoDoCliente = (await SupabaseAPI.get('valor_contrato_ano')).filter(v => v.pj_id === pj.id);
-      const valorTotal = mesesEmAberto.reduce((soma, mes) => soma + obterValorAnoParaMes(mes, valoresAnoDoCliente, pj.valor_contrato), 0);
+      const valorTotal = mesesEmAberto.reduce((soma, mes) => soma + obterValorAnoParaMes(mes, valoresAnoDoClienteGlobal, pj.valor_contrato), 0);
       const valorFormatado = valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
       statusEl.innerHTML = `⚠️ Em Aberto (${mesesEmAberto.length} mês/meses) — <span style="color:var(--alerta);">${valorFormatado}</span>`;
       statusEl.style.color = 'var(--alerta)';
@@ -352,6 +356,15 @@ async function carregarExtratoCliente() {
       valor: e.valor,
       situacao: e.valor >= 0 ? 'Entrada' : 'Saída',
       liquidado: e.valor >= 0
+    })),
+    ...mesesEmAbertoGlobal.map(mes => ({
+      origem: '-',
+      data: `${mes}-01`,
+      descricao: `Mensalidade ${formatarMesAnoExtrato(mes)}`,
+      valor: obterValorAnoParaMes(mes, valoresAnoDoClienteGlobal, pj.valor_contrato),
+      situacao: 'ABERTO',
+      liquidado: false,
+      aberto: true
     }))
   ];
 
@@ -364,10 +377,10 @@ async function carregarExtratoCliente() {
   }
 
   tbody.innerHTML = movimentacoes.map(m => {
-    const corSituacao = m.liquidado ? 'var(--destaque)' : 'var(--alerta)';
-    const corOrigem = m.origem === 'Boleto' ? 'var(--marca)' : 'var(--tinta-70)';
+    const corSituacao = m.aberto ? 'var(--alerta)' : (m.liquidado ? 'var(--destaque)' : 'var(--alerta)');
+    const corOrigem = m.origem === 'Boleto' ? 'var(--marca)' : (m.origem === 'Extrato' ? 'var(--tinta-70)' : 'var(--tinta-40)');
     return `
-      <tr>
+      <tr style="${m.aberto ? 'background:#FFF5F0;' : ''}">
         <td style="padding:12px; color:${corOrigem}; font-weight:600; font-size:12px;">${m.origem}</td>
         <td style="padding:12px;">${formatarDataBR(m.data)}</td>
         <td style="padding:12px;">${m.descricao}</td>
