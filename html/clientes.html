@@ -1,12 +1,12 @@
-<!-- Vettore Finances v1.9.19.1 • Desenvolvido por OliverStorage -->
+<!-- Vettore Finances v1.9.20.0 • Desenvolvido por OliverStorage -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vettore Finances - Clientes</title>
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.19.1">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.19.1">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.20.0">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.20.0">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -362,7 +362,28 @@
             <div class="form-row-3">
               <div class="form-group">
                 <label>Valor do Contrato (mensalidade)</label>
-                <input type="text" id="pjValorContrato" placeholder="Ex: 250,00" oninput="this.value = maskMoeda(this.value)">
+                <div style="display:flex; gap:8px;">
+                  <input type="text" id="pjValorContrato" placeholder="Ex: 250,00" oninput="this.value = maskMoeda(this.value)" style="flex:1;">
+                  <button type="button" class="action-button" onclick="toggleValoresPorAno()" title="Valores por ano">+</button>
+                </div>
+              </div>
+            </div>
+
+            <div id="areaValoresPorAno" style="display:none; margin-top:12px; border:1px solid var(--linha); border-radius:6px; padding:16px; background:var(--papel);">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <h5 style="margin:0;">Valores por Ano</h5>
+                <button type="button" class="btn-primary" onclick="atualizarValoresAutomaticamente()" style="padding:6px 12px; font-size:12px;">🔄 Atualizar automaticamente</button>
+              </div>
+              <table style="width:100%;">
+                <thead>
+                  <tr><th>Ano</th><th>Valor</th><th>Origem</th><th style="width:70px;">Ações</th></tr>
+                </thead>
+                <tbody id="tbodyValoresPorAno"></tbody>
+              </table>
+              <div style="display:flex; gap:8px; margin-top:12px;">
+                <input type="number" id="inputNovoAnoValor" placeholder="Ano" style="width:100px;">
+                <input type="text" id="inputNovoValorAno" placeholder="Valor (Ex: 250,00)" oninput="this.value = maskMoeda(this.value)" style="flex:1;">
+                <button type="button" class="btn-primary" onclick="adicionarValorAno()" style="padding:8px 14px; font-size:12px;">Adicionar</button>
               </div>
             </div>
 
@@ -479,7 +500,7 @@
   </div>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.19.1 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.20.0 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="../js/auth.js"></script>

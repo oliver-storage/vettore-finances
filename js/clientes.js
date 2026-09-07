@@ -7,6 +7,7 @@ let unidadeAtivaCliente = null;
 let PF_CACHE = [];
 let PJ_CACHE = [];
 let palavrasChaveAtuais = [];
+let valoresPorAnoAtuais = [];
 let pfVinculadosAtuais = [];
 let pjVinculadosAtuais = [];
 let servicosContratadosAtuais = [];
@@ -40,6 +41,144 @@ function renderizarChipsPalavraChave() {
       <span onclick="removerPalavraChaveTemp('${p}')" style="cursor:pointer; color:var(--alerta); font-weight:bold;">×</span>
     </div>
   `).join('') || '<span style="color:var(--tinta-40); font-size:12px;">Nenhuma palavra-chave</span>';
+}
+
+// ========== VALORES POR ANO (HONORÁRIOS) ==========
+function toggleValoresPorAno() {
+  const area = document.getElementById('areaValoresPorAno');
+  area.style.display = area.style.display === 'none' ? 'block' : 'none';
+}
+
+function renderizarValoresPorAno() {
+  const tbody = document.getElementById('tbodyValoresPorAno');
+  if (!tbody) return;
+
+  const ordenados = [...valoresPorAnoAtuais].sort((a, b) => a.ano - b.ano);
+
+  if (ordenados.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--tinta-40); font-size:12px;">Nenhum valor por ano cadastrado</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = ordenados.map(v => `
+    <tr>
+      <td>${v.ano}</td>
+      <td>${parseFloat(v.valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
+      <td style="font-size:11px; color:${v.origem === 'manual' ? 'var(--marca)' : 'var(--tinta-40)'};">${v.origem === 'manual' ? 'Manual' : 'Automático'}</td>
+      <td><button type="button" class="btn-danger" onclick="removerValorAno(${v.ano})" style="padding:4px 8px; font-size:11px;">×</button></td>
+    </tr>
+  `).join('');
+}
+
+function adicionarValorAno() {
+  const ano = parseInt(document.getElementById('inputNovoAnoValor').value);
+  const valorTexto = document.getElementById('inputNovoValorAno').value.trim();
+  const valor = parseFloat(valorTexto.replace(/\./g, '').replace(',', '.'));
+
+  if (!ano || isNaN(valor)) {
+    alert('⚠️ Preencha Ano e Valor');
+    return;
+  }
+
+  valoresPorAnoAtuais = valoresPorAnoAtuais.filter(v => v.ano !== ano);
+  valoresPorAnoAtuais.push({ ano, valor, origem: 'manual' });
+
+  document.getElementById('inputNovoAnoValor').value = '';
+  document.getElementById('inputNovoValorAno').value = '';
+  renderizarValoresPorAno();
+}
+
+function removerValorAno(ano) {
+  valoresPorAnoAtuais = valoresPorAnoAtuais.filter(v => v.ano !== ano);
+  renderizarValoresPorAno();
+}
+
+async function atualizarValoresAutomaticamente() {
+  const razaoSocial = document.getElementById('pjRazaoSocial').value.trim();
+  const dataContrato = document.getElementById('pjDataContrato').value;
+  const inicioCobranca = document.getElementById('pjInicioCobranca').value;
+
+  if (!razaoSocial) {
+    alert('⚠️ Preencha a Razão Social primeiro');
+    return;
+  }
+
+  const anoInicio = inicioCobranca ? parseInt(inicioCobranca.split('-')[0]) : (dataContrato ? parseInt(dataContrato.split('-')[0]) : null);
+  if (!anoInicio) {
+    alert('⚠️ Preencha Data do Contrato ou Início da Cobrança primeiro, pra saber a partir de qual ano calcular');
+    return;
+  }
+
+  const anoAtual = new Date().getFullYear();
+  const todosBoletos = (await SupabaseAPI.get('boletos')).filter(b => b.cliente === razaoSocial);
+  const correcoes = await SupabaseAPI.get('contrato_correcao_anual');
+
+  for (let ano = anoInicio; ano <= anoAtual; ano++) {
+    const jaTemValor = valoresPorAnoAtuais.find(v => v.ano === ano);
+    if (jaTemValor) continue; // já tem valor (manual ou automático), não sobrescreve
+
+    // 1) Buscar valor real pago nesse ano (boletos liquidados)
+    const boletosDoAno = todosBoletos.filter(b =>
+      (b.situacao || '').toUpperCase().includes('LIQUIDADO') &&
+      b.data_liquidacao &&
+      b.data_liquidacao.slice(0, 4) === String(ano)
+    );
+
+    if (boletosDoAno.length > 0) {
+      // Valor mais frequente pago naquele ano
+      const contagem = {};
+      boletosDoAno.forEach(b => {
+        const v = parseFloat(b.valor);
+        contagem[v] = (contagem[v] || 0) + 1;
+      });
+      const valorMaisFrequente = parseFloat(Object.entries(contagem).sort((a, b) => b[1] - a[1])[0][0]);
+      valoresPorAnoAtuais.push({ ano, valor: valorMaisFrequente, origem: 'automatico' });
+      continue;
+    }
+
+    // 2) Sem dado real: aplicar % de correção sobre o último ano conhecido
+    const anoAnterior = ano - 1;
+    const valorAnterior = valoresPorAnoAtuais.find(v => v.ano === anoAnterior);
+
+    if (valorAnterior) {
+      const correcaoDoAno = correcoes.find(c => c.ano === ano);
+      const percentual = correcaoDoAno ? parseFloat(correcaoDoAno.percentual) : 0;
+      const novoValor = valorAnterior.valor * (1 + percentual / 100);
+      valoresPorAnoAtuais.push({ ano, valor: parseFloat(novoValor.toFixed(2)), origem: 'automatico' });
+    }
+    // Se não tem ano anterior conhecido nem boleto, deixa em aberto (não dá pra calcular)
+  }
+
+  renderizarValoresPorAno();
+  alert('✅ Valores atualizados automaticamente onde foi possível calcular!');
+}
+
+async function carregarValoresPorAno(pjId) {
+  const registros = await SupabaseAPI.get('valor_contrato_ano');
+  valoresPorAnoAtuais = registros.filter(v => v.pj_id === pjId).map(v => ({ ano: v.ano, valor: parseFloat(v.valor), origem: v.origem }));
+  renderizarValoresPorAno();
+}
+
+async function salvarValoresPorAnoPJ(pjId) {
+  const existentes = await SupabaseAPI.get('valor_contrato_ano');
+  const dessePj = existentes.filter(v => v.pj_id === pjId);
+
+  for (const v of dessePj) {
+    if (!valoresPorAnoAtuais.some(a => a.ano === v.ano)) {
+      await SupabaseAPI.delete('valor_contrato_ano', v.id);
+    }
+  }
+
+  for (const atual of valoresPorAnoAtuais) {
+    const existente = dessePj.find(v => v.ano === atual.ano);
+    if (existente) {
+      if (parseFloat(existente.valor) !== atual.valor || existente.origem !== atual.origem) {
+        await SupabaseAPI.update('valor_contrato_ano', existente.id, { valor: atual.valor, origem: atual.origem });
+      }
+    } else {
+      await SupabaseAPI.insert('valor_contrato_ano', { pj_id: pjId, ano: atual.ano, valor: atual.valor, origem: atual.origem });
+    }
+  }
 }
 
 async function salvarPalavrasChavePJ(pjId) {
@@ -159,7 +298,10 @@ async function carregarExtratoCliente() {
     const mesesEmAberto = mesesEsperados.filter(m => !mesesPagos.has(m));
 
     if (mesesEmAberto.length > 0) {
-      statusEl.textContent = `⚠️ Em Aberto (${mesesEmAberto.length} mês/meses)`;
+      const valoresAnoDoCliente = (await SupabaseAPI.get('valor_contrato_ano')).filter(v => v.pj_id === pj.id);
+      const valorTotal = mesesEmAberto.reduce((soma, mes) => soma + obterValorAnoParaMes(mes, valoresAnoDoCliente, pj.valor_contrato), 0);
+      const valorFormatado = valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      statusEl.innerHTML = `⚠️ Em Aberto (${mesesEmAberto.length} mês/meses) — <span style="color:var(--alerta);">${valorFormatado}</span>`;
       statusEl.style.color = 'var(--alerta)';
     } else {
       statusEl.textContent = '✅ Pago em dia';
@@ -260,6 +402,13 @@ function formatarMesAno(mesStr) {
   return `${nomes[parseInt(mes) - 1]}/${ano.slice(2)}`;
 }
 
+function obterValorAnoParaMes(mesStr, valoresAnoDoCliente, valorContratoFallback) {
+  const ano = parseInt(mesStr.split('-')[0]);
+  const registro = valoresAnoDoCliente.find(v => v.ano === ano);
+  if (registro) return parseFloat(registro.valor);
+  return parseFloat(valorContratoFallback || 0);
+}
+
 async function carregarSituacaoClientes() {
   const tbody = document.getElementById('tbodySituacaoClientes');
   if (!tbody) return;
@@ -267,6 +416,7 @@ async function carregarSituacaoClientes() {
 
   const todosPj = (await SupabaseAPI.get('clientes_pj')).filter(pj => pj.unidade_id === unidadeAtivaCliente);
   const todosBoletos = (await SupabaseAPI.get('boletos')).filter(b => b.unidade_id === unidadeAtivaCliente);
+  const todosValoresAno = await SupabaseAPI.get('valor_contrato_ano');
 
   const hoje = new Date();
   const hojeStr = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
@@ -300,10 +450,12 @@ async function carregarSituacaoClientes() {
     const mesesEmAberto = mesesEsperados.filter(m => !mesesPagos.has(m));
 
     if (mesesEmAberto.length > 0) {
+      const valoresAnoDoCliente = todosValoresAno.filter(v => v.pj_id === pj.id);
+      const valorTotal = mesesEmAberto.reduce((soma, mes) => soma + obterValorAnoParaMes(mes, valoresAnoDoCliente, pj.valor_contrato), 0);
       devedores.push({
         cliente: pj.razao_social,
         meses: mesesEmAberto,
-        valorTotal: mesesEmAberto.length * parseFloat(pj.valor_contrato || 0)
+        valorTotal
       });
       if (ativo) clientesInadimplentes++;
     }
@@ -856,6 +1008,7 @@ async function salvarPJ(event) {
 
     await salvarVinculosPJ(pjId);
     await salvarPalavrasChavePJ(pjId);
+    await salvarValoresPorAnoPJ(pjId);
 
     if (id) {
       alert('✅ Pessoa Jurídica atualizada!');
@@ -930,6 +1083,9 @@ async function editarPJ(id) {
   const parametros = await SupabaseAPI.get('clientes_parametros');
   palavrasChaveAtuais = parametros.filter(p => p.pj_id === j.id).map(p => p.palavra_chave);
   renderizarChipsPalavraChave();
+
+  await carregarValoresPorAno(j.id);
+  document.getElementById('areaValoresPorAno').style.display = 'none';
 }
 
 function limparFormularioPJ() {
@@ -944,6 +1100,9 @@ function limparFormularioPJ() {
   renderizarChipsPalavraChave();
   servicosContratadosAtuais = [];
   atualizarCardsServicoContratado();
+  valoresPorAnoAtuais = [];
+  renderizarValoresPorAno();
+  document.getElementById('areaValoresPorAno').style.display = 'none';
 }
 
 async function deletarPJ(id) {

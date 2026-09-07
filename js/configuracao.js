@@ -1169,3 +1169,54 @@ async function salvarSecaoContrato(regime, secao) {
   await carregarContrato();
   alert('✅ Seção atualizada!');
 }
+
+// ========== CORREÇÃO ANUAL DE HONORÁRIOS ==========
+async function carregarCorrecaoAnual() {
+  const tbody = document.getElementById('tbodyCorrecaoAnual');
+  if (!tbody) return;
+
+  const correcoes = (await SupabaseAPI.get('contrato_correcao_anual')).sort((a, b) => a.ano - b.ano);
+
+  if (correcoes.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:var(--tinta-40); font-size:12px;">Nenhuma correção cadastrada</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = correcoes.map(c => `
+    <tr>
+      <td>${c.ano}</td>
+      <td>${parseFloat(c.percentual).toFixed(2)}%</td>
+      <td><button class="btn-danger" onclick="removerCorrecaoAnual(${c.id})">Deletar</button></td>
+    </tr>
+  `).join('');
+}
+
+async function adicionarCorrecaoAnual() {
+  const ano = parseInt(document.getElementById('inputAnoCorrecao').value);
+  const percentual = parseFloat(document.getElementById('inputPercentualCorrecao').value);
+
+  if (!ano || isNaN(percentual)) {
+    alert('⚠️ Preencha Ano e % de Correção');
+    return;
+  }
+
+  const existentes = await SupabaseAPI.get('contrato_correcao_anual');
+  const existente = existentes.find(c => c.ano === ano);
+
+  if (existente) {
+    await SupabaseAPI.update('contrato_correcao_anual', existente.id, { percentual });
+  } else {
+    await SupabaseAPI.insert('contrato_correcao_anual', { ano, percentual });
+  }
+
+  document.getElementById('inputAnoCorrecao').value = '';
+  document.getElementById('inputPercentualCorrecao').value = '';
+  await carregarCorrecaoAnual();
+  alert('✅ Correção salva!');
+}
+
+async function removerCorrecaoAnual(id) {
+  if (!confirm('Remover essa correção?')) return;
+  await SupabaseAPI.delete('contrato_correcao_anual', id);
+  await carregarCorrecaoAnual();
+}
