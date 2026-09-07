@@ -303,13 +303,18 @@ async function carregarExtratoCliente() {
       const valorFormatado = valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
       statusEl.innerHTML = `⚠️ Em Aberto (${mesesEmAberto.length} mês/meses) — <span style="color:var(--alerta);">${valorFormatado}</span>`;
       statusEl.style.color = 'var(--alerta)';
+
+      document.getElementById('linhaMesesEmAbertoCliente').style.display = 'block';
+      document.getElementById('mesesEmAbertoExtratoCliente').textContent = mesesEmAberto.map(formatarMesAnoExtrato).join(', ');
     } else {
       statusEl.textContent = '✅ Pago em dia';
       statusEl.style.color = 'var(--destaque)';
+      document.getElementById('linhaMesesEmAbertoCliente').style.display = 'none';
     }
   } else {
     statusEl.textContent = 'Sem dados suficientes (falta Início da Cobrança ou Valor do Contrato)';
     statusEl.style.color = 'var(--tinta-40)';
+    document.getElementById('linhaMesesEmAbertoCliente').style.display = 'none';
   }
 
   // Tabela de movimentação completa (Boletos + Extratos)
