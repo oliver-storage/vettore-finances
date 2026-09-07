@@ -111,24 +111,34 @@ async function atualizarValoresAutomaticamente() {
 
   const anoAtual = new Date().getFullYear();
   const todosBoletos = (await SupabaseAPI.get('boletos')).filter(b => b.cliente === razaoSocial);
+  const todosExtratosCliente = (await SupabaseAPI.get('extratos')).filter(e => e.cliente === razaoSocial);
   const correcoes = await SupabaseAPI.get('contrato_correcao_anual');
 
   for (let ano = anoInicio; ano <= anoAtual; ano++) {
     const jaTemValor = valoresPorAnoAtuais.find(v => v.ano === ano);
     if (jaTemValor) continue; // já tem valor (manual ou automático), não sobrescreve
 
-    // 1) Buscar valor real pago nesse ano (boletos liquidados)
+    // 1) Buscar valor real pago nesse ano (boletos liquidados + entradas no extrato)
     const boletosDoAno = todosBoletos.filter(b =>
       (b.situacao || '').toUpperCase().includes('LIQUIDADO') &&
       b.data_liquidacao &&
       b.data_liquidacao.slice(0, 4) === String(ano)
     );
+    const extratosDoAno = todosExtratosCliente.filter(e =>
+      parseFloat(e.valor) > 0 &&
+      e.data &&
+      e.data.slice(0, 4) === String(ano)
+    );
 
-    if (boletosDoAno.length > 0) {
+    const valoresDoAno = [
+      ...boletosDoAno.map(b => parseFloat(b.valor)),
+      ...extratosDoAno.map(e => parseFloat(e.valor))
+    ];
+
+    if (valoresDoAno.length > 0) {
       // Valor mais frequente pago naquele ano
       const contagem = {};
-      boletosDoAno.forEach(b => {
-        const v = parseFloat(b.valor);
+      valoresDoAno.forEach(v => {
         contagem[v] = (contagem[v] || 0) + 1;
       });
       const valorMaisFrequente = parseFloat(Object.entries(contagem).sort((a, b) => b[1] - a[1])[0][0]);
@@ -280,6 +290,8 @@ async function carregarExtratoCliente() {
   // Calcular status (mesma lógica da Situação)
   const todosBoletos = (await SupabaseAPI.get('boletos')).filter(b => b.unidade_id === unidadeAtivaCliente);
   const boletosDoCliente = todosBoletos.filter(b => b.cliente === pj.razao_social);
+  const todosExtratosStatus = (await SupabaseAPI.get('extratos')).filter(e => e.unidade_id === unidadeAtivaCliente);
+  const extratosDoClienteStatus = todosExtratosStatus.filter(e => e.cliente === pj.razao_social);
 
   const statusEl = document.getElementById('statusExtratoCliente');
   if (pj.inicio_cobranca && pj.valor_contrato) {
@@ -289,11 +301,14 @@ async function carregarExtratoCliente() {
     const fimStr = pj.final_contrato ? pj.final_contrato.slice(0, 7) : mesAtual;
     const mesesEsperados = gerarMesesEntre(inicioStr, fimStr);
 
-    const mesesPagos = new Set(
-      boletosDoCliente
+    const mesesPagos = new Set([
+      ...boletosDoCliente
         .filter(b => (b.situacao || '').toUpperCase().includes('LIQUIDADO') && b.data_vencimento)
-        .map(b => b.data_vencimento.slice(0, 7))
-    );
+        .map(b => b.data_vencimento.slice(0, 7)),
+      ...extratosDoClienteStatus
+        .filter(e => parseFloat(e.valor) > 0 && e.data)
+        .map(e => e.data.slice(0, 7))
+    ]);
 
     const mesesEmAberto = mesesEsperados.filter(m => !mesesPagos.has(m));
 
@@ -421,6 +436,7 @@ async function carregarSituacaoClientes() {
 
   const todosPj = (await SupabaseAPI.get('clientes_pj')).filter(pj => pj.unidade_id === unidadeAtivaCliente);
   const todosBoletos = (await SupabaseAPI.get('boletos')).filter(b => b.unidade_id === unidadeAtivaCliente);
+  const todosExtratos = (await SupabaseAPI.get('extratos')).filter(e => e.unidade_id === unidadeAtivaCliente);
   const todosValoresAno = await SupabaseAPI.get('valor_contrato_ano');
 
   const hoje = new Date();
@@ -450,7 +466,15 @@ async function carregarSituacaoClientes() {
       (b.situacao || '').toUpperCase().includes('LIQUIDADO') &&
       b.data_vencimento
     );
-    const mesesPagos = new Set(boletosDoCliente.map(b => b.data_vencimento.slice(0, 7)));
+    const extratosDoCliente = todosExtratos.filter(e =>
+      e.cliente === pj.razao_social &&
+      parseFloat(e.valor) > 0 &&
+      e.data
+    );
+    const mesesPagos = new Set([
+      ...boletosDoCliente.map(b => b.data_vencimento.slice(0, 7)),
+      ...extratosDoCliente.map(e => e.data.slice(0, 7))
+    ]);
 
     const mesesEmAberto = mesesEsperados.filter(m => !mesesPagos.has(m));
 
