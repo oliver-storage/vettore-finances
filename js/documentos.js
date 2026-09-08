@@ -306,23 +306,6 @@ async function obterAparenciaDocumento() {
   };
 }
 
-function montarHtmlTimbrado(aparencia, dados, textoBody) {
-  const rodapeTexto = dados
-    ? `${dados.razaosocial_contratada} — ${dados.endereco_contratada} — CNPJ: ${dados.cnpj_contratada}`
-    : '';
-
-  return `
-    ${aparencia.topo ? `<div style="text-align:center; margin:0 0 24px 0;"><img src="${aparencia.topo}" style="width:100%; max-width:100%; display:block;"></div>` : ''}
-    <div style="padding: 0 40px;">${textoBody}</div>
-    ${aparencia.rodape ? `
-      <div style="margin-top:40px;">
-        <div style="text-align:center; font-size:9pt; color:#333; margin-bottom:4px;">${rodapeTexto}</div>
-        <img src="${aparencia.rodape}" style="width:100%; display:block;">
-      </div>
-    ` : ''}
-  `;
-}
-
 function medirImagem(base64) {
   return new Promise((resolve) => {
     const img = new Image();
@@ -365,13 +348,18 @@ async function baixarComoPDF(texto, nomeDocumento, dados) {
     footer: aparencia.rodape ? function() {
       return {
         stack: [
-          { text: rodapeTexto, alignment: 'center', fontSize: 8, margin: [0, 0, 0, 2] },
+          { text: rodapeTexto, alignment: 'center', fontSize: 8, bold: true, margin: [0, 0, 0, 2] },
           { image: aparencia.rodape, width: PAGE_WIDTH }
         ]
       };
     } : undefined,
 
-    content: texto.split('\n').map(linha => ({ text: linha === '' ? ' ' : linha, fontSize: tamanhoFonte, margin: [0, 0, 0, 2] })),
+    content: texto.split('\n').map((linha, i) => {
+      if (i === 0) {
+        return { text: linha === '' ? ' ' : linha, fontSize: 14, bold: true, alignment: 'center', margin: [0, 0, 0, 10] };
+      }
+      return { text: linha === '' ? ' ' : linha, fontSize: tamanhoFonte, margin: [0, 0, 0, 2] };
+    }),
 
     defaultStyle: {
       font: 'Roboto'
@@ -381,26 +369,90 @@ async function baixarComoPDF(texto, nomeDocumento, dados) {
   pdfMake.createPdf(docDefinition).download(`${nomeDocumento}.pdf`);
 }
 
+async function base64ParaUint8Array(base64DataUrl) {
+  const res = await fetch(base64DataUrl);
+  const buf = await res.arrayBuffer();
+  return new Uint8Array(buf);
+}
+
+function extensaoImagem(base64DataUrl) {
+  const m = base64DataUrl.match(/^data:image\/(\w+);/);
+  const ext = m ? m[1].toLowerCase() : 'png';
+  if (ext === 'jpeg') return 'jpg';
+  return ext; // 'png', 'jpg', 'gif', 'bmp'
+}
+
+function nomeFontePlano(fonteCss) {
+  return (fonteCss || 'Times New Roman').split(',')[0].replace(/'/g, '').trim();
+}
+
 async function baixarComoWord(texto, nomeArquivo, dados) {
   const aparencia = await obterAparenciaDocumento();
-  const corpoHtml = montarHtmlTimbrado(aparencia, dados, texto.replace(/</g, '&lt;').replace(/\n/g, '<br>'));
+  const rodapeTexto = dados
+    ? `${dados.razaosocial_contratada} — ${dados.endereco_contratada} — CNPJ: ${dados.cnpj_contratada}`
+    : '';
 
-  const conteudoHtml = `
-    <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
-      <head>
-        <meta charset="utf-8">
-        <style>
-          body { font-family: ${aparencia.fonte}; font-size: ${aparencia.tamanho}pt; line-height: 1.6; }
-        </style>
-      </head>
-      <body>${corpoHtml}</body>
-    </html>
-  `;
+  const PAGE_WIDTH_PX = 750; // largura útil aproximada (A4, margens padrão, 96dpi)
+  const fonteNome = nomeFontePlano(aparencia.fonte);
+  const tamanhoMeioPontos = (parseInt(aparencia.tamanho) || 12) * 2; // docx usa "half-points"
 
-  const blob = new Blob(['\ufeff', conteudoHtml], { type: 'application/msword' });
+  const headerChildren = [];
+  if (aparencia.topo) {
+    const bytes = await base64ParaUint8Array(aparencia.topo);
+    const dim = await medirImagem(aparencia.topo);
+    const altura = PAGE_WIDTH_PX * (dim.height / dim.width);
+    headerChildren.push(new docx.Paragraph({
+      children: [new docx.ImageRun({
+        data: bytes,
+        type: extensaoImagem(aparencia.topo),
+        transformation: { width: PAGE_WIDTH_PX, height: altura }
+      })]
+    }));
+  }
+
+  const footerChildren = [];
+  if (aparencia.rodape) {
+    footerChildren.push(new docx.Paragraph({
+      alignment: docx.AlignmentType.CENTER,
+      children: [new docx.TextRun({ text: rodapeTexto, size: 16, font: fonteNome, bold: true })]
+    }));
+    const bytes = await base64ParaUint8Array(aparencia.rodape);
+    const dim = await medirImagem(aparencia.rodape);
+    const altura = PAGE_WIDTH_PX * (dim.height / dim.width);
+    footerChildren.push(new docx.Paragraph({
+      children: [new docx.ImageRun({
+        data: bytes,
+        type: extensaoImagem(aparencia.rodape),
+        transformation: { width: PAGE_WIDTH_PX, height: altura }
+      })]
+    }));
+  }
+
+  const corpoParagrafos = texto.split('\n').map((linha, i) => {
+    if (i === 0) {
+      return new docx.Paragraph({
+        alignment: docx.AlignmentType.CENTER,
+        spacing: { after: 200 },
+        children: [new docx.TextRun({ text: linha, font: fonteNome, size: 28, bold: true })]
+      });
+    }
+    return new docx.Paragraph({
+      children: [new docx.TextRun({ text: linha, font: fonteNome, size: tamanhoMeioPontos })]
+    });
+  });
+
+  const doc = new docx.Document({
+    sections: [{
+      headers: aparencia.topo ? { default: new docx.Header({ children: headerChildren }) } : undefined,
+      footers: aparencia.rodape ? { default: new docx.Footer({ children: footerChildren }) } : undefined,
+      children: corpoParagrafos
+    }]
+  });
+
+  const blob = await docx.Packer.toBlob(doc);
   const link = document.createElement('a');
   link.href = URL.createObjectURL(blob);
-  link.download = `${nomeArquivo}.doc`;
+  link.download = `${nomeArquivo}.docx`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
