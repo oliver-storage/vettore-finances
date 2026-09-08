@@ -117,11 +117,18 @@ async function montarDadosDocumento(pjId) {
   const hoje = new Date();
 
   return {
+    franquia_nome: unidade?.nomefranquia || '-',
+    data_hora_geracao: hoje.toLocaleString('pt-BR'),
+    data_atual_extenso: formatarDataExtensoDoc(hoje),
+    cidade_estado_franquia: `${unidade?.cidade || '-'}/${unidade?.estado === 'CE' ? 'Ceará' : (unidade?.estado || '-')}`,
     razao_social: pj.razao_social || '',
     endereco_empresa: enderecoEmpresa || '-',
     cnpj: pj.cnpj || '-',
+    cnae: pj.cnae || '-',
     nome_representante: pf?.nome || '-',
     cpf_representante: pf?.cpf || '-',
+    data_nascimento_representante: pf?.data_nascimento ? formatarDataBRDoc(pf.data_nascimento) : '-',
+    endereco_representante: pf?.endereco || '-',
     servicos_titulo: servicosTitulo,
     clausula_servicos_detalhada: clausulaDetalhada.trim(),
     data_inicio_contrato: formatarDataBRDoc(pj.data_contrato),
