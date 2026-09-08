@@ -61,6 +61,17 @@ function valorPorExtenso(valor) {
 }
 
 // ========== FORMATADORES AUXILIARES ==========
+function estadoExtenso(uf) {
+  const estados = {
+    AC:'Acre', AL:'Alagoas', AP:'Amapá', AM:'Amazonas', BA:'Bahia', CE:'Ceará', DF:'Distrito Federal',
+    ES:'Espírito Santo', GO:'Goiás', MA:'Maranhão', MT:'Mato Grosso', MS:'Mato Grosso do Sul',
+    MG:'Minas Gerais', PA:'Pará', PB:'Paraíba', PR:'Paraná', PE:'Pernambuco', PI:'Piauí',
+    RJ:'Rio de Janeiro', RN:'Rio Grande do Norte', RS:'Rio Grande do Sul', RO:'Rondônia',
+    RR:'Roraima', SC:'Santa Catarina', SP:'São Paulo', SE:'Sergipe', TO:'Tocantins'
+  };
+  return estados[(uf || '').toUpperCase()] || uf || '-';
+}
+
 function formatarDataBRDoc(iso) {
   if (!iso) return '-';
   const [ano, mes, dia] = iso.split('-');
@@ -120,8 +131,9 @@ async function montarDadosDocumento(pjId) {
     franquia_nome: unidade?.nomefranquia || '-',
     data_hora_geracao: hoje.toLocaleString('pt-BR'),
     data_atual_extenso: formatarDataExtensoDoc(hoje),
-    cidade_estado_franquia: `${unidade?.cidade || '-'}/${unidade?.estado === 'CE' ? 'Ceará' : (unidade?.estado || '-')}`,
+    cidade_estado_franquia: `${unidade?.cidade || '-'}/${estadoExtenso(unidade?.estado)}`,
     cidade_franquia: unidade?.cidade || '-',
+    estado_franquia_extenso: estadoExtenso(unidade?.estado),
     razao_social: pj.razao_social || '',
     endereco_empresa: enderecoEmpresa || '-',
     cnpj: pj.cnpj || '-',
@@ -153,12 +165,12 @@ async function montarDadosDocumento(pjId) {
     razaosocial_contratada: unidade?.razaosocial || unidade?.nomefranquia || '-',
     endereco_contratada: enderecoContratada || '-',
     cidade_contratada: unidade?.cidade || '-',
-    estado_contratada: unidade?.estado || '-',
     email_contratante: pj.email || '-',
     email_contratada: unidade?.email || '-',
     whatsapp_contratante: pj.whatsapp || '-',
     whatsapp_contratada: unidade?.telefone || '-',
-    cidade_data_assinatura: `${unidade?.cidade || '-'} - ${unidade?.estado || '-'}, ${formatarDataExtensoDoc(hoje)}`
+    cidade_data_assinatura: `${unidade?.cidade || '-'} - ${estadoExtenso(unidade?.estado)}, ${formatarDataExtensoDoc(hoje)}`,
+    estado_contratada: estadoExtenso(unidade?.estado)
   };
 }
 
