@@ -5,8 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vettore Finances - Clientes</title>
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.26.1">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.26.1">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.27.0">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.27.0">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -555,6 +555,21 @@
               <div id="pjVinculosPF" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:6px;"></div>
             </div>
 
+            <div id="areaDocumentosPJ" style="display:none; margin-top:20px; border:1px solid var(--linha); border-radius:6px; padding:16px; background:var(--papel);">
+              <h5 style="margin:0 0 12px 0;">Gerar Documento</h5>
+              <div style="display:flex; gap:8px; align-items:flex-end;">
+                <div class="form-group" style="flex:1; margin:0;">
+                  <label>Tipo de Documento</label>
+                  <select id="selectTipoDocumentoPJForm">
+                    <option value="">Selecione...</option>
+                  </select>
+                </div>
+                <button type="button" class="btn-primary" onclick="baixarDocumentoPJForm('pdf')" style="padding:10px 14px;">📄 Baixar PDF</button>
+                <button type="button" class="btn-primary" onclick="baixarDocumentoPJForm('word')" style="padding:10px 14px;">📝 Baixar Word</button>
+              </div>
+              <p id="avisoDocumentoPJForm" style="font-size:12px; color:var(--alerta); margin-top:8px; display:none;"></p>
+            </div>
+
             <input type="hidden" id="pjId" value="">
             <div style="display:flex; gap:8px; margin-top:16px;">
               <button type="submit" class="btn-primary">Salvar Pessoa Jurídica</button>
@@ -569,14 +584,14 @@
   </div>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.26.1 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.27.0 Desenvolvido por OliverStorage</p>
   </footer>
 
-  <script src="../js/auth.js?v=1.9.26.1"></script>
-  <script src="../js/masks.js?v=1.9.26.1"></script>
-  <script src="../js/supabase-utils.js?v=1.9.26.1"></script>
-  <script src="../js/clientes.js?v=1.9.26.1"></script>
-  <script src="../js/documentos.js?v=1.9.26.1"></script>
+  <script src="../js/auth.js?v=1.9.27.0"></script>
+  <script src="../js/masks.js?v=1.9.27.0"></script>
+  <script src="../js/supabase-utils.js?v=1.9.27.0"></script>
+  <script src="../js/clientes.js?v=1.9.27.0"></script>
+  <script src="../js/documentos.js?v=1.9.27.0"></script>
   <script>
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', inicializarClientes);

@@ -1246,6 +1246,7 @@ async function editarPJ(id) {
 
   document.getElementById('pjId').value = j.id;
   document.getElementById('btnDesvincularPJ').style.display = j.ativo === false ? 'none' : 'inline-block';
+  await popularSelectDocumentosPJForm(j.id);
   document.getElementById('pjDataContrato').value = j.data_contrato || '';
   document.getElementById('pjInicioCobranca').value = j.inicio_cobranca ? j.inicio_cobranca.slice(0, 7) : '';
   document.getElementById('pjFinalContrato').value = j.final_contrato ? j.final_contrato.slice(0, 7) : '';
@@ -1286,6 +1287,7 @@ async function editarPJ(id) {
 
 function limparFormularioPJ() {
   document.getElementById('btnDesvincularPJ').style.display = 'none';
+  document.getElementById('areaDocumentosPJ').style.display = 'none';
   document.getElementById('pjId').value = '';
   ['pjDataContrato','pjInicioCobranca','pjFinalContrato','pjValorContrato','pjRazaoSocial','pjEmail','pjWhatsapp','pjCNPJ','pjSegmento','pjPorte','pjRegimeTributario','pjNaturezaJuridica','pjCNAE',
    'pjCapitalSocial','pjSenhaGov','pjEnderecoEmpresa','pjEstadoEmpresa','pjMunicipioEmpresa','pjObservacoes']

@@ -247,6 +247,95 @@ function preencherModelo(conteudo, dados) {
   return resultado;
 }
 
+// ========== UI: GERAR DOCUMENTO DIRETO NO CADASTRO PJ ==========
+let PJ_ID_DOCUMENTO_FORM = null;
+
+async function popularSelectDocumentosPJForm(pjId) {
+  PJ_ID_DOCUMENTO_FORM = pjId;
+  const area = document.getElementById('areaDocumentosPJ');
+  const select = document.getElementById('selectTipoDocumentoPJForm');
+  if (!area || !select) return;
+
+  const modelos = await SupabaseAPI.get('contrato_modelos_documentos');
+  select.innerHTML = '<option value="">Selecione...</option>' +
+    modelos.map(m => `<option value="${m.tipo}">${m.nome}</option>`).join('');
+
+  area.style.display = 'block';
+  document.getElementById('avisoDocumentoPJForm').style.display = 'none';
+}
+
+async function baixarDocumentoPJForm(formato) {
+  const tipo = document.getElementById('selectTipoDocumentoPJForm').value;
+  const aviso = document.getElementById('avisoDocumentoPJForm');
+  aviso.style.display = 'none';
+
+  if (!tipo) {
+    aviso.textContent = '⚠️ Selecione um tipo de documento';
+    aviso.style.display = 'block';
+    return;
+  }
+  if (!PJ_ID_DOCUMENTO_FORM) return;
+
+  const modelos = await SupabaseAPI.get('contrato_modelos_documentos');
+  const modelo = modelos.find(m => m.tipo === tipo);
+
+  if (!modelo || !modelo.conteudo || !modelo.conteudo.trim()) {
+    aviso.textContent = '⚠️ Esse modelo ainda não tem texto cadastrado. Cadastre em Configurações > Contrato > Modelos de Documentos.';
+    aviso.style.display = 'block';
+    return;
+  }
+
+  const dados = await montarDadosDocumento(PJ_ID_DOCUMENTO_FORM);
+  const textoFinal = preencherModelo(modelo.conteudo, dados);
+  const nomeArquivo = `${modelo.nome} - ${dados.razao_social}`.replace(/[\\/:*?"<>|]/g, '');
+
+  if (formato === 'pdf') {
+    baixarComoPDF(textoFinal, modelo.nome);
+  } else {
+    baixarComoWord(textoFinal, nomeArquivo);
+  }
+}
+
+function baixarComoPDF(texto, nomeDocumento) {
+  const janela = window.open('', '_blank');
+  janela.document.write(`
+    <html>
+      <head>
+        <title>${nomeDocumento}</title>
+        <style>
+          body { font-family: 'Times New Roman', serif; font-size: 12pt; line-height: 1.6; padding: 40px; white-space: pre-wrap; }
+        </style>
+      </head>
+      <body>${texto.replace(/</g, '&lt;')}</body>
+    </html>
+  `);
+  janela.document.close();
+  janela.focus();
+  setTimeout(() => janela.print(), 300);
+}
+
+function baixarComoWord(texto, nomeArquivo) {
+  const conteudoHtml = `
+    <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: 'Times New Roman', serif; font-size: 12pt; line-height: 1.6; white-space: pre-wrap; }
+        </style>
+      </head>
+      <body>${texto.replace(/</g, '&lt;').replace(/\n/g, '<br>')}</body>
+    </html>
+  `;
+
+  const blob = new Blob(['\ufeff', conteudoHtml], { type: 'application/msword' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `${nomeArquivo}.doc`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
 // ========== UI: GERAR DOCUMENTO ==========
 let PJ_ID_DOCUMENTO_ATUAL = null;
 
@@ -293,11 +382,13 @@ async function gerarDocumentoSelecionado() {
 
   const dados = await montarDadosDocumento(PJ_ID_DOCUMENTO_ATUAL);
   const textoFinal = preencherModelo(modelo.conteudo, dados);
+  const nomeArquivoWord = `${modelo.nome} - ${dados.razao_social}`.replace(/[\\/:*?"<>|]/g, '');
 
   document.getElementById('resultadoDocumentoGerado').innerHTML = `
     <div style="border:1px solid var(--linha); border-radius:6px; padding:20px; background:white; max-height:500px; overflow-y:auto; white-space:pre-wrap; font-family:'IBM Plex Mono', monospace; font-size:12px; line-height:1.6;" id="textoDocumentoGerado">${textoFinal.replace(/</g, '&lt;')}</div>
     <div style="display:flex; gap:8px; margin-top:12px;">
       <button class="btn-primary" onclick="imprimirDocumentoGerado('${modelo.nome.replace(/'/g, "\\'")}')">🖨️ Gerar PDF / Imprimir</button>
+      <button class="btn-primary" onclick="baixarComoWord(document.getElementById('textoDocumentoGerado').innerText, '${nomeArquivoWord.replace(/'/g, "\\'")}')">📝 Baixar Word</button>
       <button class="btn-danger" onclick="copiarDocumentoGerado()">📋 Copiar Texto</button>
     </div>
   `;
