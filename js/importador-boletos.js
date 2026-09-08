@@ -286,7 +286,7 @@ async function loadBoletos() {
     // Popular select de Mês/Ano só com os meses que existem de fato nos dados dessa franquia
     const nomesMeses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
     const selectMesAno = document.getElementById('mesAnoFilterBoleto');
-    const mesesExistentes = [...new Set(boletos.map(b => b.data_liquidacao?.slice(0, 7)).filter(Boolean))].sort();
+    const mesesExistentes = [...new Set(boletos.map(b => b.data_liquidacao?.slice(0, 7)).filter(Boolean))].sort().reverse();
     const mesAnoAtual = selectMesAno.value;
     selectMesAno.innerHTML = '<option value="">Todos</option>' + mesesExistentes.map(ma => {
       const [anoOpt, mesOpt] = ma.split('-');
