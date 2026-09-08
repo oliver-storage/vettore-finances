@@ -8,9 +8,10 @@
   
   <!-- XLSX -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.31.0">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.31.0">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.32.0">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.32.0">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -130,6 +131,11 @@
     /* Extrato: 3 cards por linha */
     #resumoCategorias {
       grid-template-columns: repeat(3, 1fr);
+    }
+
+    .section-title {
+      margin: 0;
+      color: var(--tinta);
     }
 
     .categoria-box {
@@ -640,11 +646,39 @@
     <p class="subtitle">Gestão de extratos bancários e boletos por categoria</p>
 
     <div class="tabs">
-      <button class="tab-btn active" onclick="switchTabFinanceiro('extrato')">Extrato</button>
+      <button class="tab-btn active" onclick="switchTabFinanceiro('dashboardFinanceiro')">Dashboard</button>
+      <button class="tab-btn" onclick="switchTabFinanceiro('extrato')">Extrato</button>
       <button class="tab-btn" onclick="switchTabFinanceiro('boleto')">Boleto</button>
     </div>
 
-    <div id="extrato" class="tab-content active">
+    <div id="dashboardFinanceiro" class="tab-content active">
+
+      <div class="form-group" style="max-width:200px;">
+        <label>Ano</label>
+        <select id="anoFilterDashboardFin" onchange="carregarDashboardFinanceiro()">
+          <option value="">Selecione...</option>
+        </select>
+      </div>
+
+      <h3 class="section-title" style="margin-top:24px;">Receitas</h3>
+      <div id="cardsReceitasDashFin" class="resumo-categorias"></div>
+
+      <h3 class="section-title" style="margin-top:24px;">Despesas</h3>
+      <div id="cardsDespesasDashFin" class="resumo-categorias"></div>
+
+      <div class="charts-row" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:20px; margin-top:24px;">
+        <div class="chart-box" style="background:var(--papel-alto); border:1px solid var(--linha); border-radius:6px; padding:20px; box-shadow:var(--sombra); grid-column: 1 / -1;">
+          <h4 style="margin:0 0 12px 0; font-size:14px; color:var(--tinta-70);">Receita x Despesa Mensal</h4>
+          <canvas id="chartReceitaDespesaMensal" style="max-height:300px;"></canvas>
+        </div>
+        <div class="chart-box" style="background:var(--papel-alto); border:1px solid var(--linha); border-radius:6px; padding:20px; box-shadow:var(--sombra); grid-column: 1 / -1;">
+          <h4 style="margin:0 0 12px 0; font-size:14px; color:var(--tinta-70);">Receita por Serviços — mês a mês</h4>
+          <canvas id="chartReceitaPorServico" style="max-height:300px;"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div id="extrato" class="tab-content">
 
     <div class="form-group" id="grupoFranquia" style="display:none; max-width:320px;">
       <label>Franquia</label>
@@ -904,13 +938,13 @@
   <datalist id="listaClientesPJ"></datalist>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.31.0 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.32.0 Desenvolvido por OliverStorage</p>
   </footer>
 
-  <script src="../js/auth.js?v=1.9.31.0"></script>
-  <script src="../js/supabase-utils.js?v=1.9.31.0"></script>
-  <script src="../js/importador.js?v=1.9.31.0"></script>
-  <script src="../js/importador-boletos.js?v=1.9.31.0"></script>
+  <script src="../js/auth.js?v=1.9.32.0"></script>
+  <script src="../js/supabase-utils.js?v=1.9.32.0"></script>
+  <script src="../js/importador.js?v=1.9.32.0"></script>
+  <script src="../js/importador-boletos.js?v=1.9.32.0"></script>
 
   <script>
     let CATEGORIAS = [];
@@ -956,6 +990,125 @@
       const [dia, mes, anoAbrev] = dataBR.split('/');
       const ano = anoAbrev.length === 2 ? '20' + anoAbrev : anoAbrev;
       return `${ano}-${mes}-${dia}`;
+    }
+
+    let CHART_RECEITA_DESPESA_FIN, CHART_RECEITA_SERVICO_FIN;
+    const RECEITA_CATEGORIAS = ['BOLETOS', 'HONORÁRIOS', 'PARCEIROS'];
+    const DESPESA_CATEGORIAS = ['TARIFAS', 'IMPOSTOS', 'CUSTEIO'];
+    const NOMES_MESES_DASHFIN = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+    async function carregarDashboardFinanceiro() {
+      const unidadeAtiva = UNIDADE_ATIVA_FINANCEIRO;
+      if (!unidadeAtiva) return;
+
+      const todosExtratos = (await SupabaseAPI.get('extratos')).filter(e => e.unidade_id === unidadeAtiva);
+      const todosBoletos = (await SupabaseAPI.get('boletos')).filter(b => b.unidade_id === unidadeAtiva);
+
+      // Popular dropdown de Ano
+      const selectAno = document.getElementById('anoFilterDashboardFin');
+      const anosExistentes = [...new Set([
+        ...todosExtratos.map(e => e.ano ? String(e.ano) : null),
+        ...todosBoletos.map(b => b.data_vencimento ? b.data_vencimento.slice(0, 4) : null)
+      ].filter(Boolean))].sort().reverse();
+      const anoAtualSel = selectAno.value;
+      selectAno.innerHTML = anosExistentes.map(a => `<option value="${a}">${a}</option>`).join('');
+      const anoSelecionado = anoAtualSel && anosExistentes.includes(anoAtualSel) ? anoAtualSel : (anosExistentes[0] || '');
+      selectAno.value = anoSelecionado;
+
+      if (!anoSelecionado) return;
+
+      const extratosDoAno = todosExtratos.filter(e => String(e.ano) === anoSelecionado);
+      const boletosDoAno = todosBoletos.filter(b => b.data_vencimento && b.data_vencimento.slice(0, 4) === anoSelecionado);
+
+      // ===== CARDS RECEITAS / DESPESAS (soma Extrato + Boleto por categoria) =====
+      function somarCategoria(cat) {
+        const deExtratos = extratosDoAno.filter(e => e.categoria === cat).reduce((s, e) => s + (parseFloat(e.valor) || 0), 0);
+        const deBoletos = boletosDoAno.filter(b => b.categoria === cat).reduce((s, b) => s + (parseFloat(b.valor) || 0), 0);
+        return deExtratos + deBoletos;
+      }
+
+      const containerReceitas = document.getElementById('cardsReceitasDashFin');
+      containerReceitas.innerHTML = RECEITA_CATEGORIAS.map(cat => {
+        const valor = somarCategoria(cat);
+        return `<div class="categoria-box"><label>${cat}</label><value style="color:${corValor(valor)};">${formatarValorComSinal(valor)}</value></div>`;
+      }).join('');
+
+      const containerDespesas = document.getElementById('cardsDespesasDashFin');
+      containerDespesas.innerHTML = DESPESA_CATEGORIAS.map(cat => {
+        const valor = somarCategoria(cat);
+        return `<div class="categoria-box"><label>${cat}</label><value style="color:${corValor(valor)};">${formatarValorComSinal(valor)}</value></div>`;
+      }).join('');
+
+      // ===== GRÁFICO RECEITA x DESPESA MENSAL =====
+      const receitaPorMes = new Array(12).fill(0);
+      const despesaPorMes = new Array(12).fill(0);
+
+      extratosDoAno.forEach(e => {
+        const mesIdx = parseInt(e.mes) - 1;
+        if (mesIdx < 0 || mesIdx > 11) return;
+        if (RECEITA_CATEGORIAS.includes(e.categoria)) receitaPorMes[mesIdx] += parseFloat(e.valor) || 0;
+        if (DESPESA_CATEGORIAS.includes(e.categoria)) despesaPorMes[mesIdx] += parseFloat(e.valor) || 0;
+      });
+      boletosDoAno.forEach(b => {
+        const mesIdx = parseInt(b.data_vencimento.slice(5, 7)) - 1;
+        if (mesIdx < 0 || mesIdx > 11) return;
+        if (RECEITA_CATEGORIAS.includes(b.categoria)) receitaPorMes[mesIdx] += parseFloat(b.valor) || 0;
+        if (DESPESA_CATEGORIAS.includes(b.categoria)) despesaPorMes[mesIdx] += parseFloat(b.valor) || 0;
+      });
+
+      const ctxRD = document.getElementById('chartReceitaDespesaMensal');
+      if (CHART_RECEITA_DESPESA_FIN) CHART_RECEITA_DESPESA_FIN.destroy();
+      CHART_RECEITA_DESPESA_FIN = new Chart(ctxRD, {
+        type: 'bar',
+        data: {
+          labels: NOMES_MESES_DASHFIN,
+          datasets: [
+            { label: 'Receita', data: receitaPorMes, backgroundColor: '#00A3E0' },
+            { label: 'Despesa', data: despesaPorMes, backgroundColor: '#A8481B' }
+          ]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+      });
+
+      // ===== GRÁFICO RECEITA POR SERVIÇOS - MÊS A MÊS =====
+      const servicosEncontrados = new Set();
+      const dadosPorServicoMes = {};
+
+      function registrarServico(servico, mesIdx, valor) {
+        if (!servico || valor <= 0) return;
+        servicosEncontrados.add(servico);
+        if (!dadosPorServicoMes[servico]) dadosPorServicoMes[servico] = new Array(12).fill(0);
+        dadosPorServicoMes[servico][mesIdx] += valor;
+      }
+
+      extratosDoAno.forEach(e => {
+        const mesIdx = parseInt(e.mes) - 1;
+        if (mesIdx < 0 || mesIdx > 11) return;
+        registrarServico(e.servicos, mesIdx, parseFloat(e.valor) || 0);
+      });
+      boletosDoAno.forEach(b => {
+        const mesIdx = parseInt(b.data_vencimento.slice(5, 7)) - 1;
+        if (mesIdx < 0 || mesIdx > 11) return;
+        registrarServico(b.servicos, mesIdx, parseFloat(b.valor) || 0);
+      });
+
+      const coresLinhas = ['#1F55A5', '#00A3E0', '#A8481B', '#143A70', '#8593A6', '#45566E', '#10243F'];
+      const datasetsServico = [...servicosEncontrados].map((servico, i) => ({
+        label: servico,
+        data: dadosPorServicoMes[servico],
+        borderColor: coresLinhas[i % coresLinhas.length],
+        backgroundColor: coresLinhas[i % coresLinhas.length],
+        fill: false,
+        tension: 0.2
+      }));
+
+      const ctxServ = document.getElementById('chartReceitaPorServico');
+      if (CHART_RECEITA_SERVICO_FIN) CHART_RECEITA_SERVICO_FIN.destroy();
+      CHART_RECEITA_SERVICO_FIN = new Chart(ctxServ, {
+        type: 'line',
+        data: { labels: NOMES_MESES_DASHFIN, datasets: datasetsServico },
+        options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+      });
     }
 
     async function inicializar() {
@@ -1016,6 +1169,7 @@
         await loadExtratos(user);
         atualizarSelecionamentos();
         await loadBoletos();
+        await carregarDashboardFinanceiro();
 
       } catch (error) {
         console.error('❌ Erro:', error);
@@ -1521,6 +1675,10 @@
       });
       document.getElementById(tabName).classList.add('active');
       event.target.classList.add('active');
+
+      if (tabName === 'dashboardFinanceiro') {
+        carregarDashboardFinanceiro();
+      }
     }
 
     if (document.readyState === 'loading') {
