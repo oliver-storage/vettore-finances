@@ -5,8 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vettore Finances - Clientes</title>
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.33.1">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.33.1">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.34.0">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.34.0">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -74,11 +74,12 @@
       <button class="btn-primary" onclick="abrirModalNovoCadastro()">+ Novo Cadastro</button>
     </div>
 
-    <div class="sub-tabs">
+    <div class="sub-tabs" id="subTabsPrincipalClientes">
       <button class="sub-tab-btn active" onclick="switchTabClienteLista('dashboardCliente')">Dashboard <span id="badgePendenciasDashboard" style="display:none; background:var(--alerta); color:white; border-radius:10px; padding:1px 7px; font-size:11px; margin-left:4px;">0</span></button>
       <button class="sub-tab-btn" onclick="switchTabClienteLista('lista')">Lista de Clientes</button>
       <button class="sub-tab-btn" onclick="switchTabClienteLista('situacao')">Situação</button>
       <button class="sub-tab-btn" onclick="switchTabClienteLista('extrato')">Extrato</button>
+      <button class="sub-tab-btn" onclick="switchTabClienteLista('faturamento')">Faturamento</button>
     </div>
 
     <div id="tabListaClientes" class="sub-tab-content">
@@ -234,6 +235,89 @@
       </div>
     </div>
 
+    <!-- SUB ABA FATURAMENTO -->
+    <div id="tabFaturamentoCliente" class="sub-tab-content">
+      <div class="card" style="margin-top:20px;">
+        <h3>Faturamento do Cliente</h3>
+        <div class="form-group" style="max-width:420px;">
+          <label>Buscar Cliente</label>
+          <input type="text" id="inputBuscaFaturamento" list="listaClientesFaturamento" placeholder="Digite o nome do cliente..." oninput="selecionarClienteFaturamento()" style="width:100%;">
+          <datalist id="listaClientesFaturamento"></datalist>
+        </div>
+      </div>
+
+      <div id="areaFaturamentoCliente" style="display:none;">
+        <div class="sub-tabs" id="mesesTabsFaturamento" style="flex-wrap:wrap;">
+          <button class="sub-tab-btn active" onclick="selecionarMesFaturamento(1, this)">Janeiro</button>
+          <button class="sub-tab-btn" onclick="selecionarMesFaturamento(2, this)">Fevereiro</button>
+          <button class="sub-tab-btn" onclick="selecionarMesFaturamento(3, this)">Março</button>
+          <button class="sub-tab-btn" onclick="selecionarMesFaturamento(4, this)">Abril</button>
+          <button class="sub-tab-btn" onclick="selecionarMesFaturamento(5, this)">Maio</button>
+          <button class="sub-tab-btn" onclick="selecionarMesFaturamento(6, this)">Junho</button>
+          <button class="sub-tab-btn" onclick="selecionarMesFaturamento(7, this)">Julho</button>
+          <button class="sub-tab-btn" onclick="selecionarMesFaturamento(8, this)">Agosto</button>
+          <button class="sub-tab-btn" onclick="selecionarMesFaturamento(9, this)">Setembro</button>
+          <button class="sub-tab-btn" onclick="selecionarMesFaturamento(10, this)">Outubro</button>
+          <button class="sub-tab-btn" onclick="selecionarMesFaturamento(11, this)">Novembro</button>
+          <button class="sub-tab-btn" onclick="selecionarMesFaturamento(12, this)">Dezembro</button>
+          <button class="sub-tab-btn" onclick="selecionarMesFaturamento('relatorio', this)">📊 Relatório</button>
+        </div>
+
+        <div class="form-group" style="max-width:150px; margin-top:12px;">
+          <label>Ano</label>
+          <select id="selectAnoFaturamento" onchange="carregarMesFaturamento()">
+          </select>
+        </div>
+
+        <!-- CONTEÚDO DO MÊS SELECIONADO -->
+        <div id="conteudoMesFaturamento" class="card" style="margin-top:16px;">
+
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:16px; margin-bottom:20px;">
+            <div class="categoria-box">
+              <label>Total de Crédito (Entradas)</label>
+              <value id="cardCreditoFaturamento" style="color:var(--destaque);">R$ 0,00</value>
+            </div>
+            <div class="categoria-box">
+              <label>Total de Débito (Saídas)</label>
+              <value id="cardDebitoFaturamento" style="color:var(--alerta);">R$ 0,00</value>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
+            <button class="btn-primary" onclick="document.getElementById('inputPdfFaturamento').click()">📎 Anexar Extrato (PDF)</button>
+            <input type="file" id="inputPdfFaturamento" accept="application/pdf" style="display:none;" onchange="processarPdfFaturamento(event)">
+            <button class="btn-primary" onclick="adicionarLinhaManualFaturamento()">➕ Adicionar Linha Manual</button>
+          </div>
+          <p id="statusImportacaoPdf" style="font-size:12px; color:var(--tinta-70); display:none;"></p>
+
+          <div class="table-wrapper" style="overflow-x:auto;">
+            <table style="width:100%;" id="tabelaFaturamentoMes">
+              <thead>
+                <tr>
+                  <th style="padding:10px;">Data</th>
+                  <th style="padding:10px;">Banco</th>
+                  <th style="padding:10px;">Classificação</th>
+                  <th style="padding:10px;">Plano de Contas</th>
+                  <th style="padding:10px;">Descrição</th>
+                  <th style="padding:10px;">Tipo</th>
+                  <th style="padding:10px; text-align:right;">Entrada</th>
+                  <th style="padding:10px; text-align:right;">Saída</th>
+                  <th style="padding:10px; text-align:center; width:40px;">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyFaturamentoMes"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- RELATÓRIO -->
+        <div id="conteudoRelatorioFaturamento" class="card" style="margin-top:16px; display:none;">
+          <h4>Relatório de Faturamento Anual</h4>
+          <p style="font-size:13px; color:var(--tinta-70);">Em breve — cruzamento com os limites do regime tributário do cliente (MEI, Simples Nacional).</p>
+        </div>
+      </div>
+    </div>
+
     <!-- SUB ABA DASHBOARD (Notificações de Cadastro/Alteração/Desvínculo) -->
     <div id="tabDashboardCliente" class="sub-tab-content active">
       <div class="card" style="margin-top:20px;">
@@ -367,6 +451,22 @@
               <div class="form-group">
                 <label>Senha Gov</label>
                 <input type="text" id="pfSenhaGov">
+              </div>
+            </div>
+
+            <h5 style="margin:16px 0 8px 0; color:var(--tinta-70);">Dados Bancários (conta do próprio cliente)</h5>
+            <div class="form-row-3">
+              <div class="form-group">
+                <label>Banco</label>
+                <input type="text" id="pfBanco">
+              </div>
+              <div class="form-group">
+                <label>Agência</label>
+                <input type="text" id="pfAgencia">
+              </div>
+              <div class="form-group">
+                <label>Conta</label>
+                <input type="text" id="pfConta">
               </div>
             </div>
 
@@ -515,6 +615,22 @@
               </div>
             </div>
 
+            <h5 style="margin:16px 0 8px 0; color:var(--tinta-70);">Dados Bancários (conta do próprio cliente)</h5>
+            <div class="form-row-3">
+              <div class="form-group">
+                <label>Banco</label>
+                <input type="text" id="pjBanco">
+              </div>
+              <div class="form-group">
+                <label>Agência</label>
+                <input type="text" id="pjAgencia">
+              </div>
+              <div class="form-group">
+                <label>Conta</label>
+                <input type="text" id="pjConta">
+              </div>
+            </div>
+
             <div class="form-row-3">
               <div class="form-group">
                 <label>Endereço da Empresa</label>
@@ -584,17 +700,24 @@
   </div>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.33.1 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.34.0 Desenvolvido por OliverStorage</p>
   </footer>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
   <script src="https://unpkg.com/docx@8.2.4/build/index.umd.js"></script>
-  <script src="../js/auth.js?v=1.9.33.1"></script>
-  <script src="../js/masks.js?v=1.9.33.1"></script>
-  <script src="../js/supabase-utils.js?v=1.9.33.1"></script>
-  <script src="../js/clientes.js?v=1.9.33.1"></script>
-  <script src="../js/documentos.js?v=1.9.33.1"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    if (typeof pdfjsLib !== 'undefined') {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+  </script>
+  <script src="../js/auth.js?v=1.9.34.0"></script>
+  <script src="../js/masks.js?v=1.9.34.0"></script>
+  <script src="../js/supabase-utils.js?v=1.9.34.0"></script>
+  <script src="../js/clientes.js?v=1.9.34.0"></script>
+  <script src="../js/documentos.js?v=1.9.34.0"></script>
+  <script src="../js/faturamento.js?v=1.9.34.0"></script>
   <script>
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', inicializarClientes);

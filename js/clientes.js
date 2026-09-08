@@ -250,12 +250,14 @@ function switchTabClienteLista(tab) {
   document.getElementById('tabListaClientes').classList.toggle('active', tab === 'lista');
   document.getElementById('tabSituacaoClientes').classList.toggle('active', tab === 'situacao');
   document.getElementById('tabExtratoCliente').classList.toggle('active', tab === 'extrato');
+  document.getElementById('tabFaturamentoCliente').classList.toggle('active', tab === 'faturamento');
   document.getElementById('tabDashboardCliente').classList.toggle('active', tab === 'dashboardCliente');
-  document.querySelectorAll('.sub-tab-btn').forEach((btn, i) => {
-    btn.classList.toggle('active', (i === 0 && tab === 'dashboardCliente') || (i === 1 && tab === 'lista') || (i === 2 && tab === 'situacao') || (i === 3 && tab === 'extrato'));
+  document.querySelectorAll('#subTabsPrincipalClientes > .sub-tab-btn').forEach((btn, i) => {
+    btn.classList.toggle('active', (i === 0 && tab === 'dashboardCliente') || (i === 1 && tab === 'lista') || (i === 2 && tab === 'situacao') || (i === 3 && tab === 'extrato') || (i === 4 && tab === 'faturamento'));
   });
   if (tab === 'situacao') carregarSituacaoClientes();
   if (tab === 'extrato') popularListaClientesExtrato();
+  if (tab === 'faturamento') popularListaClientesFaturamento();
   if (tab === 'dashboardCliente') carregarDashboardCliente();
 }
 
@@ -889,13 +891,13 @@ function gerarDiffCampos(antigo, novo, labels) {
 const LABELS_CAMPOS_PF = {
   nome: 'Nome', data_nascimento: 'Data Nasc.', nacionalidade: 'Nacionalidade', estado_civil: 'Estado Civil',
   profissao: 'Profissão', cpf: 'CPF', endereco: 'Endereço', estado: 'Estado', telefone: 'Telefone',
-  municipio: 'Município', senha_gov: 'Senha Gov', email: 'Email', observacoes: 'Observações'
+  municipio: 'Município', senha_gov: 'Senha Gov', email: 'Email', banco: 'Banco', agencia: 'Agência', conta: 'Conta', observacoes: 'Observações'
 };
 
 const LABELS_CAMPOS_PJ = {
   razao_social: 'Razão Social', email: 'E-mail', whatsapp: 'WhatsApp', cnpj: 'CNPJ', segmento: 'Segmento', porte: 'Porte',
   regime_tributario: 'Regime Tributário', natureza_juridica: 'Natureza Jurídica', cnae: 'CNAE',
-  capital_social: 'Capital Social', senha_gov: 'Senha Gov', endereco_empresa: 'Endereço Empresa',
+  capital_social: 'Capital Social', senha_gov: 'Senha Gov', banco: 'Banco', agencia: 'Agência', conta: 'Conta', endereco_empresa: 'Endereço Empresa',
   estado_empresa: 'Estado Empresa', municipio_empresa: 'Município Empresa', observacoes: 'Observações',
   data_contrato: 'Data do Contrato', inicio_cobranca: 'Início da Cobrança', final_contrato: 'Final do Contrato',
   valor_contrato: 'Valor do Contrato'
@@ -934,6 +936,9 @@ async function salvarPF(event) {
     telefone: document.getElementById('pfTelefone').value.trim() || null,
     municipio: document.getElementById('pfMunicipio').value.trim() || null,
     senha_gov: document.getElementById('pfSenhaGov').value.trim() || null,
+    banco: document.getElementById('pfBanco').value.trim() || null,
+    agencia: document.getElementById('pfAgencia').value.trim() || null,
+    conta: document.getElementById('pfConta').value.trim() || null,
     email: document.getElementById('pfEmail').value.trim() || null,
     observacoes: document.getElementById('pfObservacoes').value.trim() || null
   };
@@ -1012,6 +1017,9 @@ async function editarPF(id) {
   document.getElementById('pfTelefone').value = p.telefone || '';
   document.getElementById('pfMunicipio').value = p.municipio || '';
   document.getElementById('pfSenhaGov').value = p.senha_gov || '';
+  document.getElementById('pfBanco').value = p.banco || '';
+  document.getElementById('pfAgencia').value = p.agencia || '';
+  document.getElementById('pfConta').value = p.conta || '';
   document.getElementById('pfEmail').value = p.email || '';
   document.getElementById('pfObservacoes').value = p.observacoes || '';
 
@@ -1021,7 +1029,7 @@ async function editarPF(id) {
 function limparFormularioPF() {
   document.getElementById('pfId').value = '';
   ['pfNome','pfDataNascimento','pfNacionalidade','pfEstadoCivil','pfProfissao','pfCPF','pfEndereco','pfEstado',
-   'pfTelefone','pfMunicipio','pfSenhaGov','pfEmail','pfObservacoes']
+   'pfTelefone','pfMunicipio','pfSenhaGov','pfEmail','pfBanco','pfAgencia','pfConta','pfObservacoes']
     .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   pjVinculadosAtuais = [];
   atualizarSelectPJParaVincular();
@@ -1167,6 +1175,9 @@ async function salvarPJ(event) {
     cnae: document.getElementById('pjCNAE').value.trim() || null,
     capital_social: document.getElementById('pjCapitalSocial').value.trim() || null,
     senha_gov: document.getElementById('pjSenhaGov').value.trim() || null,
+    banco: document.getElementById('pjBanco').value.trim() || null,
+    agencia: document.getElementById('pjAgencia').value.trim() || null,
+    conta: document.getElementById('pjConta').value.trim() || null,
     endereco_empresa: document.getElementById('pjEnderecoEmpresa').value.trim() || null,
     estado_empresa: document.getElementById('pjEstadoEmpresa').value.trim().toUpperCase() || null,
     municipio_empresa: document.getElementById('pjMunicipioEmpresa').value.trim() || null,
@@ -1270,6 +1281,9 @@ async function editarPJ(id) {
   document.getElementById('pjCNAE').value = j.cnae || '';
   document.getElementById('pjCapitalSocial').value = j.capital_social || '';
   document.getElementById('pjSenhaGov').value = j.senha_gov || '';
+  document.getElementById('pjBanco').value = j.banco || '';
+  document.getElementById('pjAgencia').value = j.agencia || '';
+  document.getElementById('pjConta').value = j.conta || '';
   document.getElementById('pjEnderecoEmpresa').value = j.endereco_empresa || '';
   document.getElementById('pjEstadoEmpresa').value = j.estado_empresa || '';
   document.getElementById('pjMunicipioEmpresa').value = j.municipio_empresa || '';
@@ -1290,7 +1304,7 @@ function limparFormularioPJ() {
   document.getElementById('areaDocumentosPJ').style.display = 'none';
   document.getElementById('pjId').value = '';
   ['pjDataContrato','pjInicioCobranca','pjFinalContrato','pjValorContrato','pjRazaoSocial','pjEmail','pjWhatsapp','pjCNPJ','pjSegmento','pjPorte','pjRegimeTributario','pjNaturezaJuridica','pjCNAE',
-   'pjCapitalSocial','pjSenhaGov','pjEnderecoEmpresa','pjEstadoEmpresa','pjMunicipioEmpresa','pjObservacoes']
+   'pjCapitalSocial','pjSenhaGov','pjBanco','pjAgencia','pjConta','pjEnderecoEmpresa','pjEstadoEmpresa','pjMunicipioEmpresa','pjObservacoes']
     .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   pfVinculadosAtuais = [];
   atualizarSelectPFParaVincular();
