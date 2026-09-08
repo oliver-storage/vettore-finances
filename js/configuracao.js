@@ -39,7 +39,9 @@ async function inicializar() {
     
     // Verificar se é admin para mostrar privilégios
     if (user.perfil === 'administrador') {
-      document.getElementById('tabPrivilegios').style.display = 'inline-block';
+      document.getElementById('privilegios').style.display = '';
+    } else {
+      document.getElementById('privilegios').style.display = 'none';
     }
 
     // Preencher informações do usuário na ABA Geral

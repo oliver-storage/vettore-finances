@@ -5,8 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vettore Finances - Configuração</title>
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.24.1">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.24.1">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.25.0">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.25.0">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -63,9 +63,7 @@
       <button class="tab-btn active" onclick="switchTab('geral')">Geral</button>
       <button class="tab-btn" onclick="switchTab('unidades')">Unidades</button>
       <button class="tab-btn" onclick="switchTab('usuarios')">Usuários</button>
-      <button class="tab-btn" id="tabPrivilegios" style="display:none;" onclick="switchTab('privilegios')">Privilégios</button>
-      <button class="tab-btn" onclick="switchTab('clientes')">Clientes</button>
-      <button class="tab-btn" onclick="switchTab('financeiro')">Financeiro</button>
+      <button class="tab-btn" onclick="switchTab('gestaoAvancada')">Privilégios / Clientes / Financeiro</button>
       <button class="tab-btn" onclick="switchTab('contrato')">Contrato</button>
     </div>
 
@@ -420,7 +418,10 @@
         </form>
       </div>
     </div>
-    <div id="privilegios" class="tab-content">
+    <div id="gestaoAvancada" class="tab-content">
+
+    <div id="privilegios">
+      <h2 style="color:var(--tinta); margin-bottom:16px;">Privilégios</h2>
       <div class="card">
         <h3>Privilégios por Perfil</h3>
         <p class="description">Configure os privilégios de cada perfil de usuário. Apenas administradores podem acessar esta seção</p>
@@ -439,10 +440,10 @@
         
         <button class="btn-primary" onclick="salvarPrivilegios()" style="margin-top:20px;">Salvar Privilégios</button>
       </div>
-      </div>
+    </div>
 
-      <!-- SUB ABA FINANCEIRO -->
-      <div id="financeiro" class="tab-content">
+    <div id="financeiro" style="margin-top:32px; padding-top:24px; border-top:2px solid var(--linha);">
+      <h2 style="color:var(--tinta); margin-bottom:16px;">Financeiro</h2>
         <h3>Listas do Sistema</h3>
         <p style="font-size:13px; color:var(--tinta-70); margin-bottom:24px;">
           Essas são as opções que aparecem nos menus de Categoria, Subcategoria e Parâmetros. Adicionar ou remover aqui atualiza em toda a aplicação.
@@ -544,10 +545,10 @@
             </table>
           </div>
         </div>
-      </div>
+    </div>
 
-      <!-- SUB ABA CLIENTES -->
-      <div id="clientes" class="tab-content">
+    <div id="clientes" style="margin-top:32px; padding-top:24px; border-top:2px solid var(--linha);">
+      <h2 style="color:var(--tinta); margin-bottom:16px;">Clientes</h2>
         <h3>Listas do Sistema</h3>
         <p style="font-size:13px; color:var(--tinta-70); margin-bottom:24px;">
           Opções que aparecem nos dropdowns de Porte, Segmento e Regime Tributário no cadastro de Pessoa Jurídica.
@@ -588,7 +589,9 @@
             Remover um item daqui só tira ele das opções futuras — não muda cadastros que já usaram esse valor.
           </p>
         </div>
-      </div>
+    </div>
+
+    </div>
 
       <!-- SUB ABA CONTRATO -->
       <div id="contrato" class="tab-content">
@@ -638,13 +641,13 @@
     </div>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.24.1 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.25.0 Desenvolvido por OliverStorage</p>
   </footer>
 
-  <script src="../js/auth.js?v=1.9.24.1"></script>
-  <script src="../js/masks.js?v=1.9.24.1"></script>
-  <script src="../js/supabase-utils.js?v=1.9.24.1"></script>
-  <script src="../js/configuracao.js?v=1.9.24.1"></script>
+  <script src="../js/auth.js?v=1.9.25.0"></script>
+  <script src="../js/masks.js?v=1.9.25.0"></script>
+  <script src="../js/supabase-utils.js?v=1.9.25.0"></script>
+  <script src="../js/configuracao.js?v=1.9.25.0"></script>
 
   <script>
     function switchTab(tabName) {
@@ -660,12 +663,15 @@
       event.target.classList.add('active');
       
       // Carregar dados específicos por ABA
-      if (tabName === 'financeiro') {
+      if (tabName === 'gestaoAvancada') {
         setTimeout(() => {
           carregarLista();
           atualizarSelectsParametros();
           carregarParametros();
           carregarCategoriaPadraoBoleto();
+          carregarListaClientePJ('portes');
+          carregarListaClientePJ('segmentos');
+          carregarListaClientePJ('regimes');
         }, 50);
       }
 
@@ -677,13 +683,6 @@
         }, 50);
       }
 
-      if (tabName === 'clientes') {
-        setTimeout(() => {
-          carregarListaClientePJ('portes');
-          carregarListaClientePJ('segmentos');
-          carregarListaClientePJ('regimes');
-        }, 50);
-      }
     }
   </script>
 </body>
