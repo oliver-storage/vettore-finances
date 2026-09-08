@@ -3,6 +3,47 @@
  * Preenche modelos de documento (Configuração > Contrato) com dados reais do cliente
  */
 
+// ========== CÁLCULO PROPORCIONAL MEI (regra do dia 15) ==========
+const NOMES_MESES_MEI = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+function calcularLimitesMEI(dataContratoISO) {
+  if (!dataContratoISO) return null;
+
+  const [anoStr, mesStr, diaStr] = dataContratoISO.split('-');
+  const ano = parseInt(anoStr);
+  const mes = parseInt(mesStr);
+  const dia = parseInt(diaStr);
+
+  const mesInicioContagem = mes; // mês de abertura conta inteiro (LC 123/2006, art. 18-A) — sem corte por dia
+
+  if (mesInicioContagem > 12) {
+    return {
+      mesesRestantes: 0,
+      limiteReceitasProporcional: 0,
+      limiteComprasProporcional: 0,
+      periodoLabel: 'Nenhum mês restante neste ano',
+      dataInicioPeriodo: `${ano + 1}-01-01`
+    };
+  }
+
+  const mesesRestantes = 12 - mesInicioContagem + 1;
+  const limiteReceitasProporcional = 6750 * mesesRestantes;
+  const limiteComprasProporcional = 5400 * mesesRestantes;
+  const nomeMesInicio = NOMES_MESES_MEI[mesInicioContagem - 1];
+
+  return {
+    mesesRestantes,
+    limiteReceitasProporcional,
+    limiteComprasProporcional,
+    periodoLabel: `${nomeMesInicio} e Dezembro de ${ano}`,
+    dataInicioPeriodo: `${ano}-${String(mesInicioContagem).padStart(2, '0')}-01`
+  };
+}
+
+function formatarMoedaSimples(valor) {
+  return parseFloat(valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
 // ========== VALOR POR EXTENSO (PT-BR) ==========
 function valorPorExtenso(valor) {
   valor = parseFloat(valor) || 0;
@@ -127,6 +168,24 @@ async function montarDadosDocumento(pjId) {
   const valor = parseFloat(pj.valor_contrato) || 0;
   const hoje = new Date();
 
+  // Cálculo proporcional MEI
+  const limitesMEI = calcularLimitesMEI(pj.data_contrato) || {
+    mesesRestantes: 12, limiteReceitasProporcional: 81000, limiteComprasProporcional: 64800,
+    periodoLabel: 'Janeiro e Dezembro de ' + hoje.getFullYear(), dataInicioPeriodo: `${hoje.getFullYear()}-01-01`
+  };
+
+  const todosExtratosMovimento = (await SupabaseAPI.get('extratos')).filter(e => e.unidade_id === pj.unidade_id && e.cliente === pj.razao_social);
+  const todosBoletosMovimento = (await SupabaseAPI.get('boletos')).filter(b => b.unidade_id === pj.unidade_id && b.cliente === pj.razao_social);
+
+  const receitasExtrato = todosExtratosMovimento
+    .filter(e => parseFloat(e.valor) > 0 && e.data >= limitesMEI.dataInicioPeriodo)
+    .reduce((soma, e) => soma + parseFloat(e.valor), 0);
+  const receitasBoleto = todosBoletosMovimento
+    .filter(b => (b.situacao || '').toUpperCase().includes('LIQUIDADO') && b.data_vencimento >= limitesMEI.dataInicioPeriodo)
+    .reduce((soma, b) => soma + parseFloat(b.valor), 0);
+  const receitasRealizadas = receitasExtrato + receitasBoleto;
+
+
   return {
     franquia_nome: unidade?.nomefranquia || '-',
     data_hora_geracao: hoje.toLocaleString('pt-BR'),
@@ -152,6 +211,12 @@ async function montarDadosDocumento(pjId) {
     data_nascimento_representante: pf?.data_nascimento ? formatarDataBRDoc(pf.data_nascimento) : '-',
     endereco_representante: pf?.endereco || '-',
     servicos_titulo: servicosTitulo,
+    mei_periodo_label: limitesMEI.periodoLabel,
+    mei_limite_receitas_proporcional: formatarMoedaSimples(limitesMEI.limiteReceitasProporcional),
+    mei_limite_compras_proporcional: formatarMoedaSimples(limitesMEI.limiteComprasProporcional),
+    mei_receitas_realizadas: receitasRealizadas > 0 ? formatarMoedaSimples(receitasRealizadas) : null,
+    mei_receitas_status: receitasRealizadas > 0 ? `R$ ${formatarMoedaSimples(receitasRealizadas)}` : 'Sem movimento',
+    mei_compras_status: 'Sem movimento',
     clausula_servicos_detalhada: clausulaDetalhada.trim(),
     data_inicio_contrato: formatarDataBRDoc(pj.data_contrato),
     prazo_finalizacao: pj.final_contrato ? `Até ${formatarDataBRDoc(pj.final_contrato)}` : 'Indeterminado',
