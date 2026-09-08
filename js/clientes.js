@@ -233,6 +233,7 @@ async function inicializarClientes() {
     }
 
     await carregarListaUnificada();
+    await carregarDashboardCliente();
   } catch (error) {
     console.error('❌ Erro:', error);
   }
@@ -251,7 +252,7 @@ function switchTabClienteLista(tab) {
   document.getElementById('tabExtratoCliente').classList.toggle('active', tab === 'extrato');
   document.getElementById('tabDashboardCliente').classList.toggle('active', tab === 'dashboardCliente');
   document.querySelectorAll('.sub-tab-btn').forEach((btn, i) => {
-    btn.classList.toggle('active', (i === 0 && tab === 'lista') || (i === 1 && tab === 'situacao') || (i === 2 && tab === 'extrato') || (i === 3 && tab === 'dashboardCliente'));
+    btn.classList.toggle('active', (i === 0 && tab === 'dashboardCliente') || (i === 1 && tab === 'lista') || (i === 2 && tab === 'situacao') || (i === 3 && tab === 'extrato'));
   });
   if (tab === 'situacao') carregarSituacaoClientes();
   if (tab === 'extrato') popularListaClientesExtrato();

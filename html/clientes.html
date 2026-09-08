@@ -5,8 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vettore Finances - Clientes</title>
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.23.0">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.23.0">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.23.1">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.23.1">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -45,11 +45,11 @@
     <div class="navbar-left">
       <span class="logo">Vettore</span>
       <div class="menu">
-        <a href="dashboard.html" class="menu-item">Dashboard</a>
-        <a href="financeiro.html" class="menu-item">Financeiro</a>
         <a href="clientes.html" class="menu-item active">Clientes</a>
+        <a href="financeiro.html" class="menu-item">Financeiro</a>
+        <a href="dashboard.html" class="menu-item">Dashboard</a>
         <a href="configuracao.html" class="menu-item">Configuração</a>
-      </div>
+</div>
     </div>
     <div class="navbar-right">
       <span id="userName">Usuário</span>
@@ -75,13 +75,13 @@
     </div>
 
     <div class="sub-tabs">
-      <button class="sub-tab-btn active" onclick="switchTabClienteLista('lista')">Lista de Clientes</button>
+      <button class="sub-tab-btn active" onclick="switchTabClienteLista('dashboardCliente')">Dashboard <span id="badgePendenciasDashboard" style="display:none; background:var(--alerta); color:white; border-radius:10px; padding:1px 7px; font-size:11px; margin-left:4px;">0</span></button>
+      <button class="sub-tab-btn" onclick="switchTabClienteLista('lista')">Lista de Clientes</button>
       <button class="sub-tab-btn" onclick="switchTabClienteLista('situacao')">Situação</button>
       <button class="sub-tab-btn" onclick="switchTabClienteLista('extrato')">Extrato</button>
-      <button class="sub-tab-btn" onclick="switchTabClienteLista('dashboardCliente')">Dashboard <span id="badgePendenciasDashboard" style="display:none; background:var(--alerta); color:white; border-radius:10px; padding:1px 7px; font-size:11px; margin-left:4px;">0</span></button>
     </div>
 
-    <div id="tabListaClientes" class="sub-tab-content active">
+    <div id="tabListaClientes" class="sub-tab-content">
     <div class="card" style="margin-top:20px;">
       <h3>Lista de Clientes</h3>
 
@@ -230,7 +230,7 @@
     </div>
 
     <!-- SUB ABA DASHBOARD (Notificações de Cadastro/Alteração/Desvínculo) -->
-    <div id="tabDashboardCliente" class="sub-tab-content">
+    <div id="tabDashboardCliente" class="sub-tab-content active">
       <div class="card" style="margin-top:20px;">
         <h3>Dashboard — Pendências de Confirmação</h3>
         <p style="font-size:13px; color:var(--tinta-70); margin-bottom:16px;">
@@ -553,13 +553,13 @@
   </div>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.23.0 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.23.1 Desenvolvido por OliverStorage</p>
   </footer>
 
-  <script src="../js/auth.js?v=1.9.23.0"></script>
-  <script src="../js/masks.js?v=1.9.23.0"></script>
-  <script src="../js/supabase-utils.js?v=1.9.23.0"></script>
-  <script src="../js/clientes.js?v=1.9.23.0"></script>
+  <script src="../js/auth.js?v=1.9.23.1"></script>
+  <script src="../js/masks.js?v=1.9.23.1"></script>
+  <script src="../js/supabase-utils.js?v=1.9.23.1"></script>
+  <script src="../js/clientes.js?v=1.9.23.1"></script>
   <script>
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', inicializarClientes);
