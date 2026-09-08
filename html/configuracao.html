@@ -5,8 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vettore Finances - Configuração</title>
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.27.0">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.27.0">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.29.0">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.29.0">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -600,6 +600,46 @@
           Referência das obrigações Fiscais, Contábeis e de Departamento Pessoal por regime tributário do cliente. Editável — clique em "Editar" em cada seção.
         </p>
 
+        <!-- APARÊNCIA DOS DOCUMENTOS (PDF/Word) -->
+        <div class="card">
+          <h4>Aparência dos Documentos (PDF/Word)</h4>
+          <p style="font-size:12px; color:var(--tinta-70); margin-bottom:16px;">
+            Configura o papel timbrado (imagens de topo/rodapé) e a fonte usada em todo documento gerado (PDF e Word). O rodapé mostra automaticamente Razão Social, Endereço e CNPJ da franquia do cliente.
+          </p>
+
+          <div class="form-group">
+            <label>Imagem do Topo (com logo)</label>
+            <input type="file" id="inputTimbradoTopo" accept="image/*" onchange="preVisualizarTimbrado(event, 'topo')">
+            <div id="previewTimbradoTopo" style="margin-top:10px;"></div>
+            <button type="button" class="btn-danger" onclick="removerTimbrado('topo')" style="margin-top:8px; padding:6px 12px; font-size:12px;">Remover</button>
+          </div>
+
+          <div class="form-group" style="margin-top:16px;">
+            <label>Imagem do Rodapé</label>
+            <input type="file" id="inputTimbradoRodape" accept="image/*" onchange="preVisualizarTimbrado(event, 'rodape')">
+            <div id="previewTimbradoRodape" style="margin-top:10px;"></div>
+            <button type="button" class="btn-danger" onclick="removerTimbrado('rodape')" style="margin-top:8px; padding:6px 12px; font-size:12px;">Remover</button>
+          </div>
+
+          <div class="form-row-3" style="margin-top:16px;">
+            <div class="form-group">
+              <label>Fonte</label>
+              <select id="selectFonteDocumento" onchange="salvarAparenciaDocumento()">
+                <option value="'Times New Roman', serif">Times New Roman</option>
+                <option value="Arial, sans-serif">Arial</option>
+                <option value="Calibri, sans-serif">Calibri</option>
+                <option value="Georgia, serif">Georgia</option>
+                <option value="Verdana, sans-serif">Verdana</option>
+                <option value="'Courier New', monospace">Courier New</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Tamanho da Fonte (pt)</label>
+              <input type="number" id="inputTamanhoFonteDocumento" value="12" min="8" max="24" onchange="salvarAparenciaDocumento()">
+            </div>
+          </div>
+        </div>
+
         <!-- CORREÇÃO ANUAL DE HONORÁRIOS -->
         <div class="card">
           <h4>Correção Anual de Honorários</h4>
@@ -641,13 +681,13 @@
     </div>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.27.0 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.29.0 Desenvolvido por OliverStorage</p>
   </footer>
 
-  <script src="../js/auth.js?v=1.9.27.0"></script>
-  <script src="../js/masks.js?v=1.9.27.0"></script>
-  <script src="../js/supabase-utils.js?v=1.9.27.0"></script>
-  <script src="../js/configuracao.js?v=1.9.27.0"></script>
+  <script src="../js/auth.js?v=1.9.29.0"></script>
+  <script src="../js/masks.js?v=1.9.29.0"></script>
+  <script src="../js/supabase-utils.js?v=1.9.29.0"></script>
+  <script src="../js/configuracao.js?v=1.9.29.0"></script>
 
   <script>
     function switchTab(tabName) {
@@ -680,6 +720,7 @@
           carregarContrato();
           carregarCorrecaoAnual();
           carregarModelosDocumentos();
+          carregarAparenciaDocumento();
         }, 50);
       }
 

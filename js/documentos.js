@@ -290,23 +290,52 @@ async function baixarDocumentoPJForm(formato) {
   const nomeArquivo = `${modelo.nome} - ${dados.razao_social}`.replace(/[\\/:*?"<>|]/g, '');
 
   if (formato === 'pdf') {
-    baixarComoPDF(textoFinal, modelo.nome);
+    baixarComoPDF(textoFinal, modelo.nome, dados);
   } else {
-    baixarComoWord(textoFinal, nomeArquivo);
+    baixarComoWord(textoFinal, nomeArquivo, dados);
   }
 }
 
-function baixarComoPDF(texto, nomeDocumento) {
+async function obterAparenciaDocumento() {
+  const configs = await SupabaseAPI.get('configuracoes_sistema');
+  return {
+    topo: configs.find(c => c.chave === 'documento_timbrado_topo')?.valor || '',
+    rodape: configs.find(c => c.chave === 'documento_timbrado_rodape')?.valor || '',
+    fonte: configs.find(c => c.chave === 'documento_fonte')?.valor || "'Times New Roman', serif",
+    tamanho: configs.find(c => c.chave === 'documento_fonte_tamanho')?.valor || '12'
+  };
+}
+
+function montarHtmlTimbrado(aparencia, dados, textoBody) {
+  const rodapeTexto = dados
+    ? `${dados.razaosocial_contratada} — ${dados.endereco_contratada} — CNPJ: ${dados.cnpj_contratada}`
+    : '';
+
+  return `
+    ${aparencia.topo ? `<div style="text-align:center; margin:0 0 24px 0;"><img src="${aparencia.topo}" style="width:100%; max-width:100%; display:block;"></div>` : ''}
+    <div style="padding: 0 40px;">${textoBody}</div>
+    ${aparencia.rodape ? `
+      <div style="margin-top:40px; position:relative;">
+        <img src="${aparencia.rodape}" style="width:100%; display:block;">
+        <div style="text-align:center; font-size:9pt; color:#333; margin-top:4px;">${rodapeTexto}</div>
+      </div>
+    ` : ''}
+  `;
+}
+
+async function baixarComoPDF(texto, nomeDocumento, dados) {
+  const aparencia = await obterAparenciaDocumento();
+  const corpoHtml = montarHtmlTimbrado(aparencia, dados, texto.replace(/</g, '&lt;'));
   const janela = window.open('', '_blank');
   janela.document.write(`
     <html>
       <head>
         <title>${nomeDocumento}</title>
         <style>
-          body { font-family: 'Times New Roman', serif; font-size: 12pt; line-height: 1.6; padding: 40px; white-space: pre-wrap; }
+          body { font-family: ${aparencia.fonte}; font-size: ${aparencia.tamanho}pt; line-height: 1.6; white-space: pre-wrap; margin:0; }
         </style>
       </head>
-      <body>${texto.replace(/</g, '&lt;')}</body>
+      <body>${corpoHtml}</body>
     </html>
   `);
   janela.document.close();
@@ -314,16 +343,19 @@ function baixarComoPDF(texto, nomeDocumento) {
   setTimeout(() => janela.print(), 300);
 }
 
-function baixarComoWord(texto, nomeArquivo) {
+async function baixarComoWord(texto, nomeArquivo, dados) {
+  const aparencia = await obterAparenciaDocumento();
+  const corpoHtml = montarHtmlTimbrado(aparencia, dados, texto.replace(/</g, '&lt;').replace(/\n/g, '<br>'));
+
   const conteudoHtml = `
     <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
       <head>
         <meta charset="utf-8">
         <style>
-          body { font-family: 'Times New Roman', serif; font-size: 12pt; line-height: 1.6; white-space: pre-wrap; }
+          body { font-family: ${aparencia.fonte}; font-size: ${aparencia.tamanho}pt; line-height: 1.6; }
         </style>
       </head>
-      <body>${texto.replace(/</g, '&lt;').replace(/\n/g, '<br>')}</body>
+      <body>${corpoHtml}</body>
     </html>
   `;
 
@@ -381,6 +413,7 @@ async function gerarDocumentoSelecionado() {
   }
 
   const dados = await montarDadosDocumento(PJ_ID_DOCUMENTO_ATUAL);
+  DADOS_DOCUMENTO_ATUAL = dados;
   const textoFinal = preencherModelo(modelo.conteudo, dados);
   const nomeArquivoWord = `${modelo.nome} - ${dados.razao_social}`.replace(/[\\/:*?"<>|]/g, '');
 
@@ -388,7 +421,7 @@ async function gerarDocumentoSelecionado() {
     <div style="border:1px solid var(--linha); border-radius:6px; padding:20px; background:white; max-height:500px; overflow-y:auto; white-space:pre-wrap; font-family:'IBM Plex Mono', monospace; font-size:12px; line-height:1.6;" id="textoDocumentoGerado">${textoFinal.replace(/</g, '&lt;')}</div>
     <div style="display:flex; gap:8px; margin-top:12px;">
       <button class="btn-primary" onclick="imprimirDocumentoGerado('${modelo.nome.replace(/'/g, "\\'")}')">🖨️ Gerar PDF / Imprimir</button>
-      <button class="btn-primary" onclick="baixarComoWord(document.getElementById('textoDocumentoGerado').innerText, '${nomeArquivoWord.replace(/'/g, "\\'")}')">📝 Baixar Word</button>
+      <button class="btn-primary" onclick="baixarComoWord(document.getElementById('textoDocumentoGerado').innerText, '${nomeArquivoWord.replace(/'/g, "\\'")}', DADOS_DOCUMENTO_ATUAL)">📝 Baixar Word</button>
       <button class="btn-danger" onclick="copiarDocumentoGerado()">📋 Copiar Texto</button>
     </div>
   `;
@@ -399,21 +432,9 @@ function copiarDocumentoGerado() {
   navigator.clipboard.writeText(texto).then(() => alert('✅ Texto copiado!'));
 }
 
+let DADOS_DOCUMENTO_ATUAL = null;
+
 function imprimirDocumentoGerado(nomeDocumento) {
   const texto = document.getElementById('textoDocumentoGerado').innerText;
-  const janela = window.open('', '_blank');
-  janela.document.write(`
-    <html>
-      <head>
-        <title>${nomeDocumento}</title>
-        <style>
-          body { font-family: 'Times New Roman', serif; font-size: 12pt; line-height: 1.6; padding: 40px; white-space: pre-wrap; }
-        </style>
-      </head>
-      <body>${texto.replace(/</g, '&lt;')}</body>
-    </html>
-  `);
-  janela.document.close();
-  janela.focus();
-  setTimeout(() => janela.print(), 300);
+  baixarComoPDF(texto, nomeDocumento, DADOS_DOCUMENTO_ATUAL);
 }

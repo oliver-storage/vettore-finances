@@ -1261,3 +1261,76 @@ async function salvarModeloDocumento(id) {
   await carregarModelosDocumentos();
   alert('✅ Modelo salvo!');
 }
+
+// ========== APARÊNCIA DOS DOCUMENTOS (Logo/Fonte) ==========
+async function carregarAparenciaDocumento() {
+  const configs = await SupabaseAPI.get('configuracoes_sistema');
+
+  const topo = configs.find(c => c.chave === 'documento_timbrado_topo')?.valor;
+  const rodape = configs.find(c => c.chave === 'documento_timbrado_rodape')?.valor;
+  const fonte = configs.find(c => c.chave === 'documento_fonte')?.valor;
+  const tamanho = configs.find(c => c.chave === 'documento_fonte_tamanho')?.valor;
+
+  const previewTopo = document.getElementById('previewTimbradoTopo');
+  if (previewTopo) {
+    previewTopo.innerHTML = topo
+      ? `<img src="${topo}" style="max-height:80px; border:1px solid var(--linha); border-radius:4px; padding:6px;">`
+      : '<span style="font-size:12px; color:var(--tinta-40);">Nenhuma imagem cadastrada</span>';
+  }
+
+  const previewRodape = document.getElementById('previewTimbradoRodape');
+  if (previewRodape) {
+    previewRodape.innerHTML = rodape
+      ? `<img src="${rodape}" style="max-height:80px; border:1px solid var(--linha); border-radius:4px; padding:6px;">`
+      : '<span style="font-size:12px; color:var(--tinta-40);">Nenhuma imagem cadastrada</span>';
+  }
+
+  const selectFonte = document.getElementById('selectFonteDocumento');
+  if (selectFonte && fonte) selectFonte.value = fonte;
+
+  const inputTamanho = document.getElementById('inputTamanhoFonteDocumento');
+  if (inputTamanho && tamanho) inputTamanho.value = tamanho;
+}
+
+async function salvarConfigChaveValor(chave, valor) {
+  const configs = await SupabaseAPI.get('configuracoes_sistema');
+  const existente = configs.find(c => c.chave === chave);
+
+  if (existente) {
+    await SupabaseAPI.update('configuracoes_sistema', existente.id, { valor });
+  } else {
+    await SupabaseAPI.insert('configuracoes_sistema', { chave, valor });
+  }
+}
+
+function preVisualizarTimbrado(event, posicao) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const chave = posicao === 'topo' ? 'documento_timbrado_topo' : 'documento_timbrado_rodape';
+
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const base64 = e.target.result;
+    await salvarConfigChaveValor(chave, base64);
+    await carregarAparenciaDocumento();
+    alert('✅ Imagem salva!');
+  };
+  reader.readAsDataURL(file);
+}
+
+async function removerTimbrado(posicao) {
+  if (!confirm('Remover essa imagem?')) return;
+  const chave = posicao === 'topo' ? 'documento_timbrado_topo' : 'documento_timbrado_rodape';
+  await salvarConfigChaveValor(chave, '');
+  await carregarAparenciaDocumento();
+  const inputId = posicao === 'topo' ? 'inputTimbradoTopo' : 'inputTimbradoRodape';
+  document.getElementById(inputId).value = '';
+}
+
+async function salvarAparenciaDocumento() {
+  const fonte = document.getElementById('selectFonteDocumento').value;
+  const tamanho = document.getElementById('inputTamanhoFonteDocumento').value;
+  await salvarConfigChaveValor('documento_fonte', fonte);
+  await salvarConfigChaveValor('documento_fonte_tamanho', tamanho);
+}
