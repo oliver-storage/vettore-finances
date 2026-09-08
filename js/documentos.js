@@ -315,9 +315,9 @@ function montarHtmlTimbrado(aparencia, dados, textoBody) {
     ${aparencia.topo ? `<div style="text-align:center; margin:0 0 24px 0;"><img src="${aparencia.topo}" style="width:100%; max-width:100%; display:block;"></div>` : ''}
     <div style="padding: 0 40px;">${textoBody}</div>
     ${aparencia.rodape ? `
-      <div style="margin-top:40px; position:relative;">
+      <div style="margin-top:40px;">
+        <div style="text-align:center; font-size:9pt; color:#333; margin-bottom:4px;">${rodapeTexto}</div>
         <img src="${aparencia.rodape}" style="width:100%; display:block;">
-        <div style="text-align:center; font-size:9pt; color:#333; margin-top:4px;">${rodapeTexto}</div>
       </div>
     ` : ''}
   `;
@@ -332,6 +332,7 @@ async function baixarComoPDF(texto, nomeDocumento, dados) {
       <head>
         <title>${nomeDocumento}</title>
         <style>
+          @page { margin: 0; }
           body { font-family: ${aparencia.fonte}; font-size: ${aparencia.tamanho}pt; line-height: 1.6; white-space: pre-wrap; margin:0; }
         </style>
       </head>
