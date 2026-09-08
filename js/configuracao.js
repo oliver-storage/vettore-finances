@@ -1220,3 +1220,42 @@ async function removerCorrecaoAnual(id) {
   await SupabaseAPI.delete('contrato_correcao_anual', id);
   await carregarCorrecaoAnual();
 }
+
+// ========== MODELOS DE DOCUMENTOS ==========
+async function carregarModelosDocumentos() {
+  const container = document.getElementById('containerModelosDocumentos');
+  if (!container) return;
+
+  const modelos = await SupabaseAPI.get('contrato_modelos_documentos');
+
+  container.innerHTML = modelos.map(m => `
+    <div style="border:1px solid var(--linha); border-radius:6px; padding:12px; margin-bottom:10px;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <strong style="font-size:13px;">${m.nome}</strong>
+        <button class="action-button" onclick="toggleEdicaoModelo(${m.id})" title="Editar">✏️</button>
+      </div>
+      <p id="statusModelo_${m.id}" style="font-size:11px; color:${m.conteudo && m.conteudo.trim() ? 'var(--destaque)' : 'var(--tinta-40)'}; margin:4px 0 0 0;">
+        ${m.conteudo && m.conteudo.trim() ? '✅ Texto cadastrado' : '⚠️ Sem texto ainda'}
+      </p>
+      <div id="edicaoModelo_${m.id}" style="display:none; margin-top:10px;">
+        <textarea id="textareaModelo_${m.id}" rows="10" style="width:100%; box-sizing:border-box; font-family:monospace; font-size:11px; padding:10px; border:1px solid var(--linha); border-radius:4px;">${m.conteudo || ''}</textarea>
+        <div style="display:flex; gap:8px; margin-top:8px;">
+          <button class="btn-primary" onclick="salvarModeloDocumento(${m.id})" style="padding:8px 14px; font-size:12px;">Salvar</button>
+          <button class="btn-danger" onclick="toggleEdicaoModelo(${m.id})" style="padding:8px 14px; font-size:12px;">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleEdicaoModelo(id) {
+  const el = document.getElementById(`edicaoModelo_${id}`);
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+async function salvarModeloDocumento(id) {
+  const conteudo = document.getElementById(`textareaModelo_${id}`).value;
+  await SupabaseAPI.update('contrato_modelos_documentos', id, { conteudo });
+  await carregarModelosDocumentos();
+  alert('✅ Modelo salvo!');
+}

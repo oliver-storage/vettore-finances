@@ -5,8 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vettore Finances - Configuração</title>
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.23.1">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.23.1">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.24.0">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.24.0">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -624,18 +624,27 @@
           </table>
         </div>
 
+        <!-- MODELOS DE DOCUMENTOS -->
+        <div class="card">
+          <h4>Modelos de Documentos</h4>
+          <p style="font-size:12px; color:var(--tinta-70); margin-bottom:16px;">
+            Textos-modelo usados pra gerar documentos na ficha do cliente (aba Clientes > Extrato). Use <code>{{campo}}</code> pra marcar onde os dados do cliente entram.
+          </p>
+          <div id="containerModelosDocumentos"></div>
+        </div>
+
         <div id="containerContrato" style="margin-top:20px;"></div>
       </div>
     </div>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.23.1 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.24.0 Desenvolvido por OliverStorage</p>
   </footer>
 
-  <script src="../js/auth.js?v=1.9.23.1"></script>
-  <script src="../js/masks.js?v=1.9.23.1"></script>
-  <script src="../js/supabase-utils.js?v=1.9.23.1"></script>
-  <script src="../js/configuracao.js?v=1.9.23.1"></script>
+  <script src="../js/auth.js?v=1.9.24.0"></script>
+  <script src="../js/masks.js?v=1.9.24.0"></script>
+  <script src="../js/supabase-utils.js?v=1.9.24.0"></script>
+  <script src="../js/configuracao.js?v=1.9.24.0"></script>
 
   <script>
     function switchTab(tabName) {
@@ -664,6 +673,7 @@
         setTimeout(() => {
           carregarContrato();
           carregarCorrecaoAnual();
+          carregarModelosDocumentos();
         }, 50);
       }
 

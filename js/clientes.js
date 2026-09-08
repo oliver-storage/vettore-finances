@@ -893,7 +893,7 @@ const LABELS_CAMPOS_PF = {
 };
 
 const LABELS_CAMPOS_PJ = {
-  razao_social: 'Razão Social', cnpj: 'CNPJ', segmento: 'Segmento', porte: 'Porte',
+  razao_social: 'Razão Social', email: 'E-mail', whatsapp: 'WhatsApp', cnpj: 'CNPJ', segmento: 'Segmento', porte: 'Porte',
   regime_tributario: 'Regime Tributário', natureza_juridica: 'Natureza Jurídica', cnae: 'CNAE',
   capital_social: 'Capital Social', senha_gov: 'Senha Gov', endereco_empresa: 'Endereço Empresa',
   estado_empresa: 'Estado Empresa', municipio_empresa: 'Município Empresa', observacoes: 'Observações',
@@ -1156,6 +1156,8 @@ async function salvarPJ(event) {
     final_contrato: document.getElementById('pjFinalContrato').value ? document.getElementById('pjFinalContrato').value + '-01' : null,
     valor_contrato: document.getElementById('pjValorContrato').value.trim().replace(/\./g, '').replace(',', '.') || null,
     razao_social: document.getElementById('pjRazaoSocial').value.trim(),
+    email: document.getElementById('pjEmail').value.trim() || null,
+    whatsapp: document.getElementById('pjWhatsapp').value.trim() || null,
     cnpj: document.getElementById('pjCNPJ').value.trim() || null,
     segmento: document.getElementById('pjSegmento').value.trim() || null,
     porte: document.getElementById('pjPorte').value.trim() || null,
@@ -1255,6 +1257,8 @@ async function editarPJ(id) {
     document.getElementById('pjValorContrato').value = '';
   }
   document.getElementById('pjRazaoSocial').value = j.razao_social || '';
+  document.getElementById('pjEmail').value = j.email || '';
+  document.getElementById('pjWhatsapp').value = j.whatsapp || '';
   document.getElementById('pjCNPJ').value = j.cnpj || '';
   document.getElementById('pjSegmento').value = j.segmento || '';
   document.getElementById('pjPorte').value = j.porte || '';
@@ -1283,7 +1287,7 @@ async function editarPJ(id) {
 function limparFormularioPJ() {
   document.getElementById('btnDesvincularPJ').style.display = 'none';
   document.getElementById('pjId').value = '';
-  ['pjDataContrato','pjInicioCobranca','pjFinalContrato','pjValorContrato','pjRazaoSocial','pjCNPJ','pjSegmento','pjPorte','pjRegimeTributario','pjNaturezaJuridica','pjCNAE',
+  ['pjDataContrato','pjInicioCobranca','pjFinalContrato','pjValorContrato','pjRazaoSocial','pjEmail','pjWhatsapp','pjCNPJ','pjSegmento','pjPorte','pjRegimeTributario','pjNaturezaJuridica','pjCNAE',
    'pjCapitalSocial','pjSenhaGov','pjEnderecoEmpresa','pjEstadoEmpresa','pjMunicipioEmpresa','pjObservacoes']
     .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   pfVinculadosAtuais = [];

@@ -5,8 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vettore Finances - Clientes</title>
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.23.1">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.23.1">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.24.0">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.24.0">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -184,7 +184,10 @@
           <div style="border:1px solid var(--linha); border-radius:6px; padding:16px; background:var(--papel);">
             <div style="display:flex; justify-content:space-between; align-items:flex-start;">
               <h4 id="nomeExtratoCliente" style="margin:0;">-</h4>
-              <button class="action-button" onclick="editarClienteExtrato()" title="Editar cadastro">✏️</button>
+              <div style="display:flex; gap:8px;">
+                <button class="action-button-text" onclick="abrirSeletorDocumento(parseInt(document.getElementById('fichaExtratoCliente').dataset.pjId))" title="Gerar Documento">📄 Gerar Documento</button>
+                <button class="action-button" onclick="editarClienteExtrato()" title="Editar cadastro">✏️</button>
+              </div>
             </div>
             <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:16px; margin-top:12px;">
               <div>
@@ -209,6 +212,8 @@
               <span id="mesesEmAbertoExtratoCliente" style="font-size:13px; color:var(--alerta);">-</span>
             </div>
           </div>
+
+          <div id="areaGerarDocumento" style="display:none; margin-top:16px; border:1px solid var(--linha); border-radius:6px; padding:16px;"></div>
 
           <h4 style="margin-top:24px;">Movimentação de Pagamentos</h4>
           <div class="table-wrapper" style="overflow-x:auto;">
@@ -459,6 +464,17 @@
 
             <div class="form-row-3">
               <div class="form-group">
+                <label>E-mail</label>
+                <input type="email" id="pjEmail" placeholder="email@empresa.com">
+              </div>
+              <div class="form-group">
+                <label>WhatsApp</label>
+                <input type="text" id="pjWhatsapp" placeholder="(00) 00000-0000" oninput="this.value = maskPhone(this.value)">
+              </div>
+            </div>
+
+            <div class="form-row-3">
+              <div class="form-group">
                 <label>Porte</label>
                 <select id="pjPorte">
                   <option value="">Selecione...</option>
@@ -553,13 +569,14 @@
   </div>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.23.1 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.24.0 Desenvolvido por OliverStorage</p>
   </footer>
 
-  <script src="../js/auth.js?v=1.9.23.1"></script>
-  <script src="../js/masks.js?v=1.9.23.1"></script>
-  <script src="../js/supabase-utils.js?v=1.9.23.1"></script>
-  <script src="../js/clientes.js?v=1.9.23.1"></script>
+  <script src="../js/auth.js?v=1.9.24.0"></script>
+  <script src="../js/masks.js?v=1.9.24.0"></script>
+  <script src="../js/supabase-utils.js?v=1.9.24.0"></script>
+  <script src="../js/clientes.js?v=1.9.24.0"></script>
+  <script src="../js/documentos.js?v=1.9.24.0"></script>
   <script>
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', inicializarClientes);
