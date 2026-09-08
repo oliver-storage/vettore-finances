@@ -323,25 +323,62 @@ function montarHtmlTimbrado(aparencia, dados, textoBody) {
   `;
 }
 
+function medirImagem(base64) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
+    img.onerror = () => resolve({ width: 1, height: 1 });
+    img.src = base64;
+  });
+}
+
 async function baixarComoPDF(texto, nomeDocumento, dados) {
   const aparencia = await obterAparenciaDocumento();
-  const corpoHtml = montarHtmlTimbrado(aparencia, dados, texto.replace(/</g, '&lt;'));
-  const janela = window.open('', '_blank');
-  janela.document.write(`
-    <html>
-      <head>
-        <title>${nomeDocumento}</title>
-        <style>
-          @page { margin: 0; }
-          body { font-family: ${aparencia.fonte}; font-size: ${aparencia.tamanho}pt; line-height: 1.6; white-space: pre-wrap; margin:0; }
-        </style>
-      </head>
-      <body>${corpoHtml}</body>
-    </html>
-  `);
-  janela.document.close();
-  janela.focus();
-  setTimeout(() => janela.print(), 300);
+  const rodapeTexto = dados
+    ? `${dados.razaosocial_contratada} — ${dados.endereco_contratada} — CNPJ: ${dados.cnpj_contratada}`
+    : '';
+
+  const PAGE_WIDTH = 595.28; // A4 em pt
+  const tamanhoFonte = parseInt(aparencia.tamanho) || 12;
+
+  let alturaTopo = 0;
+  let alturaRodape = 0;
+
+  if (aparencia.topo) {
+    const dim = await medirImagem(aparencia.topo);
+    alturaTopo = PAGE_WIDTH * (dim.height / dim.width);
+  }
+  if (aparencia.rodape) {
+    const dim = await medirImagem(aparencia.rodape);
+    alturaRodape = PAGE_WIDTH * (dim.height / dim.width);
+  }
+
+  const docDefinition = {
+    pageSize: 'A4',
+    pageMargins: [40, alturaTopo > 0 ? alturaTopo + 15 : 40, 40, alturaRodape > 0 ? alturaRodape + 25 : 40],
+
+    header: aparencia.topo ? {
+      image: aparencia.topo,
+      width: PAGE_WIDTH
+    } : undefined,
+
+    footer: aparencia.rodape ? function() {
+      return {
+        stack: [
+          { text: rodapeTexto, alignment: 'center', fontSize: 8, margin: [0, 0, 0, 2] },
+          { image: aparencia.rodape, width: PAGE_WIDTH }
+        ]
+      };
+    } : undefined,
+
+    content: texto.split('\n').map(linha => ({ text: linha === '' ? ' ' : linha, fontSize: tamanhoFonte, margin: [0, 0, 0, 2] })),
+
+    defaultStyle: {
+      font: 'Roboto'
+    }
+  };
+
+  pdfMake.createPdf(docDefinition).download(`${nomeDocumento}.pdf`);
 }
 
 async function baixarComoWord(texto, nomeArquivo, dados) {
