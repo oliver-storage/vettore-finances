@@ -228,8 +228,8 @@ async function inicializarClientes() {
 
     const franquia = unidades.find(u => u.id === unidadeAtivaCliente);
     const elUserName = document.getElementById('userName');
-    if (elUserName && !window.location.pathname.includes('configuracao')) {
-      elUserName.textContent = `${franquia?.nomefranquia || ''} - ${user.nome}`;
+    if (elUserName) {
+      elUserName.textContent = `${franquia?.nomefranquia || 'Sistema'} - ${user.nome} (${user.perfil})`;
     }
 
     await carregarListaUnificada();

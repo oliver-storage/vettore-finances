@@ -10,8 +10,8 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.33.0">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.33.0">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.33.1">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.33.1">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -938,13 +938,13 @@
   <datalist id="listaClientesPJ"></datalist>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.33.0 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.33.1 Desenvolvido por OliverStorage</p>
   </footer>
 
-  <script src="../js/auth.js?v=1.9.33.0"></script>
-  <script src="../js/supabase-utils.js?v=1.9.33.0"></script>
-  <script src="../js/importador.js?v=1.9.33.0"></script>
-  <script src="../js/importador-boletos.js?v=1.9.33.0"></script>
+  <script src="../js/auth.js?v=1.9.33.1"></script>
+  <script src="../js/supabase-utils.js?v=1.9.33.1"></script>
+  <script src="../js/importador.js?v=1.9.33.1"></script>
+  <script src="../js/importador-boletos.js?v=1.9.33.1"></script>
 
   <script>
     let CATEGORIAS = [];
@@ -1152,7 +1152,7 @@
         CLIENTES_PJ = (await SupabaseAPI.get('clientes_pj')).filter(pj => pj.unidade_id === franquiaSelecionadaId).map(pj => pj.razao_social);
         atualizarDatalistClientesPJ();
         
-        document.getElementById('userName').textContent = `${franquia?.nomefranquia} - ${user.nome}`;
+        document.getElementById('userName').textContent = `${franquia?.nomefranquia} - ${user.nome} (${user.perfil})`;
         
         // Preencher informações da conta
         document.getElementById('infoFranquia').textContent = franquia?.nomefranquia || '-';
@@ -1182,7 +1182,7 @@
       const franquiaId = parseInt(document.getElementById('franquiaFilter').value);
       const franquia = unidades.find(u => u.id === franquiaId);
 
-      document.getElementById('userName').textContent = `${franquia?.nomefranquia} - ${user.nome}`;
+      document.getElementById('userName').textContent = `${franquia?.nomefranquia} - ${user.nome} (${user.perfil})`;
       document.getElementById('infoFranquia').textContent = franquia?.nomefranquia || '-';
       document.getElementById('infoBanco').textContent = franquia?.banco || '-';
       document.getElementById('infoAgencia').textContent = franquia?.agencia || '-';
