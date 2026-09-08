@@ -242,20 +242,97 @@ async function trocarFranquiaCliente() {
   unidadeAtivaCliente = parseInt(document.getElementById('franquiaFilterCliente').value);
   await carregarListaUnificada();
   await carregarSituacaoClientes();
+  await carregarDashboardCliente();
 }
 
 function switchTabClienteLista(tab) {
   document.getElementById('tabListaClientes').classList.toggle('active', tab === 'lista');
   document.getElementById('tabSituacaoClientes').classList.toggle('active', tab === 'situacao');
   document.getElementById('tabExtratoCliente').classList.toggle('active', tab === 'extrato');
+  document.getElementById('tabDashboardCliente').classList.toggle('active', tab === 'dashboardCliente');
   document.querySelectorAll('.sub-tab-btn').forEach((btn, i) => {
-    btn.classList.toggle('active', (i === 0 && tab === 'lista') || (i === 1 && tab === 'situacao') || (i === 2 && tab === 'extrato'));
+    btn.classList.toggle('active', (i === 0 && tab === 'lista') || (i === 1 && tab === 'situacao') || (i === 2 && tab === 'extrato') || (i === 3 && tab === 'dashboardCliente'));
   });
   if (tab === 'situacao') carregarSituacaoClientes();
   if (tab === 'extrato') popularListaClientesExtrato();
+  if (tab === 'dashboardCliente') carregarDashboardCliente();
 }
 
 // ========== SUB ABA EXTRATO DO CLIENTE ==========
+async function carregarDashboardCliente() {
+  const user = JSON.parse(localStorage.getItem('currentUser'));
+  const ehGestor = user?.perfil === 'gestor';
+
+  document.getElementById('avisoNaoGestor').style.display = ehGestor ? 'none' : 'block';
+
+  const todas = (await SupabaseAPI.get('clientes_notificacoes')).filter(n => n.unidade_id === unidadeAtivaCliente);
+  const pendentes = todas.filter(n => !n.confirmado).sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
+  const confirmadas = todas.filter(n => n.confirmado).sort((a, b) => (b.confirmado_em || '').localeCompare(a.confirmado_em || ''));
+
+  const badge = document.getElementById('badgePendenciasDashboard');
+  if (pendentes.length > 0) {
+    badge.style.display = 'inline-block';
+    badge.textContent = pendentes.length;
+  } else {
+    badge.style.display = 'none';
+  }
+
+  const nomesTipo = { novo_cadastro: '🆕 Novo Cadastro', alteracao: '✏️ Alteração', desvinculo: '🔌 Desvínculo' };
+
+  const tbodyPend = document.getElementById('tbodyPendenciasDashboard');
+  if (pendentes.length === 0) {
+    tbodyPend.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px; color:var(--tinta-40);">Nenhuma pendência 🎉</td></tr>';
+  } else {
+    tbodyPend.innerHTML = pendentes.map(n => `
+      <tr>
+        <td style="padding:12px;">${nomesTipo[n.tipo] || n.tipo}</td>
+        <td style="padding:12px;">${n.cliente_nome} <span style="font-size:11px; color:var(--tinta-40);">(${n.cliente_tipo})</span></td>
+        <td style="padding:12px; font-size:12px;">${n.descricao || '-'}</td>
+        <td style="padding:12px; font-size:12px;">${n.criado_por || '-'}</td>
+        <td style="padding:12px; font-size:12px;">${n.created_at ? new Date(n.created_at).toLocaleString('pt-BR') : '-'}</td>
+        <td style="padding:12px; text-align:center;">
+          ${ehGestor
+            ? `<button class="btn-primary" onclick="confirmarNotificacaoCliente(${n.id})" style="padding:6px 12px; font-size:12px;">Confirmar</button>`
+            : `<span style="font-size:11px; color:var(--tinta-40);">Aguardando gestor</span>`}
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  const tbodyHist = document.getElementById('tbodyHistoricoDashboard');
+  if (confirmadas.length === 0) {
+    tbodyHist.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--tinta-40);">Nenhum registro ainda</td></tr>';
+  } else {
+    tbodyHist.innerHTML = confirmadas.slice(0, 50).map(n => `
+      <tr>
+        <td style="padding:12px;">${nomesTipo[n.tipo] || n.tipo}</td>
+        <td style="padding:12px;">${n.cliente_nome} <span style="font-size:11px; color:var(--tinta-40);">(${n.cliente_tipo})</span></td>
+        <td style="padding:12px; font-size:12px;">${n.descricao || '-'}</td>
+        <td style="padding:12px; font-size:12px;">${n.confirmado_por || '-'}</td>
+        <td style="padding:12px; font-size:12px;">${n.confirmado_em ? new Date(n.confirmado_em).toLocaleString('pt-BR') : '-'}</td>
+      </tr>
+    `).join('');
+  }
+}
+
+async function confirmarNotificacaoCliente(id) {
+  const user = JSON.parse(localStorage.getItem('currentUser'));
+  if (user?.perfil !== 'gestor') {
+    alert('⚠️ Só um usuário com perfil "gestor" pode confirmar.');
+    return;
+  }
+
+  if (!confirm('Confirmar que você tomou conhecimento disso?')) return;
+
+  await SupabaseAPI.update('clientes_notificacoes', id, {
+    confirmado: true,
+    confirmado_por: user.nome,
+    confirmado_em: new Date().toISOString()
+  });
+
+  await carregarDashboardCliente();
+}
+
 async function popularListaClientesExtrato() {
   const datalist = document.getElementById('listaClientesExtrato');
   const pjs = (await SupabaseAPI.get('clientes_pj')).filter(pj => pj.unidade_id === unidadeAtivaCliente);
@@ -610,7 +687,7 @@ function montarListaCombinada() {
     telefone: p.telefone || '',
     municipio: p.municipio || ''
   }));
-  const pj = PJ_CACHE.map(j => ({
+  const pj = PJ_CACHE.filter(j => j.ativo !== false).map(j => ({
     tipo: 'PJ',
     id: j.id,
     nome: j.razao_social,
@@ -782,6 +859,63 @@ function removerPJVinculado(id) {
   renderizarChipsPJVinculadas();
 }
 
+// ========== NOTIFICAÇÕES DE DASHBOARD (Cadastro/Alteração/Desvínculo) ==========
+async function registrarNotificacaoCliente(tipo, clienteTipo, clienteId, clienteNome, descricao) {
+  const user = JSON.parse(localStorage.getItem('currentUser'));
+  await SupabaseAPI.insert('clientes_notificacoes', {
+    unidade_id: unidadeAtivaCliente,
+    tipo,
+    cliente_tipo: clienteTipo,
+    cliente_id: clienteId,
+    cliente_nome: clienteNome,
+    descricao,
+    criado_por: user?.nome || null
+  });
+}
+
+function gerarDiffCampos(antigo, novo, labels) {
+  const mudancas = [];
+  for (const campo in labels) {
+    const valorAntigo = antigo?.[campo] ?? '';
+    const valorNovo = novo?.[campo] ?? '';
+    if (String(valorAntigo) !== String(valorNovo)) {
+      mudancas.push(`${labels[campo]}: "${valorAntigo || '-'}" → "${valorNovo || '-'}"`);
+    }
+  }
+  return mudancas.join('; ');
+}
+
+const LABELS_CAMPOS_PF = {
+  nome: 'Nome', data_nascimento: 'Data Nasc.', nacionalidade: 'Nacionalidade', estado_civil: 'Estado Civil',
+  profissao: 'Profissão', cpf: 'CPF', endereco: 'Endereço', estado: 'Estado', telefone: 'Telefone',
+  municipio: 'Município', senha_gov: 'Senha Gov', email: 'Email', observacoes: 'Observações'
+};
+
+const LABELS_CAMPOS_PJ = {
+  razao_social: 'Razão Social', cnpj: 'CNPJ', segmento: 'Segmento', porte: 'Porte',
+  regime_tributario: 'Regime Tributário', natureza_juridica: 'Natureza Jurídica', cnae: 'CNAE',
+  capital_social: 'Capital Social', senha_gov: 'Senha Gov', endereco_empresa: 'Endereço Empresa',
+  estado_empresa: 'Estado Empresa', municipio_empresa: 'Município Empresa', observacoes: 'Observações',
+  data_contrato: 'Data do Contrato', inicio_cobranca: 'Início da Cobrança', final_contrato: 'Final do Contrato',
+  valor_contrato: 'Valor do Contrato'
+};
+
+async function desvincularClientePJ() {
+  const id = parseInt(document.getElementById('pjId').value);
+  if (!id) return;
+
+  const razaoSocial = document.getElementById('pjRazaoSocial').value.trim();
+
+  if (!confirm(`Tem certeza que quer desvincular "${razaoSocial}"? O cliente será marcado como inativo e sumirá da lista ativa. Isso precisará de confirmação do gestor.`)) return;
+
+  await SupabaseAPI.update('clientes_pj', id, { ativo: false });
+  await registrarNotificacaoCliente('desvinculo', 'PJ', id, razaoSocial, 'Cliente desvinculado (marcado como inativo)');
+
+  alert('✅ Cliente desvinculado. Aguardando confirmação do gestor no Dashboard.');
+  fecharModalCliente();
+  await carregarListaUnificada();
+}
+
 async function salvarPF(event) {
   event.preventDefault();
 
@@ -815,11 +949,18 @@ async function salvarPF(event) {
   try {
     let pfId;
     if (id) {
+      const antigo = (await SupabaseAPI.get('clientes_pf')).find(p => p.id === parseInt(id));
       await SupabaseAPI.update('clientes_pf', parseInt(id), dados);
       pfId = parseInt(id);
+
+      const diff = gerarDiffCampos(antigo, dados, LABELS_CAMPOS_PF);
+      if (diff) {
+        await registrarNotificacaoCliente('alteracao', 'PF', pfId, dados.nome, diff);
+      }
     } else {
       const inserido = await SupabaseAPI.insert('clientes_pf', dados);
       pfId = inserido[0]?.id;
+      await registrarNotificacaoCliente('novo_cadastro', 'PF', pfId, dados.nome, 'Novo cadastro de Pessoa Física');
     }
 
     await salvarVinculosPF(pfId);
@@ -1041,11 +1182,18 @@ async function salvarPJ(event) {
   try {
     let pjId;
     if (id) {
+      const antigo = (await SupabaseAPI.get('clientes_pj')).find(p => p.id === parseInt(id));
       await SupabaseAPI.update('clientes_pj', parseInt(id), dados);
       pjId = parseInt(id);
+
+      const diff = gerarDiffCampos(antigo, dados, LABELS_CAMPOS_PJ);
+      if (diff) {
+        await registrarNotificacaoCliente('alteracao', 'PJ', pjId, dados.razao_social, diff);
+      }
     } else {
       const inserido = await SupabaseAPI.insert('clientes_pj', dados);
       pjId = inserido[0]?.id;
+      await registrarNotificacaoCliente('novo_cadastro', 'PJ', pjId, dados.razao_social, 'Novo cadastro de Pessoa Jurídica');
     }
 
     await salvarVinculosPJ(pjId);
@@ -1094,6 +1242,7 @@ async function editarPJ(id) {
   await popularDropdownsPJ();
 
   document.getElementById('pjId').value = j.id;
+  document.getElementById('btnDesvincularPJ').style.display = j.ativo === false ? 'none' : 'inline-block';
   document.getElementById('pjDataContrato').value = j.data_contrato || '';
   document.getElementById('pjInicioCobranca').value = j.inicio_cobranca ? j.inicio_cobranca.slice(0, 7) : '';
   document.getElementById('pjFinalContrato').value = j.final_contrato ? j.final_contrato.slice(0, 7) : '';
@@ -1131,6 +1280,7 @@ async function editarPJ(id) {
 }
 
 function limparFormularioPJ() {
+  document.getElementById('btnDesvincularPJ').style.display = 'none';
   document.getElementById('pjId').value = '';
   ['pjDataContrato','pjInicioCobranca','pjFinalContrato','pjValorContrato','pjRazaoSocial','pjCNPJ','pjSegmento','pjPorte','pjRegimeTributario','pjNaturezaJuridica','pjCNAE',
    'pjCapitalSocial','pjSenhaGov','pjEnderecoEmpresa','pjEstadoEmpresa','pjMunicipioEmpresa','pjObservacoes']

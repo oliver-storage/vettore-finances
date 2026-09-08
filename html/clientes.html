@@ -5,8 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vettore Finances - Clientes</title>
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.22.0">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.22.0">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.23.0">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.23.0">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -78,6 +78,7 @@
       <button class="sub-tab-btn active" onclick="switchTabClienteLista('lista')">Lista de Clientes</button>
       <button class="sub-tab-btn" onclick="switchTabClienteLista('situacao')">Situação</button>
       <button class="sub-tab-btn" onclick="switchTabClienteLista('extrato')">Extrato</button>
+      <button class="sub-tab-btn" onclick="switchTabClienteLista('dashboardCliente')">Dashboard <span id="badgePendenciasDashboard" style="display:none; background:var(--alerta); color:white; border-radius:10px; padding:1px 7px; font-size:11px; margin-left:4px;">0</span></button>
     </div>
 
     <div id="tabListaClientes" class="sub-tab-content active">
@@ -224,6 +225,53 @@
               <tbody id="tbodyExtratoCliente"></tbody>
             </table>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SUB ABA DASHBOARD (Notificações de Cadastro/Alteração/Desvínculo) -->
+    <div id="tabDashboardCliente" class="sub-tab-content">
+      <div class="card" style="margin-top:20px;">
+        <h3>Dashboard — Pendências de Confirmação</h3>
+        <p style="font-size:13px; color:var(--tinta-70); margin-bottom:16px;">
+          Novos cadastros, alterações e desvínculos aguardando confirmação de um usuário com perfil "gestor".
+        </p>
+        <div id="avisoNaoGestor" style="display:none; background:var(--papel); border-left:4px solid var(--tinta-40); padding:12px; border-radius:4px; margin-bottom:16px; font-size:13px; color:var(--tinta-70);">
+          Você não tem perfil de gestor — pode visualizar as pendências, mas só um gestor pode confirmar.
+        </div>
+
+        <div class="table-wrapper" style="overflow-x:auto;">
+          <table style="width:100%;">
+            <thead>
+              <tr>
+                <th style="padding:12px;">Tipo</th>
+                <th style="padding:12px;">Cliente</th>
+                <th style="padding:12px;">Descrição</th>
+                <th style="padding:12px;">Criado por</th>
+                <th style="padding:12px;">Data</th>
+                <th style="padding:12px; text-align:center;">Ação</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyPendenciasDashboard"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:20px;">
+        <h3>Histórico Confirmado</h3>
+        <div class="table-wrapper" style="overflow-x:auto;">
+          <table style="width:100%;">
+            <thead>
+              <tr>
+                <th style="padding:12px;">Tipo</th>
+                <th style="padding:12px;">Cliente</th>
+                <th style="padding:12px;">Descrição</th>
+                <th style="padding:12px;">Confirmado por</th>
+                <th style="padding:12px;">Data Confirmação</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyHistoricoDashboard"></tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -495,6 +543,7 @@
             <div style="display:flex; gap:8px; margin-top:16px;">
               <button type="submit" class="btn-primary">Salvar Pessoa Jurídica</button>
               <button type="button" class="btn-danger" onclick="fecharModalCliente()">Cancelar</button>
+              <button type="button" id="btnDesvincularPJ" class="btn-danger" style="display:none; margin-left:auto;" onclick="desvincularClientePJ()">🔌 Desvincular Cliente</button>
             </div>
           </form>
         </div>
@@ -504,13 +553,13 @@
   </div>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.22.0 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.23.0 Desenvolvido por OliverStorage</p>
   </footer>
 
-  <script src="../js/auth.js?v=1.9.22.0"></script>
-  <script src="../js/masks.js?v=1.9.22.0"></script>
-  <script src="../js/supabase-utils.js?v=1.9.22.0"></script>
-  <script src="../js/clientes.js?v=1.9.22.0"></script>
+  <script src="../js/auth.js?v=1.9.23.0"></script>
+  <script src="../js/masks.js?v=1.9.23.0"></script>
+  <script src="../js/supabase-utils.js?v=1.9.23.0"></script>
+  <script src="../js/clientes.js?v=1.9.23.0"></script>
   <script>
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', inicializarClientes);
