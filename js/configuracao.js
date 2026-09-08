@@ -549,6 +549,19 @@ async function atualizarSelectsParametros() {
     });
   }
 
+  // Carregar serviços
+  const selectServ = document.getElementById('selectParamServicos');
+  if (selectServ) {
+    selectServ.innerHTML = '<option value="">Nenhum</option>';
+    const servicos = await SupabaseAPI.get('servicos');
+    servicos.forEach(srv => {
+      const option = document.createElement('option');
+      option.value = srv.nome;
+      option.textContent = srv.nome;
+      selectServ.appendChild(option);
+    });
+  }
+
   // Checkboxes de franquias
   const containerFranquias = document.getElementById('checkboxesFranquiasParam');
   if (containerFranquias) {
@@ -571,7 +584,7 @@ async function carregarParametros() {
   if (UNIDADES_CACHE.length === 0) UNIDADES_CACHE = await SupabaseAPI.get('unidades');
 
   if (parametros.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px; color:var(--tinta-40);">Nenhum parâmetro cadastrado</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:var(--tinta-40);">Nenhum parâmetro cadastrado</td></tr>';
     document.getElementById('acoesMassaParametros').style.display = 'none';
     document.getElementById('checkAllParametros').checked = false;
     return;
@@ -590,6 +603,7 @@ async function carregarParametros() {
       <td style="padding:12px;">${param.descricao}</td>
       <td style="padding:12px;">${param.categoria}</td>
       <td style="padding:12px;">${param.subcategoria || '-'}</td>
+      <td style="padding:12px;">${param.servicos || '-'}</td>
       <td style="padding:12px; font-size:12px;">${franquiasTexto}</td>
       <td style="padding:12px; text-align:center; display:flex; gap:6px; justify-content:center;">
         <button class="action-button" onclick="abrirModalEditarParametro(${param.id})" title="Editar Parâmetro">✏️</button>
@@ -715,6 +729,7 @@ async function adicionarParametro() {
   const descricao = document.getElementById('inputParamDescricao')?.value.trim().toUpperCase();
   const categoria = document.getElementById('selectParamCategoria')?.value;
   const subcategoria = document.getElementById('selectParamSubcategoria')?.value;
+  const servicos = document.getElementById('selectParamServicos')?.value;
   const unidadeIds = Array.from(document.querySelectorAll('.franquiaParamCheckbox:checked')).map(cb => parseInt(cb.value));
 
   if (!descricao || !categoria) {
@@ -732,12 +747,14 @@ async function adicionarParametro() {
     descricao,
     categoria,
     subcategoria: subcategoria || null,
+    servicos: servicos || null,
     unidade_ids: unidadeIds.length > 0 ? unidadeIds : null
   });
 
   document.getElementById('inputParamDescricao').value = '';
   document.getElementById('selectParamCategoria').value = '';
   document.getElementById('selectParamSubcategoria').value = '';
+  document.getElementById('selectParamServicos').value = '';
   document.querySelectorAll('.franquiaParamCheckbox:checked').forEach(cb => cb.checked = false);
 
   await carregarParametros();
@@ -796,6 +813,13 @@ async function abrirModalEditarParametro(id) {
       </div>
 
       <div style="margin-bottom: 20px;">
+        <label style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px;">Serviços</label>
+        <select id="modalParamServicos" style="width: 100%; padding: 10px; border: 1px solid var(--linha); border-radius: 4px;">
+          <option value="">Nenhum</option>
+        </select>
+      </div>
+
+      <div style="margin-bottom: 20px;">
         <label style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px;">Franquias (nenhuma marcada = todas)</label>
         <div id="modalFranquiasParam" style="display:flex; flex-wrap:wrap; gap:10px;"></div>
       </div>
@@ -830,6 +854,16 @@ async function abrirModalEditarParametro(id) {
     selectSub.appendChild(option);
   });
 
+  const servicosLista = (await SupabaseAPI.get('servicos')).map(r => r.nome);
+  const selectServ = document.getElementById('modalParamServicos');
+  servicosLista.forEach(srv => {
+    const option = document.createElement('option');
+    option.value = srv;
+    option.textContent = srv;
+    if (srv === param.servicos) option.selected = true;
+    selectServ.appendChild(option);
+  });
+
   if (UNIDADES_CACHE.length === 0) UNIDADES_CACHE = await SupabaseAPI.get('unidades');
   const jaMarcadas = param.unidade_ids || [];
   document.getElementById('modalFranquiasParam').innerHTML = UNIDADES_CACHE.map(u => `
@@ -848,6 +882,7 @@ function fecharModalParametro() {
 async function salvarEdicaoParametro(id) {
   const categoria = document.getElementById('modalParamCategoria').value;
   const subcategoria = document.getElementById('modalParamSubcategoria').value;
+  const servicos = document.getElementById('modalParamServicos').value;
   const unidadeIds = Array.from(document.querySelectorAll('.modalFranquiaCheckbox:checked')).map(cb => parseInt(cb.value));
 
   if (!categoria) {
@@ -858,6 +893,7 @@ async function salvarEdicaoParametro(id) {
   await SupabaseAPI.update('parametros_auto', id, {
     categoria,
     subcategoria: subcategoria || null,
+    servicos: servicos || null,
     unidade_ids: unidadeIds.length > 0 ? unidadeIds : null
   });
 
@@ -921,6 +957,27 @@ async function editarSubcategoryEmLote() {
   const subcategoria = modal.trim().toUpperCase();
 
   await Promise.all(ids.map(id => SupabaseAPI.update('parametros_auto', id, { subcategoria: subcategoria || null })));
+
+  await carregarParametros();
+  alert(`✅ ${ids.length} parâmetro(s) atualizado(s)!`);
+}
+
+async function editarServicosEmLote() {
+  const ids = Array.from(document.querySelectorAll('.checkboxParametro:checked')).map(cb => parseInt(cb.dataset.id));
+
+  if (ids.length === 0) {
+    alert('⚠️ Selecione parâmetros');
+    return;
+  }
+
+  const servicos = (await SupabaseAPI.get('servicos')).map(r => r.nome);
+  const modal = prompt(`Aplicar serviço a ${ids.length} parâmetro(s)?\n\nOpções: ${servicos.join(', ') || 'Nenhum'}\n\n(deixe em branco para "Nenhum")`, '');
+
+  if (modal === null) return;
+
+  const servico = modal.trim();
+
+  await Promise.all(ids.map(id => SupabaseAPI.update('parametros_auto', id, { servicos: servico || null })));
 
   await carregarParametros();
   alert(`✅ ${ids.length} parâmetro(s) atualizado(s)!`);

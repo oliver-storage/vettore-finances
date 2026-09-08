@@ -5,8 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vettore Finances - Configuração</title>
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.32.0">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.32.0">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.33.0">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.33.0">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -507,6 +507,15 @@
             </div>
           </div>
 
+          <div class="form-row-3" style="margin-top:12px;">
+            <div class="form-group">
+              <label>Serviços</label>
+              <select id="selectParamServicos">
+                <option value="">Nenhum</option>
+              </select>
+            </div>
+          </div>
+
           <div class="form-group" style="margin-top:12px;">
             <label>Franquias (deixe todas desmarcadas = aplica a todas)</label>
             <div id="checkboxesFranquiasParam" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:6px;"></div>
@@ -523,6 +532,7 @@
               <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
                 <button class="action-button" onclick="editarCategoryEmLote()" title="Editar Categoria em Lote" style="width: auto; padding: 0 12px;">✏️ Editar Categoria</button>
                 <button class="action-button" onclick="editarSubcategoryEmLote()" title="Editar Subcategoria em Lote" style="width: auto; padding: 0 12px;">✏️ Editar Subcategoria</button>
+                <button class="action-button" onclick="editarServicosEmLote()" title="Editar Serviços em Lote" style="width: auto; padding: 0 12px;">✏️ Editar Serviços</button>
                 <button class="action-button" onclick="editarFranquiasEmLote()" title="Editar Franquias em Lote" style="width: auto; padding: 0 12px;">✏️ Editar Franquias</button>
                 <button class="action-button delete" onclick="deletarSelecionados()" title="Deletar Selecionados" style="width: auto; padding: 0 12px;">🗑️ Deletar</button>
               </div>
@@ -537,6 +547,7 @@
                   <th style="padding:12px;">Descrição</th>
                   <th style="padding:12px;">Categoria</th>
                   <th style="padding:12px;">Subcategoria</th>
+                  <th style="padding:12px;">Serviços</th>
                   <th style="padding:12px;">Franquias</th>
                   <th style="text-align:center; width:100px; padding:12px;">Ações</th>
                 </tr>
@@ -681,13 +692,13 @@
     </div>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.32.0 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.33.0 Desenvolvido por OliverStorage</p>
   </footer>
 
-  <script src="../js/auth.js?v=1.9.32.0"></script>
-  <script src="../js/masks.js?v=1.9.32.0"></script>
-  <script src="../js/supabase-utils.js?v=1.9.32.0"></script>
-  <script src="../js/configuracao.js?v=1.9.32.0"></script>
+  <script src="../js/auth.js?v=1.9.33.0"></script>
+  <script src="../js/masks.js?v=1.9.33.0"></script>
+  <script src="../js/supabase-utils.js?v=1.9.33.0"></script>
+  <script src="../js/configuracao.js?v=1.9.33.0"></script>
 
   <script>
     function switchTab(tabName) {
