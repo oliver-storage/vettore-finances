@@ -51,7 +51,7 @@ function handleFileUpload(event) {
         return;
       }
       
-      salvarExtratosSupabase(extratos);
+      salvarExtratosSupabase(extratos, unidadeIdAtivo, mes, ano);
     } catch (error) {
       console.error('❌ Erro:', error);
       alert('Erro: ' + error.message);
@@ -156,15 +156,23 @@ function parseXLS(dados, unidadeId, mes, ano, banco, agencia, conta) {
   }
 
   let descartadosPorData = 0;
+  let saldoAnterior = null;
 
   for (let i = headerIdx + 1; i < dados.length; i++) {
     const row = dados[i];
     if (!row || row.length < 2) continue;
 
+    // Captura a linha "Saldo Anterior" (não é uma transação, é o saldo de partida)
+    if (String(row[1] || '').toUpperCase().includes('SALDO ANTERIOR')) {
+      saldoAnterior = parseValorBR(row[4]);
+      continue;
+    }
+
     const data = row[0];
     const descricao = row[1];
     const codigo = row[2] || '';
     const valor = parseValorBR(row[3]);
+    const saldo = row[4] !== undefined ? parseValorBR(row[4]) : null;
 
     if (!data || !descricao || valor === 0) continue;
 
@@ -206,6 +214,7 @@ function parseXLS(dados, unidadeId, mes, ano, banco, agencia, conta) {
       descricao: String(descricao).trim(),
       codigo: String(codigo).trim(),
       valor: valor,
+      saldo: saldo,
       historico_correcao: null,
       data_referencia: null,
       categoria: null,
@@ -216,10 +225,12 @@ function parseXLS(dados, unidadeId, mes, ano, banco, agencia, conta) {
   }
 
   extratos._descartadosPorData = descartadosPorData;
+  extratos._saldoAnterior = saldoAnterior;
   return extratos;
 }
 
-async function salvarExtratosSupabase(extratos) {
+async function salvarExtratosSupabase(extratos, unidadeIdAtivo, mesImportado, anoImportado) {
+  const saldoAnterior = extratos._saldoAnterior;
   const unidadeId = extratos[0]?.unidade_id;
   const existentes = await SupabaseAPI.get('extratos');
   const chavesExistentes = new Set(
@@ -235,6 +246,21 @@ async function salvarExtratosSupabase(extratos) {
     alert(`⚠️ Todas as ${duplicados} linha(s) desse arquivo já foram importadas antes. Nada novo pra adicionar.`);
     document.getElementById('fileInput').value = '';
     return;
+  }
+
+  // Salvar Saldo Anterior do mês (pra conciliação de saldo na tela)
+  if (saldoAnterior !== null && saldoAnterior !== undefined && unidadeIdAtivo && mesImportado && anoImportado) {
+    try {
+      const registrosSaldo = await SupabaseAPI.get('extratos_saldo_mensal');
+      const existente = registrosSaldo.find(s => s.unidade_id === unidadeIdAtivo && s.ano === parseInt(anoImportado) && s.mes === mesImportado);
+      if (existente) {
+        await SupabaseAPI.update('extratos_saldo_mensal', existente.id, { saldo_anterior: saldoAnterior });
+      } else {
+        await SupabaseAPI.insert('extratos_saldo_mensal', { unidade_id: unidadeIdAtivo, ano: parseInt(anoImportado), mes: mesImportado, saldo_anterior: saldoAnterior });
+      }
+    } catch (error) {
+      console.error('❌ Erro ao salvar Saldo Anterior:', error);
+    }
   }
 
   let sucesso = 0;

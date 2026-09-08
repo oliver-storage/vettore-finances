@@ -9,8 +9,8 @@
   <!-- XLSX -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.30.2">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.30.2">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.31.0">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.31.0">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -710,6 +710,22 @@
         </div>
       </div>
 
+      <div id="areaConciliacaoSaldo" class="resumo-categorias" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); display:none;">
+        <div class="categoria-box">
+          <label>Saldo Anterior</label>
+          <value id="cardSaldoAnterior">-</value>
+        </div>
+        <div class="categoria-box">
+          <label>Saldo Atual (Banco)</label>
+          <value id="cardSaldoAtualBanco">-</value>
+        </div>
+        <div class="categoria-box">
+          <label>Saldo Atual (Calculado)</label>
+          <value id="cardSaldoAtualCalculado">-</value>
+        </div>
+      </div>
+      <p id="avisoDivergenciaSaldo" style="display:none; font-size:13px; color:var(--alerta); font-weight:600; margin:-8px 0 16px 0; padding:10px; background:#FFF5F0; border-radius:4px; border-left:4px solid var(--alerta);"></p>
+
       <!-- AÇÕES EM MASSA -->
       <div class="acoes-em-massa card" style="background: var(--papel); padding: 16px; border-radius: 8px; margin-bottom: 16px; display: none;" id="secaoAcoesEmMassa">
         <h4 style="margin-top: 0;">🎯 Ações em Massa</h4>
@@ -888,13 +904,13 @@
   <datalist id="listaClientesPJ"></datalist>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.30.2 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.31.0 Desenvolvido por OliverStorage</p>
   </footer>
 
-  <script src="../js/auth.js?v=1.9.30.2"></script>
-  <script src="../js/supabase-utils.js?v=1.9.30.2"></script>
-  <script src="../js/importador.js?v=1.9.30.2"></script>
-  <script src="../js/importador-boletos.js?v=1.9.30.2"></script>
+  <script src="../js/auth.js?v=1.9.31.0"></script>
+  <script src="../js/supabase-utils.js?v=1.9.31.0"></script>
+  <script src="../js/importador.js?v=1.9.31.0"></script>
+  <script src="../js/importador-boletos.js?v=1.9.31.0"></script>
 
   <script>
     let CATEGORIAS = [];
@@ -1028,6 +1044,57 @@
       await loadBoletos();
     }
 
+    async function atualizarConciliacaoSaldo(extratosDoMes, unidadeId, ano, mes) {
+      const area = document.getElementById('areaConciliacaoSaldo');
+      const aviso = document.getElementById('avisoDivergenciaSaldo');
+
+      if (extratosDoMes.length === 0) {
+        area.style.display = 'none';
+        aviso.style.display = 'none';
+        return;
+      }
+
+      const registrosSaldo = await SupabaseAPI.get('extratos_saldo_mensal');
+      const registroMes = registrosSaldo.find(s => s.unidade_id === unidadeId && s.ano === parseInt(ano) && s.mes === mes);
+      const saldoAnterior = registroMes ? parseFloat(registroMes.saldo_anterior) : null;
+
+      // Ordenar por data pra pegar a última transação (saldo do banco)
+      const ordenados = [...extratosDoMes].sort((a, b) => (a.data || '').localeCompare(b.data || ''));
+      const ultimaTransacao = ordenados[ordenados.length - 1];
+      const saldoAtualBanco = (ultimaTransacao && ultimaTransacao.saldo !== null && ultimaTransacao.saldo !== undefined)
+        ? parseFloat(ultimaTransacao.saldo)
+        : null;
+
+      const somaValores = extratosDoMes.reduce((soma, e) => soma + (parseFloat(e.valor) || 0), 0);
+      const saldoAtualCalculado = saldoAnterior !== null ? saldoAnterior + somaValores : null;
+
+      document.getElementById('cardSaldoAnterior').textContent = saldoAnterior !== null
+        ? saldoAnterior.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+        : 'Não disponível';
+
+      document.getElementById('cardSaldoAtualBanco').textContent = saldoAtualBanco !== null
+        ? saldoAtualBanco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+        : 'Não disponível';
+
+      document.getElementById('cardSaldoAtualCalculado').textContent = saldoAtualCalculado !== null
+        ? saldoAtualCalculado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+        : 'Não disponível';
+
+      area.style.display = 'grid';
+
+      if (saldoAtualBanco !== null && saldoAtualCalculado !== null) {
+        const diferenca = Math.round((saldoAtualBanco - saldoAtualCalculado) * 100) / 100;
+        if (Math.abs(diferenca) > 0.01) {
+          aviso.textContent = `⚠️ Saldo não bate: diferença de ${diferenca.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} entre o saldo do banco e o calculado pelo sistema. Confira se todas as linhas do mês foram importadas corretamente.`;
+          aviso.style.display = 'block';
+        } else {
+          aviso.style.display = 'none';
+        }
+      } else {
+        aviso.style.display = 'none';
+      }
+    }
+
     async function loadExtratos(user) {
       const userCurrent = user || JSON.parse(localStorage.getItem('currentUser'));
       const mesAno = document.getElementById('mesAnoFilter').value; // formato: YYYY-MM
@@ -1056,6 +1123,10 @@
         if (mesAno) {
           const [anoSel, mesSel] = mesAno.split('-');
           extratos = extratos.filter(e => String(e.ano) === anoSel && String(e.mes).padStart(2, '0') === mesSel);
+          await atualizarConciliacaoSaldo(extratos, unidadeFiltro, anoSel, mesSel);
+        } else {
+          document.getElementById('areaConciliacaoSaldo').style.display = 'none';
+          document.getElementById('avisoDivergenciaSaldo').style.display = 'none';
         }
 
         // Aplicar parâmetros de auto-preenchimento
@@ -1418,17 +1489,19 @@
       const resumoDiv = document.getElementById('resumoCategorias');
       let html = '';
 
-      Object.entries(resumo).forEach(([cat, valor]) => {
-        if (valor !== 0) {
-          const corVal = corValor(valor);
-          const valorFormatado = formatarValorComSinal(valor);
-          html += `
-            <div class="categoria-box">
-              <label>${cat}</label>
-              <value style="color:${corVal};">${valorFormatado}</value>
-            </div>
-          `;
-        }
+      const entradasOrdenadas = Object.entries(resumo)
+        .filter(([, valor]) => valor !== 0)
+        .sort((a, b) => b[1] - a[1]); // positivos (maiores) primeiro, negativos por último
+
+      entradasOrdenadas.forEach(([cat, valor]) => {
+        const corVal = corValor(valor);
+        const valorFormatado = formatarValorComSinal(valor);
+        html += `
+          <div class="categoria-box">
+            <label>${cat}</label>
+            <value style="color:${corVal};">${valorFormatado}</value>
+          </div>
+        `;
       });
 
       if (html) {
