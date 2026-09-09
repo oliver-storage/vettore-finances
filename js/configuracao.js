@@ -1,5 +1,5 @@
 /**
- * Vettore Finances - Configuração com Supabase v1.9.41.0
+ * Vettore Finances - Configuração com Supabase v1.9.42.0
  */
 
 const CATEGORIAS_PADRAO = [
