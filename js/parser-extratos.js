@@ -1,6 +1,6 @@
 /**
- * Vettore Finances - Parser Robusto de Extratos Bancários v1.9.39.0
- * Suporta: Banco do Brasil, Itaú, Bradesco, Caixa, Santander
+ * Vettore Finances - Parser Robusto de Extratos Bancários v1.9.40.0
+ * Banco do Brasil, Itaú, Bradesco, Caixa, Santander
  */
 
 class ParserExtratos {
@@ -11,8 +11,10 @@ class ParserExtratos {
       
       const banco = this.detectarBanco(textContent);
       const dadosConta = this.extrairDadosConta(textContent);
-      const linhas = this.extrairLinhasBB(textContent); // Padrão BB
+      const linhas = this.extrairLinhasBB(textContent);
       const mesAno = this.extrairMesAnoDoLinhas(linhas);
+
+      const linhasValidas = linhas.filter(l => l.data && l.valor && !l.ignorar);
 
       return {
         sucesso: true,
@@ -21,9 +23,8 @@ class ParserExtratos {
         ano: mesAno.ano,
         agencia: dadosConta.agencia,
         conta: dadosConta.conta,
-        linhas: linhas.filter(l => l.data && l.valor), // Remover linhas vazias
-        reconhecidas: linhas.filter(l => l.data && l.valor).length,
-        avisos: this.gerarAvisos(linhas)
+        linhas: linhasValidas,
+        reconhecidas: linhasValidas.length
       };
     } catch (error) {
       return {
@@ -65,60 +66,37 @@ class ParserExtratos {
   static extrairLinhasBB(texto) {
     const linhas = [];
     
-    // Padrão BB: data em DD/MM/YYYY seguida de valor com (+) ou (-)
-    const regexLinhas = /(\d{2})\/(\d{2})\/(\d{4})[^\d]*?([\d.]+,\d{2})\s*\(([+-])\)/g;
+    // Regex: DD/MM/YYYY ... valor (+ ou -)
+    const regexLinha = /(\d{2})\/(\d{2})\/(\d{4})\s+([^\d]+?)\s+([\d.]+,\d{2})\s*\(([+-])\)/g;
     
     let match;
     const processados = new Set();
 
-    while ((match = regexLinhas.exec(texto)) !== null) {
-      const [fullMatch, dia, mes, ano, valorTexto, sinal] = match;
+    while ((match = regexLinha.exec(texto)) !== null) {
+      const [fullMatch, dia, mes, ano, historico, valorTexto, sinal] = match;
       
-      if (!dia || !mes || !ano) continue;
+      if (!dia || !mes || !ano || !valorTexto) continue;
 
-      const chave = `${dia}/${mes}/${ano}${valorTexto}`;
+      const chave = `${dia}/${mes}/${ano}${valorTexto}${sinal}`;
       if (processados.has(chave)) continue;
       processados.add(chave);
 
       const dataISO = `${ano}-${String(mes).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
       const valor = parseFloat(valorTexto.replace(/[.]/g, '').replace(',', '.'));
       const isEntrada = sinal === '+';
-
-      linhas.push({
-        data: dataISO,
-        descricao: 'Lançamento',
-        valor,
-        classificacao: isEntrada ? 'ENTRADA' : 'SAÍDA',
-        tipo: null,
-        entrada: isEntrada ? valor : null,
-        saida: isEntrada ? null : valor
-      });
-    }
-
-    return linhas;
-  }
-
-  static extrairLinhasSimples(texto) {
-    const linhas = [];
-    // Fallback: qualquer data DD/MM/YYYY + valor
-    const regexData = /(\d{2})\/(\d{2})\/(\d{4})[^\d]*?([\d.]+,\d{2})\s*\(([+-])\)/g;
-    
-    let match;
-    while ((match = regexData.exec(texto)) !== null) {
-      const [, dia, mes, ano, valorTexto, sinal] = match;
       
-      const dataISO = `${ano}-${mes}-${dia}`;
-      const valor = parseFloat(valorTexto.replace(/[.]/g, '').replace(',', '.'));
-      const isEntrada = sinal === '+';
+      // Ignorar: Saldo, Estorno de Débito, Saldo do dia, Saldo Anterior
+      const ignorar = /saldo|estorno|saldo do dia|saldo anterior/i.test(historico);
 
       linhas.push({
         data: dataISO,
-        descricao: 'Lançamento',
+        descricao: historico.trim().substring(0, 100),
         valor,
         classificacao: isEntrada ? 'ENTRADA' : 'SAÍDA',
         tipo: null,
         entrada: isEntrada ? valor : null,
-        saida: isEntrada ? null : valor
+        saida: isEntrada ? null : valor,
+        ignorar
       });
     }
 
@@ -126,32 +104,17 @@ class ParserExtratos {
   }
 
   static extrairMesAnoDoLinhas(linhas) {
-    if (linhas.length === 0) {
+    const validas = linhas.filter(l => l.data && l.valor && !l.ignorar);
+    
+    if (validas.length === 0) {
       const agora = new Date();
       return { mes: agora.getMonth() + 1, ano: agora.getFullYear() };
     }
 
-    // Usar a data da primeira linha válida
-    const primeiraData = linhas.find(l => l.data);
-    if (primeiraData) {
-      const [ano, mes] = primeiraData.data.split('-');
-      return { mes: parseInt(mes), ano: parseInt(ano) };
-    }
-
-    const agora = new Date();
-    return { mes: agora.getMonth() + 1, ano: agora.getFullYear() };
-  }
-
-  static gerarAvisos(linhas) {
-    const avisos = [];
-    const validas = linhas.filter(l => l.data && l.valor);
-    
-    if (validas.length === 0) {
-      avisos.push('⚠️ Nenhuma linha reconhecida. PDF pode estar em formato não suportado.');
-    }
-
-    return avisos;
+    const primeiraData = validas[0].data;
+    const [ano, mes] = primeiraData.split('-');
+    return { mes: parseInt(mes), ano: parseInt(ano) };
   }
 }
 
-console.log('✅ Parser de Extratos v1.9.39.0 carregado');
+console.log('✅ Parser de Extratos v1.9.40.0 carregado');

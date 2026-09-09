@@ -1,5 +1,5 @@
 /**
- * Vettore Finances - Faturamento do Cliente v1.9.39.0
+ * Vettore Finances - Faturamento do Cliente v1.9.40.0
  */
 
 let FATURAMENTO_CLIENTE_ATUAL = null; // { tipo: 'PF'|'PJ', id, nome }
@@ -180,7 +180,7 @@ async function adicionarLinhaManualFaturamento() {
   await carregarMesFaturamento();
 }
 
-// ========== IMPORTAÇÃO DE PDF (Parser Robusto v1.9.39.0) ==========
+// ========== IMPORTAÇÃO DE PDF (Parser Robusto v1.9.40.0) ==========
 async function processarPdfFaturamento(event) {
   const file = event.target.files[0];
   if (!file) return;
@@ -207,56 +207,146 @@ async function processarPdfFaturamento(event) {
     const { banco, mes, ano, agencia, conta, linhas } = resultado;
 
     if (linhas.length === 0) {
-      statusEl.textContent = `⚠️ Nenhuma linha foi reconhecida no PDF. Adicione manualmente.`;
+      statusEl.textContent = `⚠️ Nenhuma linha foi reconhecida no PDF.`;
       return;
     }
 
-    // 1. Atualizar select de ano
-    const selectAno = document.getElementById('selectAnoFaturamento');
-    selectAno.value = ano;
+    window.PREVIEW_PDF_DADOS = { banco, mes, ano, agencia, conta, linhas };
 
-    // 2. Atualizar botões de mês
-    const btns = document.querySelectorAll('#mesesTabsFaturamento .sub-tab-btn');
-    btns.forEach((btn, idx) => {
-      btn.classList.remove('active');
-      if (idx === mes - 1) btn.classList.add('active');
-    });
-    FATURAMENTO_MES_ATUAL = mes;
-
-    // 3. Atualizar dados da conta no cliente
-    await atualizarDadosContaCliente(agencia, conta, banco);
-
-    // 4. Salvar linhas no BD
-    const linhasParaSalvar = linhas.map(l => ({
-      unidade_id: unidadeAtivaCliente,
-      cliente_tipo: FATURAMENTO_CLIENTE_ATUAL.tipo,
-      cliente_id: FATURAMENTO_CLIENTE_ATUAL.id,
-      ano,
-      mes,
-      data: l.data,
-      banco,
-      classificacao: l.classificacao,
-      plano_contas: null,
-      descricao: l.descricao,
-      tipo: null,
-      entrada: l.entrada,
-      saida: l.saida
-    }));
-
-    for (const linha of linhasParaSalvar) {
-      await SupabaseAPI.insert('faturamento_lancamentos', linha);
-    }
-
-    // 5. Recarregar e exibir linhas
-    await carregarMesFaturamento();
-
-    statusEl.textContent = `✅ ${linhas.length} linha(s) importada(s) | ${banco} | ${mes}/${ano}`;
+    statusEl.textContent = `✅ ${linhas.length} linha(s) reconhecida(s) | ${banco} | ${mes}/${ano}`;
     statusEl.style.color = 'var(--destaque)';
 
+    exibirPreviewPdf(linhas);
+
   } catch (error) {
-    console.error('❌ Erro ao processar PDF:', error);
+    console.error('❌ Erro:', error);
     statusEl.textContent = `❌ Erro: ${error.message}`;
   }
+}
+
+function exibirPreviewPdf(linhas) {
+  const modal = document.getElementById('modalPreviewPdf') || criarModalPreview();
+  
+  const tbody = document.getElementById('tbodyPreviewPdf');
+  tbody.innerHTML = linhas.map((l, idx) => `
+    <tr>
+      <td><input type="date" value="${l.data}" onchange="PREVIEW_PDF_DADOS.linhas[${idx}].data = this.value"></td>
+      <td><input type="text" value="${l.descricao}" onchange="PREVIEW_PDF_DADOS.linhas[${idx}].descricao = this.value" style="width:200px;"></td>
+      <td>
+        <select onchange="PREVIEW_PDF_DADOS.linhas[${idx}].classificacao = this.value">
+          <option value="ENTRADA" ${l.classificacao === 'ENTRADA' ? 'selected' : ''}>ENTRADA</option>
+          <option value="SAÍDA" ${l.classificacao === 'SAÍDA' ? 'selected' : ''}>SAÍDA</option>
+        </select>
+      </td>
+      <td style="text-align:right;"><input type="number" value="${l.valor}" step="0.01" onchange="PREVIEW_PDF_DADOS.linhas[${idx}].valor = parseFloat(this.value); atualizarValoresPreview();" style="width:90px;"></td>
+      <td><button class="action-button delete" onclick="PREVIEW_PDF_DADOS.linhas.splice(${idx}, 1); exibirPreviewPdf(PREVIEW_PDF_DADOS.linhas);">🗑️</button></td>
+    </tr>
+  `).join('');
+
+  atualizarValoresPreview();
+  modal.style.display = 'flex';
+}
+
+function criarModalPreview() {
+  const modal = document.createElement('div');
+  modal.id = 'modalPreviewPdf';
+  modal.style.cssText = `
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 10000;
+    justify-content: center;
+    align-items: center;
+  `;
+
+  modal.innerHTML = `
+    <div class="card" style="max-width:90%; max-height:80vh; overflow-y: auto; width:100%;">
+      <h3>Revisar Lançamentos antes de Salvar</h3>
+      <table style="width:100%; border-collapse: collapse;">
+        <thead>
+          <tr style="border-bottom: 2px solid var(--borda);">
+            <th>Data</th>
+            <th>Descrição</th>
+            <th>Tipo</th>
+            <th>Valor</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="tbodyPreviewPdf"></tbody>
+      </table>
+      
+      <div style="margin-top: 20px; display: flex; gap: 10px;">
+        <div style="flex:1;">
+          <label>Total Entrada:</label>
+          <value id="previewTotalEntrada" style="font-size:18px; color:var(--destaque);">R$ 0,00</value>
+        </div>
+        <div style="flex:1;">
+          <label>Total Saída:</label>
+          <value id="previewTotalSaida" style="font-size:18px; color:var(--alerta);">R$ 0,00</value>
+        </div>
+      </div>
+
+      <div style="margin-top: 20px; display: flex; gap: 8px; justify-content: flex-end;">
+        <button class="btn-secondary" onclick="document.getElementById('modalPreviewPdf').style.display = 'none';">❌ Cancelar</button>
+        <button class="btn-primary" onclick="confirmarSalvarPdf();">✅ Confirmar e Salvar</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+  return modal;
+}
+
+function atualizarValoresPreview() {
+  const linhas = PREVIEW_PDF_DADOS.linhas;
+  const entrada = linhas.filter(l => l.classificacao === 'ENTRADA').reduce((sum, l) => sum + l.valor, 0);
+  const saida = linhas.filter(l => l.classificacao === 'SAÍDA').reduce((sum, l) => sum + l.valor, 0);
+
+  document.getElementById('previewTotalEntrada').textContent = entrada.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  document.getElementById('previewTotalSaida').textContent = saida.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+async function confirmarSalvarPdf() {
+  const { banco, mes, ano, agencia, conta, linhas } = PREVIEW_PDF_DADOS;
+
+  const selectAno = document.getElementById('selectAnoFaturamento');
+  selectAno.value = ano;
+
+  const btns = document.querySelectorAll('#mesesTabsFaturamento .sub-tab-btn');
+  btns.forEach((btn, idx) => {
+    btn.classList.remove('active');
+    if (idx === mes - 1) btn.classList.add('active');
+  });
+  FATURAMENTO_MES_ATUAL = mes;
+
+  await atualizarDadosContaCliente(agencia, conta, banco);
+
+  const linhasParaSalvar = linhas.map(l => ({
+    unidade_id: unidadeAtivaCliente,
+    cliente_tipo: FATURAMENTO_CLIENTE_ATUAL.tipo,
+    cliente_id: FATURAMENTO_CLIENTE_ATUAL.id,
+    ano,
+    mes,
+    data: l.data,
+    banco,
+    classificacao: l.classificacao,
+    plano_contas: null,
+    descricao: l.descricao,
+    tipo: null,
+    entrada: l.classificacao === 'ENTRADA' ? l.valor : null,
+    saida: l.classificacao === 'SAÍDA' ? l.valor : null
+  }));
+
+  for (const linha of linhasParaSalvar) {
+    await SupabaseAPI.insert('faturamento_lancamentos', linha);
+  }
+
+  document.getElementById('modalPreviewPdf').style.display = 'none';
+  await carregarMesFaturamento();
+
+  const statusEl = document.getElementById('statusImportacaoPdf');
+  statusEl.textContent = `✅ ${linhas.length} linha(s) salva(s) com sucesso em ${mes}/${ano}!`;
 }
 
 async function atualizarDadosContaCliente(agencia, conta, banco) {
