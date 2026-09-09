@@ -10,8 +10,8 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.43.0">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.43.0">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.44.0">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.44.0">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -239,27 +239,27 @@
       padding: 12px 8px;
     }
 
-    /* Data Ref. - Tamanho exato do input date */
+    /* Histórico Correção - min-width 450px */
     #tabelaExtratos th:nth-child(6),
     #tabelaExtratos td:nth-child(6) {
+      min-width: 450px;
+    }
+
+    #tabelaExtratos td:nth-child(6) input[type="text"] {
+      width: 100%;
+    }
+
+    /* Data Ref. - Tamanho exato do input date */
+    #tabelaExtratos th:nth-child(7),
+    #tabelaExtratos td:nth-child(7) {
       width: 1%;
       white-space: nowrap;
       text-align: center;
       padding: 12px 8px;
     }
 
-    #tabelaExtratos td:nth-child(6) input[type="date"] {
+    #tabelaExtratos td:nth-child(7) input[type="date"] {
       width: 130px;
-    }
-
-    /* Histórico Correção - Aumentar 250px */
-    #tabelaExtratos th:nth-child(7),
-    #tabelaExtratos td:nth-child(7) {
-      min-width: 450px;
-    }
-
-    #tabelaExtratos td:nth-child(7) input[type="text"] {
-      width: 100%;
     }
 
     #tabelaExtratos thead th {
@@ -324,7 +324,6 @@
     }
 
     /* COLUNAS COM LARGURA ESPECÍFICA */
-    #tabelaExtratos td:nth-child(7) { min-width: 160px; }
     #tabelaExtratos td:nth-child(8) { min-width: 180px; }
     #tabelaExtratos td:nth-child(9) { min-width: 180px; }
     #tabelaExtratos td:nth-child(10) { min-width: 200px; }
@@ -938,13 +937,13 @@
   <datalist id="listaClientesPJ"></datalist>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.43.0 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.44.0 Desenvolvido por OliverStorage</p>
   </footer>
 
-  <script src="../js/auth.js?v=1.9.43.0"></script>
-  <script src="../js/supabase-utils.js?v=1.9.43.0"></script>
-  <script src="../js/importador.js?v=1.9.43.0"></script>
-  <script src="../js/importador-boletos.js?v=1.9.43.0"></script>
+  <script src="../js/auth.js?v=1.9.44.0"></script>
+  <script src="../js/supabase-utils.js?v=1.9.44.0"></script>
+  <script src="../js/importador.js?v=1.9.44.0"></script>
+  <script src="../js/importador-boletos.js?v=1.9.44.0"></script>
 
   <script>
     let CATEGORIAS = [];
