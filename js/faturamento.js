@@ -180,7 +180,7 @@ async function adicionarLinhaManualFaturamento() {
   await carregarMesFaturamento();
 }
 
-// ========== IMPORTAÇÃO DE PDF (Parser Robusto) ==========
+// ========== IMPORTAÇÃO DE PDF (Parser Robusto v1.9.35.0) ==========
 async function processarPdfFaturamento(event) {
   const file = event.target.files[0];
   if (!file) return;
@@ -204,19 +204,29 @@ async function processarPdfFaturamento(event) {
       return;
     }
 
-    const { banco, mes, ano, agencia, conta, linhas, avisos } = resultado;
+    const { banco, mes, ano, agencia, conta, linhas } = resultado;
 
-    // Atualizar select de ano se diferente
-    const selectAno = document.getElementById('selectAnoFaturamento');
-    if (selectAno.value !== ano.toString()) {
-      selectAno.value = ano;
-      FATURAMENTO_MES_ATUAL = mes;
+    if (linhas.length === 0) {
+      statusEl.textContent = `⚠️ Nenhuma linha foi reconhecida no PDF. Adicione manualmente.`;
+      return;
     }
 
-    // Atualizar dados da conta no cliente
+    // 1. Atualizar select de ano
+    const selectAno = document.getElementById('selectAnoFaturamento');
+    selectAno.value = ano;
+
+    // 2. Atualizar botões de mês
+    const btns = document.querySelectorAll('#mesesTabsFaturamento .sub-tab-btn');
+    btns.forEach((btn, idx) => {
+      btn.classList.remove('active');
+      if (idx === mes - 1) btn.classList.add('active');
+    });
+    FATURAMENTO_MES_ATUAL = mes;
+
+    // 3. Atualizar dados da conta no cliente
     await atualizarDadosContaCliente(agencia, conta, banco);
 
-    // Salvar linhas
+    // 4. Salvar linhas no BD
     const linhasParaSalvar = linhas.map(l => ({
       unidade_id: unidadeAtivaCliente,
       cliente_tipo: FATURAMENTO_CLIENTE_ATUAL.tipo,
@@ -229,22 +239,23 @@ async function processarPdfFaturamento(event) {
       plano_contas: null,
       descricao: l.descricao,
       tipo: null,
-      entrada: l.classificacao === 'ENTRADA' ? l.valor : null,
-      saida: l.classificacao === 'SAÍDA' ? l.valor : null
+      entrada: l.entrada,
+      saida: l.saida
     }));
 
     for (const linha of linhasParaSalvar) {
       await SupabaseAPI.insert('faturamento_lancamentos', linha);
     }
 
-    const avisoTexto = avisos.length > 0 ? ' ' + avisos.join(' ') : '';
-    statusEl.textContent = `✅ ${linhas.length} linha(s) importada(s) automaticamente | Banco: ${banco} | Período: ${mes}/${ano}.${avisoTexto}`;
+    // 5. Recarregar e exibir linhas
+    await carregarMesFaturamento();
+
+    statusEl.textContent = `✅ ${linhas.length} linha(s) importada(s) | ${banco} | ${mes}/${ano}`;
     statusEl.style.color = 'var(--destaque)';
 
-    await carregarMesFaturamento();
   } catch (error) {
     console.error('❌ Erro ao processar PDF:', error);
-    statusEl.textContent = `❌ Erro ao ler o PDF: ${error.message}`;
+    statusEl.textContent = `❌ Erro: ${error.message}`;
   }
 }
 
@@ -260,6 +271,6 @@ async function atualizarDadosContaCliente(agencia, conta, banco) {
   try {
     await SupabaseAPI.update(tabela, FATURAMENTO_CLIENTE_ATUAL.id, dados);
   } catch (e) {
-    console.warn('⚠️ Não foi possível atualizar dados da conta:', e);
+    console.warn('⚠️ Não atualizou dados da conta:', e);
   }
 }
