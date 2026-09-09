@@ -1,6 +1,5 @@
 /**
- * Vettore Finances - Parser Robusto de Extratos Bancários v1.9.40.0
- * Banco do Brasil, Itaú, Bradesco, Caixa, Santander
+ * Vettore Finances - Parser Robusto de Extratos Bancários v1.9.41.0
  */
 
 class ParserExtratos {
@@ -66,8 +65,9 @@ class ParserExtratos {
   static extrairLinhasBB(texto) {
     const linhas = [];
     
-    // Regex: DD/MM/YYYY ... valor (+ ou -)
-    const regexLinha = /(\d{2})\/(\d{2})\/(\d{4})\s+([^\d]+?)\s+([\d.]+,\d{2})\s*\(([+-])\)/g;
+    // Regex permissiva: Data + QUALQUER COISA + Valor com (+/-)
+    // Captura tudo entre data e valor como descrição
+    const regexLinha = /(\d{2})\/(\d{2})\/(\d{4})\s+(.+?)\s+([\d.]+,\d{2})\s*\(([+-])\)/g;
     
     let match;
     const processados = new Set();
@@ -85,12 +85,13 @@ class ParserExtratos {
       const valor = parseFloat(valorTexto.replace(/[.]/g, '').replace(',', '.'));
       const isEntrada = sinal === '+';
       
-      // Ignorar: Saldo, Estorno de Débito, Saldo do dia, Saldo Anterior
-      const ignorar = /saldo|estorno|saldo do dia|saldo anterior/i.test(historico);
+      // Ignorar apenas: "Saldo do dia", "Saldo Anterior", "Estorno de Débito"
+      const ignorar = /saldo\s*do\s*dia|saldo\s*anterior|estorno\s*de\s*débito/i.test(historico);
+      const descricao = historico.trim().replace(/\s+/g, ' ').substring(0, 120);
 
       linhas.push({
         data: dataISO,
-        descricao: historico.trim().substring(0, 100),
+        descricao,
         valor,
         classificacao: isEntrada ? 'ENTRADA' : 'SAÍDA',
         tipo: null,
@@ -117,4 +118,4 @@ class ParserExtratos {
   }
 }
 
-console.log('✅ Parser de Extratos v1.9.40.0 carregado');
+console.log('✅ Parser de Extratos v1.9.41.0 carregado');
