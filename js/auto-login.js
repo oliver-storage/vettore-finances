@@ -1,5 +1,5 @@
 /**
- * Vettore Finances - Auto Login v1.9.38.0
+ * Vettore Finances - Auto Login v1.9.39.0
  * Cria usuário automático e faz login sem senha
  */
 

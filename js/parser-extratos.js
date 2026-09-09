@@ -1,5 +1,5 @@
 /**
- * Vettore Finances - Parser Robusto de Extratos Bancários v1.9.38.0
+ * Vettore Finances - Parser Robusto de Extratos Bancários v1.9.39.0
  * Suporta: Banco do Brasil, Itaú, Bradesco, Caixa, Santander
  */
 
@@ -66,44 +66,33 @@ class ParserExtratos {
     const linhas = [];
     
     // Padrão BB: data em DD/MM/YYYY seguida de valor com (+) ou (-)
-    // Exemplo: 01/04/2026 ... 67,00 (+)
-    const regexLinhas = /(\d{2})\/(\d{2})\/(\d{4})[^\d]*?Pix|Pagto|TED|Tarifa|Transferência[^\(]*?\(([+-])\)\s+([\d.]+,\d{2})/g;
+    const regexLinhas = /(\d{2})\/(\d{2})\/(\d{4})[^\d]*?([\d.]+,\d{2})\s*\(([+-])\)/g;
     
     let match;
     const processados = new Set();
 
     while ((match = regexLinhas.exec(texto)) !== null) {
-      const [fullMatch, dia, mes, ano, sinal, valorTexto] = match;
+      const [fullMatch, dia, mes, ano, valorTexto, sinal] = match;
       
-      // Evitar duplicatas
+      if (!dia || !mes || !ano) continue;
+
       const chave = `${dia}/${mes}/${ano}${valorTexto}`;
       if (processados.has(chave)) continue;
       processados.add(chave);
 
-      const dataISO = `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
+      const dataISO = `${ano}-${String(mes).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
       const valor = parseFloat(valorTexto.replace(/[.]/g, '').replace(',', '.'));
       const isEntrada = sinal === '+';
 
-      // Extrair descrição (próximas 100 chars após a data)
-      const startIdx = texto.indexOf(fullMatch);
-      const endIdx = startIdx + fullMatch.length + 100;
-      let descricao = texto.substring(startIdx + fullMatch.length, endIdx).trim();
-      descricao = descricao.replace(/\s+/g, ' ').substring(0, 80);
-
       linhas.push({
         data: dataISO,
-        descricao: descricao || 'Lançamento',
+        descricao: 'Lançamento',
         valor,
         classificacao: isEntrada ? 'ENTRADA' : 'SAÍDA',
         tipo: null,
         entrada: isEntrada ? valor : null,
         saida: isEntrada ? null : valor
       });
-    }
-
-    // Se regex não funcionou, tenta pattern simples
-    if (linhas.length === 0) {
-      linhas.push(...this.extrairLinhasSimples(texto));
     }
 
     return linhas;
@@ -165,4 +154,4 @@ class ParserExtratos {
   }
 }
 
-console.log('✅ Parser de Extratos v1.9.38.0 carregado');
+console.log('✅ Parser de Extratos v1.9.39.0 carregado');
