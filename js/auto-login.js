@@ -1,5 +1,5 @@
 /**
- * Vettore Finances - Auto Login v1.9.46.0
+ * Vettore Finances - Auto Login v1.9.47.0
  * Cria usuário automático e faz login sem senha
  */
 
@@ -51,15 +51,28 @@
     console.log('✅ Usuário criado');
   }
 
-  // Fazer login automático
-  if (!localStorage.getItem('currentUser')) {
+  // Fazer login automático (mas não se fez logout intencional)
+  if (!localStorage.getItem('currentUser') && !localStorage.getItem('loggedOut')) {
     localStorage.setItem('currentUser', JSON.stringify(usuarioAutomatico));
     console.log('✅ Login automático realizado');
     console.log('👤 Usuário:', usuarioAutomatico.nome);
     console.log('🏢 Franquia:', franquiaParao.nomeFranquia);
     console.log('👑 Perfil:', usuarioAutomatico.perfil);
-  } else {
-    console.log('✅ Já logado como:', JSON.parse(localStorage.getItem('currentUser')).nome);
+  } else if (localStorage.getItem('loggedOut')) {
+    console.log('⛔ Logout recente detectado - auto-login desabilitado');
+    if (window.location.pathname.includes('dashboard.html') || window.location.pathname.includes('html/')) {
+      setTimeout(() => {
+        window.location.href = '../index.html';
+      }, 500);
+    }
+  } else if (localStorage.getItem('currentUser')) {
+    try {
+      const user = JSON.parse(localStorage.getItem('currentUser'));
+      console.log('✅ Já logado como:', user.nome);
+    } catch (e) {
+      console.error('❌ Erro ao recuperar usuário:', e);
+      localStorage.removeItem('currentUser');
+    }
   }
 
   // Redirecionar se estiver na página de login

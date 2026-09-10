@@ -1,5 +1,5 @@
 /**
- * Vettore Finances - Módulo Clientes (PF/PJ) v1.9.46.0
+ * Vettore Finances - Módulo Clientes (PF/PJ) v1.9.47.0
  * Lista unificada com filtros + modal de cadastro/edição
  */
 
@@ -214,7 +214,15 @@ async function inicializarClientes() {
   try {
     checkAuth();
 
-    const user = JSON.parse(localStorage.getItem('currentUser'));
+    let user;
+    try {
+      user = JSON.parse(localStorage.getItem('currentUser'));
+    } catch (e) {
+      console.error('❌ Erro ao recuperar usuário:', e);
+      checkAuth();
+      return;
+    }
+    
     const unidades = await SupabaseAPI.get('unidades');
 
     if (user.perfil === 'administrador') {
@@ -263,7 +271,14 @@ function switchTabClienteLista(tab) {
 
 // ========== SUB ABA EXTRATO DO CLIENTE ==========
 async function carregarDashboardCliente() {
-  const user = JSON.parse(localStorage.getItem('currentUser'));
+  let user;
+  try {
+    user = JSON.parse(localStorage.getItem('currentUser'));
+  } catch (e) {
+    console.error('❌ Erro ao recuperar usuário:', e);
+    checkAuth();
+    return;
+  }
   const ehGestor = user?.perfil === 'gestor';
 
   document.getElementById('avisoNaoGestor').style.display = ehGestor ? 'none' : 'block';

@@ -1,5 +1,5 @@
 /**
- * VA Business - Vettore Finances v1.9.46.0
+ * VA Business - Vettore Finances v1.9.47.0
  * Desenvolvido por OliverStorage
  * Módulo: Autenticação
  */
@@ -15,6 +15,12 @@ function checkAuth() {
 
 function logout() {
   localStorage.removeItem('currentUser');
+  localStorage.removeItem('unidades');
+  localStorage.removeItem('usuarios');
+  localStorage.setItem('loggedOut', 'true');
+  setTimeout(() => {
+    localStorage.removeItem('loggedOut');
+  }, 2000);
   window.location.href = '../index.html';
 }
 
