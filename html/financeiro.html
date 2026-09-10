@@ -10,8 +10,8 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   
-  <link rel="stylesheet" href="../css/styles.css?v=1.9.44.0">
-  <link rel="stylesheet" href="../css/navbar.css?v=1.9.44.0">
+  <link rel="stylesheet" href="../css/styles.css?v=1.9.45.0">
+  <link rel="stylesheet" href="../css/navbar.css?v=1.9.45.0">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -213,7 +213,7 @@
       left: 100px;
       background: var(--papel-alto);
       z-index: 10;
-      min-width: 320px;
+      min-width: 200px;
       padding-left: 12px;
     }
 
@@ -223,7 +223,7 @@
       left: 420px;
       background: var(--papel-alto);
       z-index: 10;
-      width: 1%;
+      width: 1.5%;
       white-space: nowrap;
       text-align: right;
       padding: 12px 10px;
@@ -239,10 +239,10 @@
       padding: 12px 8px;
     }
 
-    /* Histórico Correção - min-width 450px */
+    /* Histórico Correção - min-width 200px */
     #tabelaExtratos th:nth-child(6),
     #tabelaExtratos td:nth-child(6) {
-      min-width: 450px;
+      min-width: 200px;
     }
 
     #tabelaExtratos td:nth-child(6) input[type="text"] {
@@ -327,7 +327,7 @@
     #tabelaExtratos td:nth-child(8) { min-width: 180px; }
     #tabelaExtratos td:nth-child(9) { min-width: 180px; }
     #tabelaExtratos td:nth-child(10) { min-width: 200px; }
-    #tabelaExtratos td:nth-child(11) { min-width: 100px; text-align: center; }
+    #tabelaExtratos td:nth-child(11) { min-width: 200px; text-align: center; }
 
     #tabelaExtratos input:not([type="checkbox"]),
     #tabelaExtratos select {
@@ -937,13 +937,13 @@
   <datalist id="listaClientesPJ"></datalist>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.44.0 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.45.0 Desenvolvido por OliverStorage</p>
   </footer>
 
-  <script src="../js/auth.js?v=1.9.44.0"></script>
-  <script src="../js/supabase-utils.js?v=1.9.44.0"></script>
-  <script src="../js/importador.js?v=1.9.44.0"></script>
-  <script src="../js/importador-boletos.js?v=1.9.44.0"></script>
+  <script src="../js/auth.js?v=1.9.45.0"></script>
+  <script src="../js/supabase-utils.js?v=1.9.45.0"></script>
+  <script src="../js/importador.js?v=1.9.45.0"></script>
+  <script src="../js/importador-boletos.js?v=1.9.45.0"></script>
 
   <script>
     let CATEGORIAS = [];
