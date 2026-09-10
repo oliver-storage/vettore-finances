@@ -5,8 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vettore Finances - Configuração</title>
-  <link rel="stylesheet" href="../css/styles.css?v1.9.47.0">
-  <link rel="stylesheet" href="../css/navbar.css?v1.9.47.0">
+  <link rel="stylesheet" href="../css/styles.css?v1.9.49.0">
+  <link rel="stylesheet" href="../css/navbar.css?v1.9.49.0">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -43,9 +43,9 @@
     <div class="navbar-left">
       <span class="logo">Vettore</span>
       <div class="menu">
+        <a href="dashboard.html" class="menu-item">Dashboard</a>
         <a href="clientes.html" class="menu-item">Clientes</a>
         <a href="financeiro.html" class="menu-item">Financeiro</a>
-        <a href="dashboard.html" class="menu-item">Dashboard</a>
         <a href="configuracao.html" class="menu-item active">Configuração</a>
 </div>
     </div>
@@ -426,17 +426,172 @@
         <h3>Privilégios por Perfil</h3>
         <p class="description">Configure os privilégios de cada perfil de usuário. Apenas administradores podem acessar esta seção</p>
         
-        <table id="tabelaPrivilegios" style="margin-top: 20px;">
-          <thead>
-            <tr>
-              <th>Funcionalidade</th>
-              <th>Admin</th>
-              <th>Gerente</th>
-              <th>Usuário</th>
-            </tr>
-          </thead>
-          <tbody id="tbodyPrivilegios"></tbody>
-        </table>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 24px; margin-bottom: 24px;">
+          <div style="border: 2px solid var(--marca); border-radius: 8px; padding: 16px; background: var(--papel-alto);">
+            <h4 style="margin: 0 0 8px 0; color: var(--marca);">👑 Administrador</h4>
+            <p style="font-size: 12px; color: var(--tinta-70); margin: 0;">Acesso completo a todas as funcionalidades. Pode gerenciar usuários, configurações do sistema e todas as operações.</p>
+          </div>
+          
+          <div style="border: 2px solid #4CAF50; border-radius: 8px; padding: 16px; background: var(--papel-alto);">
+            <h4 style="margin: 0 0 8px 0; color: #4CAF50;">⚙️ Gerente</h4>
+            <p style="font-size: 12px; color: var(--tinta-70); margin: 0;">Acesso às operações principais. Pode visualizar e editar dados de clientes e financeiro, mas não pode gerenciar usuários.</p>
+          </div>
+          
+          <div style="border: 2px solid #2196F3; border-radius: 8px; padding: 16px; background: var(--papel-alto);">
+            <h4 style="margin: 0 0 8px 0; color: #2196F3;">👤 Usuário</h4>
+            <p style="font-size: 12px; color: var(--tinta-70); margin: 0;">Acesso limitado. Pode visualizar dados da sua unidade e executar operações básicas conforme configurado.</p>
+          </div>
+        </div>
+
+        <div style="border-top: 2px solid var(--linha); padding-top: 24px;">
+          <h4 style="margin-bottom: 16px;">Permissões por Módulo</h4>
+          
+          <!-- DASHBOARD -->
+          <div class="card" style="margin-bottom: 16px;">
+            <h5 style="margin: 0 0 12px 0; color: var(--marca);">📊 Dashboard</h5>
+            <table id="tabelaPrivilegiosDashboard" style="width: 100%;">
+              <thead>
+                <tr style="border-bottom: 2px solid var(--linha);">
+                  <th style="text-align: left; padding: 8px 0;">Funcionalidade</th>
+                  <th style="text-align: center; width: 80px;">Admin</th>
+                  <th style="text-align: center; width: 80px;">Gerente</th>
+                  <th style="text-align: center; width: 80px;">Usuário</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="border-bottom: 1px solid var(--linha);">
+                  <td style="padding: 8px 0;"><small>Visualizar gráficos e resumos</small></td>
+                  <td style="text-align: center;"><input type="checkbox" data-perfil="admin" data-modulo="dashboard" data-permissao="visualizar"></td>
+                  <td style="text-align: center;"><input type="checkbox" data-perfil="gerente" data-modulo="dashboard" data-permissao="visualizar"></td>
+                  <td style="text-align: center;"><input type="checkbox" data-perfil="usuario" data-modulo="dashboard" data-permissao="visualizar"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- CLIENTES -->
+          <div class="card" style="margin-bottom: 16px;">
+            <h5 style="margin: 0 0 12px 0; color: #4CAF50;">👥 Clientes</h5>
+            <table id="tabelaPrivilegiosClientes" style="width: 100%;">
+              <thead>
+                <tr style="border-bottom: 2px solid var(--linha);">
+                  <th style="text-align: left; padding: 8px 0;">Funcionalidade</th>
+                  <th style="text-align: center; width: 80px;">Admin</th>
+                  <th style="text-align: center; width: 80px;">Gerente</th>
+                  <th style="text-align: center; width: 80px;">Usuário</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="border-bottom: 1px solid var(--linha);">
+                  <td style="padding: 8px 0;"><small>Visualizar lista de clientes</small></td>
+                  <td style="text-align: center;"><input type="checkbox" data-perfil="admin" data-modulo="clientes" data-permissao="visualizar"></td>
+                  <td style="text-align: center;"><input type="checkbox" data-perfil="gerente" data-modulo="clientes" data-permissao="visualizar"></td>
+                  <td style="text-align: center;"><input type="checkbox" data-perfil="usuario" data-modulo="clientes" data-permissao="visualizar"></td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--linha);">
+                  <td style="padding: 8px 0;"><small>Criar novos clientes</small></td>
+                  <td style="text-align: center;"><input type="checkbox" data-perfil="admin" data-modulo="clientes" data-permissao="criar"></td>
+                  <td style="text-align: center;"><input type="checkbox" data-perfil="gerente" data-modulo="clientes" data-permissao="criar"></td>
+                  <td style="text-align: center;"><input type="checkbox" data-perfil="usuario" data-modulo="clientes" data-permissao="criar"></td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--linha);">
+                  <td style="padding: 8px 0;"><small>Editar clientes</small></td>
+                  <td style="text-align: center;"><input type="checkbox" data-perfil="admin" data-modulo="clientes" data-permissao="editar"></td>
+                  <td style="text-align: center;"><input type="checkbox" data-perfil="gerente" data-modulo="clientes" data-permissao="editar"></td>
+                  <td style="text-align: center;"><input type="checkbox" data-perfil="usuario" data-modulo="clientes" data-permissao="editar"></td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--linha);">
+                  <td style="padding: 8px 0;"><small>Gerar documentos (contrato, boleto)</small></td>
+                  <td style="text-align: center;"><input type="checkbox" data-perfil="admin" data-modulo="clientes" data-permissao="documentos"></td>
+                  <td style="text-align: center;"><input type="checkbox" data-perfil="gerente" data-modulo="clientes" data-permissao="documentos"></td>
+                  <td style="text-align: center;"><input type="checkbox" data-perfil="usuario" data-modulo="clientes" data-permissao="documentos"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- FINANCEIRO -->
+          <div class="card" style="margin-bottom: 16px;">
+            <h5 style="margin: 0 0 12px 0; color: #FF9800;">💰 Financeiro</h5>
+            <table id="tabelaPrivilegiosFinanceiro" style="width: 100%;">
+              <thead>
+                <tr style="border-bottom: 2px solid var(--linha);">
+                  <th style="text-align: left; padding: 8px 0;">Funcionalidade</th>
+                  <th style="text-align: center; width: 80px;">Admin</th>
+                  <th style="text-align: center; width: 80px;">Gerente</th>
+                  <th style="text-align: center; width: 80px;">Usuário</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="border-bottom: 1px solid var(--linha);">
+                  <td style="padding: 8px 0;"><small>Visualizar extratos bancários</small></td>
+                  <td style="text-align: center;"><input type="checkbox" data-perfil="admin" data-modulo="financeiro" data-permissao="visualizar"></td>
+                  <td style="text-align: center;"><input type="checkbox" data-perfil="gerente" data-modulo="financeiro" data-permissao="visualizar"></td>
+                  <td style="text-align: center;"><input type="checkbox" data-perfil="usuario" data-modulo="financeiro" data-permissao="visualizar"></td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--linha);">
+                  <td style="padding: 8px 0;"><small>Importar extratos (XLS/PDF)</small></td>
+                  <td style="text-align: center;"><input type="checkbox" data-perfil="admin" data-modulo="financeiro" data-permissao="importar"></td>
+                  <td style="text-align: center;"><input type="checkbox" data-perfil="gerente" data-modulo="financeiro" data-permissao="importar"></td>
+                  <td style="text-align: center;"><input type="checkbox" data-perfil="usuario" data-modulo="financeiro" data-permissao="importar"></td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--linha);">
+                  <td style="padding: 8px 0;"><small>Editar/corrigir lançamentos</small></td>
+                  <td style="text-align: center;"><input type="checkbox" data-perfil="admin" data-modulo="financeiro" data-permissao="editar"></td>
+                  <td style="text-align: center;"><input type="checkbox" data-perfil="gerente" data-modulo="financeiro" data-permissao="editar"></td>
+                  <td style="text-align: center;"><input type="checkbox" data-perfil="usuario" data-modulo="financeiro" data-permissao="editar"></td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--linha);">
+                  <td style="padding: 8px 0;"><small>Gerenciar boletos</small></td>
+                  <td style="text-align: center;"><input type="checkbox" data-perfil="admin" data-modulo="financeiro" data-permissao="boletos"></td>
+                  <td style="text-align: center;"><input type="checkbox" data-perfil="gerente" data-modulo="financeiro" data-permissao="boletos"></td>
+                  <td style="text-align: center;"><input type="checkbox" data-perfil="usuario" data-modulo="financeiro" data-permissao="boletos"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- CONFIGURAÇÃO -->
+          <div class="card" style="margin-bottom: 16px;">
+            <h5 style="margin: 0 0 12px 0; color: #2196F3;">⚙️ Configuração</h5>
+            <table id="tabelaPrivilegiosConfiguracao" style="width: 100%;">
+              <thead>
+                <tr style="border-bottom: 2px solid var(--linha);">
+                  <th style="text-align: left; padding: 8px 0;">Funcionalidade</th>
+                  <th style="text-align: center; width: 80px;">Admin</th>
+                  <th style="text-align: center; width: 80px;">Gerente</th>
+                  <th style="text-align: center; width: 80px;">Usuário</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="border-bottom: 1px solid var(--linha);">
+                  <td style="padding: 8px 0;"><small>Gerenciar unidades/franquias</small></td>
+                  <td style="text-align: center;"><input type="checkbox" data-perfil="admin" data-modulo="configuracao" data-permissao="unidades" checked></td>
+                  <td style="text-align: center;"><input type="checkbox" data-perfil="gerente" data-modulo="configuracao" data-permissao="unidades"></td>
+                  <td style="text-align: center;"><input type="checkbox" data-perfil="usuario" data-modulo="configuracao" data-permissao="unidades"></td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--linha);">
+                  <td style="padding: 8px 0;"><small>Gerenciar usuários do sistema</small></td>
+                  <td style="text-align: center;"><input type="checkbox" data-perfil="admin" data-modulo="configuracao" data-permissao="usuarios" checked></td>
+                  <td style="text-align: center;"><input type="checkbox" data-perfil="gerente" data-modulo="configuracao" data-permissao="usuarios"></td>
+                  <td style="text-align: center;"><input type="checkbox" data-perfil="usuario" data-modulo="configuracao" data-permissao="usuarios"></td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--linha);">
+                  <td style="padding: 8px 0;"><small>Configurar privilégios</small></td>
+                  <td style="text-align: center;"><input type="checkbox" data-perfil="admin" data-modulo="configuracao" data-permissao="privilegios" checked></td>
+                  <td style="text-align: center;"><input type="checkbox" data-perfil="gerente" data-modulo="configuracao" data-permissao="privilegios"></td>
+                  <td style="text-align: center;"><input type="checkbox" data-perfil="usuario" data-modulo="configuracao" data-permissao="privilegios"></td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--linha);">
+                  <td style="padding: 8px 0;"><small>Gerenciar contrato e modelos de documento</small></td>
+                  <td style="text-align: center;"><input type="checkbox" data-perfil="admin" data-modulo="configuracao" data-permissao="contrato" checked></td>
+                  <td style="text-align: center;"><input type="checkbox" data-perfil="gerente" data-modulo="configuracao" data-permissao="contrato"></td>
+                  <td style="text-align: center;"><input type="checkbox" data-perfil="usuario" data-modulo="configuracao" data-permissao="contrato"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
         
         <button class="btn-primary" onclick="salvarPrivilegios()" style="margin-top:20px;">Salvar Privilégios</button>
       </div>
@@ -692,13 +847,13 @@
     </div>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.47.0 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.49.0 Desenvolvido por OliverStorage</p>
   </footer>
 
-  <script src="../js/auth.js?v1.9.47.0"></script>
-  <script src="../js/masks.js?v1.9.47.0"></script>
-  <script src="../js/supabase-utils.js?v1.9.47.0"></script>
-  <script src="../js/configuracao.js?v1.9.47.0"></script>
+  <script src="../js/auth.js?v1.9.49.0"></script>
+  <script src="../js/masks.js?v1.9.49.0"></script>
+  <script src="../js/supabase-utils.js?v1.9.49.0"></script>
+  <script src="../js/configuracao.js?v1.9.49.0"></script>
 
   <script>
     function switchTab(tabName) {
