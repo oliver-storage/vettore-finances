@@ -1,5 +1,5 @@
 /**
- * Vettore Finances - Utilitários Supabase v1.9.67.0
+ * Vettore Finances - Utilitários Supabase v1.9.68.0
  * API REST do Supabase via fetch
  */
 
