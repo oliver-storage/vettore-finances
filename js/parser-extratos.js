@@ -1,5 +1,5 @@
 /**
- * Vettore Finances - Parser Robusto de Extratos Bancários v1.9.62.0
+ * Vettore Finances - Parser Robusto de Extratos Bancários v1.9.63.0
  */
 
 class ParserExtratos {
@@ -118,4 +118,4 @@ class ParserExtratos {
   }
 }
 
-console.log('✅ Parser de Extratos v1.9.62.0 carregado');
+console.log('✅ Parser de Extratos v1.9.63.0 carregado');
