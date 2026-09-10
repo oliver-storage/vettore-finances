@@ -1,5 +1,5 @@
 /**
- * Vettore Finances - Faturamento do Cliente v1.9.61.0
+ * Vettore Finances - Faturamento do Cliente v1.9.62.0
  */
 
 let FATURAMENTO_CLIENTE_ATUAL = null; // { tipo: 'PF'|'PJ', id, nome }
@@ -180,7 +180,7 @@ async function adicionarLinhaManualFaturamento() {
   await carregarMesFaturamento();
 }
 
-// ========== IMPORTAÇÃO DE PDF (Parser Robusto v1.9.61.0) ==========
+// ========== IMPORTAÇÃO DE PDF (Parser Robusto v1.9.62.0) ==========
 async function processarPdfFaturamento(event) {
   const file = event.target.files[0];
   if (!file) return;
