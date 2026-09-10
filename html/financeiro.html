@@ -10,8 +10,8 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   
-  <link rel="stylesheet" href="../css/styles.css?v1.9.50.0">
-  <link rel="stylesheet" href="../css/navbar.css?v1.9.50.0">
+  <link rel="stylesheet" href="../css/styles.css?v1.9.51.0">
+  <link rel="stylesheet" href="../css/navbar.css?v1.9.51.0">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -690,18 +690,6 @@
         <label>Franquia</label>
         <value id="infoFranquia">-</value>
       </div>
-      <div class="conta-item">
-        <label>Banco</label>
-        <value id="infoBanco">-</value>
-      </div>
-      <div class="conta-item">
-        <label>Agência</label>
-        <value id="infoAgencia">-</value>
-      </div>
-      <div class="conta-item">
-        <label>Conta</label>
-        <value id="infoConta">-</value>
-      </div>
     </div>
 
     <!-- RESUMO POR CATEGORIA -->
@@ -937,13 +925,13 @@
   <datalist id="listaClientesPJ"></datalist>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.50.0 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.51.0 Desenvolvido por OliverStorage</p>
   </footer>
 
-  <script src="../js/auth.js?v1.9.50.0"></script>
-  <script src="../js/supabase-utils.js?v1.9.50.0"></script>
-  <script src="../js/importador.js?v1.9.50.0"></script>
-  <script src="../js/importador-boletos.js?v1.9.50.0"></script>
+  <script src="../js/auth.js?v1.9.51.0"></script>
+  <script src="../js/supabase-utils.js?v1.9.51.0"></script>
+  <script src="../js/importador.js?v1.9.51.0"></script>
+  <script src="../js/importador-boletos.js?v1.9.51.0"></script>
 
   <script>
     let CATEGORIAS = [];
@@ -1155,9 +1143,6 @@
         
         // Preencher informações da conta
         document.getElementById('infoFranquia').textContent = franquia?.nomefranquia || '-';
-        document.getElementById('infoBanco').textContent = franquia?.banco || '-';
-        document.getElementById('infoAgencia').textContent = franquia?.agencia || '-';
-        document.getElementById('infoConta').textContent = franquia?.conta || '-';
 
         // Pré-preencher dados do formulário
         document.getElementById('inputBanco').value = franquia?.banco || '';
@@ -1183,9 +1168,6 @@
 
       document.getElementById('userName').textContent = `${franquia?.nomefranquia} - ${user.nome} (${user.perfil})`;
       document.getElementById('infoFranquia').textContent = franquia?.nomefranquia || '-';
-      document.getElementById('infoBanco').textContent = franquia?.banco || '-';
-      document.getElementById('infoAgencia').textContent = franquia?.agencia || '-';
-      document.getElementById('infoConta').textContent = franquia?.conta || '-';
       document.getElementById('inputBanco').value = franquia?.banco || '';
       document.getElementById('inputAgencia').value = franquia?.agencia || '';
       document.getElementById('inputConta').value = franquia?.conta || '';
