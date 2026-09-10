@@ -10,8 +10,8 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   
-  <link rel="stylesheet" href="../css/styles.css?v1.9.59.0">
-  <link rel="stylesheet" href="../css/navbar.css?v1.9.59.0">
+  <link rel="stylesheet" href="../css/styles.css?v1.9.60.0">
+  <link rel="stylesheet" href="../css/navbar.css?v1.9.60.0">
   <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -317,6 +317,7 @@
     #tabelaExtratos td {
       padding: 12px 12px;
       vertical-align: middle;
+      background: white;
     }
 
     /* COLUNAS COM LARGURA ESPECÍFICA */
@@ -338,12 +339,17 @@
       color: var(--tinta);
     }
 
-    /* Células preenchidas ficam cinza claro */
+    /* Input/select com valor = cinza claro */
     #tabelaExtratos input:not([type="checkbox"]):not(:placeholder-shown) {
       background: #e8e8e8;
     }
 
     #tabelaExtratos select:not([value=""]) {
+      background: #e8e8e8;
+    }
+
+    /* Select com option selected = cinza */
+    #tabelaExtratos select option:checked {
       background: #e8e8e8;
     }
 
@@ -922,13 +928,13 @@
   <datalist id="listaClientesPJ"></datalist>
 
   <footer class="footer">
-    <p>&copy; Vettore Finances 2026 - v1.9.59.0 Desenvolvido por OliverStorage</p>
+    <p>&copy; Vettore Finances 2026 - v1.9.60.0 Desenvolvido por OliverStorage</p>
   </footer>
 
-  <script src="../js/auth.js?v1.9.59.0"></script>
-  <script src="../js/supabase-utils.js?v1.9.59.0"></script>
-  <script src="../js/importador.js?v1.9.59.0"></script>
-  <script src="../js/importador-boletos.js?v1.9.59.0"></script>
+  <script src="../js/auth.js?v1.9.60.0"></script>
+  <script src="../js/supabase-utils.js?v1.9.60.0"></script>
+  <script src="../js/importador.js?v1.9.60.0"></script>
+  <script src="../js/importador-boletos.js?v1.9.60.0"></script>
 
   <script>
     let CATEGORIAS = [];
