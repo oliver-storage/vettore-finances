@@ -217,8 +217,8 @@
       padding-left: 12px;
     }
 
-    #tabelaExtratos th:nth-child(4),
-    #tabelaExtratos td:nth-child(4) {
+    #tabelaExtratos th:nth-child(5),
+    #tabelaExtratos td:nth-child(5) {
       position: sticky;
       left: 320px;
       background: var(--papel-alto);
@@ -227,9 +227,16 @@
       padding: 12px 10px;
     }
 
-    #tabelaExtratos th:nth-child(5),
-    #tabelaExtratos th:nth-child(5),
-    #tabelaExtratos td:nth-child(5) {
+    #tabelaExtratos th:nth-child(4),
+    #tabelaExtratos thead th:nth-child(4) {
+      min-width: 80px;
+      white-space: nowrap;
+      text-align: center;
+      padding: 12px 8px;
+    }
+
+    #tabelaExtratos th:nth-child(4),
+    #tabelaExtratos td:nth-child(4) {
       min-width: 80px;
       white-space: nowrap;
       text-align: center;
@@ -299,7 +306,7 @@
       background: var(--marca);
       color: white;
     }
-    #tabelaExtratos thead th:nth-child(4) {
+    #tabelaExtratos thead th:nth-child(5) {
       position: sticky;
       top: 0;
       left: 420px;
@@ -424,7 +431,7 @@
       background: var(--marca);
       color: white;
     }
-    #tabelaBoletos thead th:nth-child(4) {
+    #tabelaBoletos thead th:nth-child(5) {
       position: sticky;
       top: 0;
       left: 340px;
@@ -464,8 +471,8 @@
       min-width: 100px;
     }
 
-    #tabelaBoletos th:nth-child(4),
-    #tabelaBoletos td:nth-child(4) {
+    #tabelaBoletos th:nth-child(5),
+    #tabelaBoletos td:nth-child(5) {
       position: sticky;
       left: 340px;
       background: var(--papel-alto);
@@ -793,8 +800,8 @@
               <th style="width: 20px; text-align: center; padding: 12px 0;"><input type="checkbox" class="checkbox-sistema" id="selectTodos" onchange="selecionarTodos(this.checked)"></th>
               <th>Data<br><input type="text" id="filtroColData" oninput="aplicarFiltrosColunas()" placeholder="Filtrar..." style="width:100%; margin-top:4px; font-size:11px; padding:4px; font-weight:400; text-transform:none;"></th>
               <th>Histórico Banco<br><input type="text" id="filtroColHistorico" oninput="aplicarFiltrosColunas()" placeholder="Filtrar..." style="width:100%; margin-top:4px; font-size:11px; padding:4px; font-weight:400; text-transform:none;"></th>
-              <th>Valor<br><input type="text" id="filtroColValor" oninput="aplicarFiltrosColunas()" placeholder="Filtrar..." style="width:100%; margin-top:4px; font-size:11px; padding:4px; font-weight:400; text-transform:none;"></th>
               <th>CÓD<br><input type="text" id="filtroColCodigo" oninput="aplicarFiltrosColunas()" placeholder="Filtrar..." style="width:100%; margin-top:4px; font-size:11px; padding:4px; font-weight:400; text-transform:none;"></th>
+              <th>Valor<br><input type="text" id="filtroColValor" oninput="aplicarFiltrosColunas()" placeholder="Filtrar..." style="width:100%; margin-top:4px; font-size:11px; padding:4px; font-weight:400; text-transform:none;"></th>
               <th>Histórico Correção<br><input type="text" id="filtroColHistCorrecao" oninput="aplicarFiltrosColunas()" placeholder="Filtrar..." style="width:100%; margin-top:4px; font-size:11px; padding:4px; font-weight:400; text-transform:none;"></th>
               <th>Data Ref.<br><input type="text" id="filtroColDataRef" oninput="aplicarFiltrosColunas()" placeholder="Filtrar..." style="width:100%; margin-top:4px; font-size:11px; padding:4px; font-weight:400; text-transform:none;"></th>
               <th>Categoria<br><input type="text" id="filtroColCategoria" oninput="aplicarFiltrosColunas()" placeholder="Filtrar..." style="width:100%; margin-top:4px; font-size:11px; padding:4px; font-weight:400; text-transform:none;"></th>
@@ -1333,8 +1340,8 @@
           <td style="text-align:center; padding: 12px 0;"><input type="checkbox" class="checkbox-sistema" value="${e.id}" onchange="atualizarContadorSelecionados()"></td>
           <td style="font-weight:400; color:var(--tinta); font-size:13px;">${dataFormatada}</td>
           <td style="font-size:13px; color:var(--tinta);">${e.descricao}</td>
-          <td style="font-weight:600; color:${corVal}; font-size:14px;">${valorFormatado}</td>
           <td style="text-align:center; color:var(--tinta-40); font-size:12px;">${e.codigo || '-'}</td>
+          <td style="font-weight:600; color:${corVal}; font-size:14px;">${valorFormatado}</td>
           <td><input type="text" placeholder="Descrição do lançamento" value="${historicoCorrecao}" onchange="atualizarCampo(${e.id}, 'historico_correcao', this.value)"></td>
           <td><input type="date" value="${dataRef}" onchange="atualizarCampo(${e.id}, 'data_referencia', this.value)"></td>
           <td>
