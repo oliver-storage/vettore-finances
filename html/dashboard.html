@@ -1,0 +1,404 @@
+<!-- Vettore Finances v1.9.22.0 • Desenvolvido por OliverStorage -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vettore Finances - Dashboard</title>
+  <link rel="stylesheet" href="../css/styles.css?v1.9.53.0">
+  <link rel="stylesheet" href="../css/navbar.css?v1.9.53.0">
+  <link rel="icon" type="image/svg+xml" href="../css/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    h3.section-title {
+      margin: 32px 0 16px 0;
+      color: var(--tinta);
+    }
+    .charts-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+      margin-top: 16px;
+      margin-bottom: 20px;
+    }
+    .chart-box {
+      background: var(--papel-alto);
+      border: 1px solid var(--linha);
+      border-radius: 6px;
+      padding: 20px;
+      box-shadow: var(--sombra);
+    }
+    .chart-box h4 {
+      margin: 0 0 12px 0;
+      font-size: 14px;
+      color: var(--tinta-70);
+    }
+    .chart-box canvas {
+      max-height: 260px;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-left">
+      <span class="logo">Vettore</span>
+      <div class="menu">
+        <a href="dashboard.html" class="menu-item active">Dashboard</a>
+        <a href="clientes.html" class="menu-item">Clientes</a>
+        <a href="financeiro.html" class="menu-item">Financeiro</a>
+        <a href="configuracao.html" class="menu-item">Configuração</a>
+</div>
+    </div>
+    <div class="navbar-right">
+      <span id="userName">Usuário</span>
+      <button class="btn-logout" onclick="logout()">Sair</button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <h2>Dashboard</h2>
+    <p class="subtitle">Visão geral do sistema Vettore Finances</p>
+
+    <div class="form-group" id="grupoFranquiaDashboard" style="display:none; max-width:320px;">
+      <label>Franquia</label>
+      <select id="franquiaFilterDashboard" onchange="trocarFranquiaDashboard()"></select>
+    </div>
+
+    <div class="form-group" style="max-width:320px;">
+      <label>Período (Mês/Ano)</label>
+      <select id="mesAnoFilterDashboard" onchange="carregarDashboard()">
+        <option value="">Todos</option>
+      </select>
+    </div>
+
+    <!-- VISÃO GERAL -->
+    <div class="cards-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:16px; margin-top:20px;">
+      <div class="categoria-box">
+        <label>Total de Clientes PJ</label>
+        <value id="totalClientesPj">-</value>
+      </div>
+      <div class="categoria-box">
+        <label>Extratos Importados</label>
+        <value id="totalExtratos">-</value>
+      </div>
+      <div class="categoria-box">
+        <label>Boletos Importados</label>
+        <value id="totalBoletos">-</value>
+      </div>
+      <div class="categoria-box">
+        <label>Novos Clientes no Período</label>
+        <value id="novosClientesPeriodo">-</value>
+      </div>
+    </div>
+
+    <!-- SITUAÇÃO DE CLIENTES -->
+    <h3 class="section-title">Situação de Clientes (no período)</h3>
+    <div class="cards-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:16px;">
+      <div class="categoria-box">
+        <label>Clientes Adimplentes</label>
+        <value id="qtdAdimplentes" style="color:var(--destaque);">-</value>
+      </div>
+      <div class="categoria-box">
+        <label>Clientes Inadimplentes</label>
+        <value id="qtdInadimplentes" style="color:var(--alerta);">-</value>
+      </div>
+      <div class="categoria-box">
+        <label>Valor Adimplente</label>
+        <value id="valorAdimplente" style="color:var(--destaque);">-</value>
+      </div>
+      <div class="categoria-box">
+        <label>Valor Inadimplente</label>
+        <value id="valorInadimplente" style="color:var(--alerta);">-</value>
+      </div>
+    </div>
+    <div class="charts-row">
+      <div class="chart-box">
+        <h4>Clientes: Adimplentes x Inadimplentes (quantidade)</h4>
+        <canvas id="chartQtdAdimplencia"></canvas>
+      </div>
+      <div class="chart-box">
+        <h4>Valores: Adimplente x Inadimplente (R$)</h4>
+        <canvas id="chartValorAdimplencia"></canvas>
+      </div>
+    </div>
+
+    <!-- SERVIÇOS -->
+    <h3 class="section-title">Serviços (Extrato + Boleto, no período)</h3>
+    <div id="cardsServicosDashboard" class="cards-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:16px;">
+      <p style="font-size:12px; color:var(--tinta-40);">Carregando...</p>
+    </div>
+    <div class="charts-row">
+      <div class="chart-box" style="grid-column: 1 / -1;">
+        <h4>Valor recebido por tipo de serviço</h4>
+        <canvas id="chartServicos"></canvas>
+      </div>
+    </div>
+
+    <!-- NOVOS CLIENTES -->
+    <h3 class="section-title">Novos Clientes Cadastrados</h3>
+    <div class="charts-row">
+      <div class="chart-box" style="grid-column: 1 / -1;">
+        <h4>Novos clientes por mês (últimos 6 meses)</h4>
+        <canvas id="chartNovosClientes"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>&copy; Vettore Finances 2026 - v1.9.53.0 Desenvolvido por OliverStorage</p>
+  </footer>
+
+  <script src="../js/auth.js?v1.9.53.0"></script>
+  <script src="../js/supabase-utils.js?v1.9.53.0"></script>
+
+  <script>
+    let CHART_QTD, CHART_VALOR, CHART_SERVICOS, CHART_NOVOS_CLIENTES;
+
+    async function inicializar() {
+      try {
+        checkAuth();
+
+        const user = JSON.parse(localStorage.getItem('currentUser'));
+        const unidades = await SupabaseAPI.get('unidades');
+
+        const franquiaUser = unidades.find(u => u.id === user.unidade_id);
+        document.getElementById('userName').textContent = `${franquiaUser?.nomefranquia || 'Sistema'} - ${user.nome} (${user.perfil})`;
+
+        // Dropdown de Franquia (visível pra todos; só administrador pode trocar)
+        document.getElementById('grupoFranquiaDashboard').style.display = '';
+        const selectFranquia = document.getElementById('franquiaFilterDashboard');
+        selectFranquia.innerHTML = '';
+
+        if (user.perfil === 'administrador') {
+          selectFranquia.disabled = false;
+          unidades.forEach(u => {
+            const option = document.createElement('option');
+            option.value = u.id;
+            option.textContent = u.nomefranquia;
+            selectFranquia.appendChild(option);
+          });
+          if (unidades.length > 0) selectFranquia.value = unidades[0].id;
+        } else {
+          selectFranquia.disabled = true;
+          const franquiaDoUsuario = unidades.find(u => u.id === user.unidade_id);
+          const option = document.createElement('option');
+          option.value = user.unidade_id;
+          option.textContent = franquiaDoUsuario?.nomefranquia || '-';
+          selectFranquia.appendChild(option);
+        }
+
+        await carregarDashboard();
+      } catch (error) {
+        console.error('❌ Erro:', error);
+      }
+    }
+
+    async function trocarFranquiaDashboard() {
+      await carregarDashboard();
+    }
+
+    function getUnidadeAtivaDashboard() {
+      return parseInt(document.getElementById('franquiaFilterDashboard').value);
+    }
+
+    function nomeMesAnoDash(mesStr) {
+      const [ano, mes] = mesStr.split('-');
+      const nomes = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+      return `${nomes[parseInt(mes) - 1]}/${ano}`;
+    }
+
+    function obterValorAnoDash(mesStr, valoresAno, fallback) {
+      const ano = parseInt(mesStr.split('-')[0]);
+      const registro = valoresAno.find(v => v.ano === ano);
+      return registro ? parseFloat(registro.valor) : parseFloat(fallback || 0);
+    }
+
+    async function carregarDashboard() {
+      const unidadeAtiva = getUnidadeAtivaDashboard();
+      if (!unidadeAtiva) return;
+
+      const [todosPjRaw, todosBoletosRaw, todosExtratosRaw, todosValoresAno, todosPfRaw] = await Promise.all([
+        SupabaseAPI.get('clientes_pj'),
+        SupabaseAPI.get('boletos'),
+        SupabaseAPI.get('extratos'),
+        SupabaseAPI.get('valor_contrato_ano'),
+        SupabaseAPI.get('clientes_pf')
+      ]);
+
+      const todosPj = todosPjRaw.filter(pj => pj.unidade_id === unidadeAtiva);
+      const todosBoletos = todosBoletosRaw.filter(b => b.unidade_id === unidadeAtiva);
+      const todosExtratos = todosExtratosRaw.filter(e => e.unidade_id === unidadeAtiva);
+      const todosPf = todosPfRaw.filter(p => p.unidade_id === unidadeAtiva);
+
+      // Popular dropdown Mês/Ano com base nos dados reais (extratos + boletos)
+      const selectMesAno = document.getElementById('mesAnoFilterDashboard');
+      const mesesExistentes = [...new Set([
+        ...todosExtratos.map(e => (e.ano && e.mes) ? `${e.ano}-${String(e.mes).padStart(2, '0')}` : null),
+        ...todosBoletos.map(b => b.data_vencimento ? b.data_vencimento.slice(0, 7) : null)
+      ].filter(Boolean))].sort();
+      const mesAnoAtualSel = selectMesAno.value;
+      selectMesAno.innerHTML = '<option value="">Todos</option>' + mesesExistentes.map(ma => `<option value="${ma}">${nomeMesAnoDash(ma)}</option>`).join('');
+      selectMesAno.value = mesAnoAtualSel;
+
+      const mesAnoSelecionado = selectMesAno.value || mesesExistentes[mesesExistentes.length - 1] || null;
+
+      // ===== VISÃO GERAL =====
+      document.getElementById('totalClientesPj').textContent = todosPj.length;
+      document.getElementById('totalExtratos').textContent = todosExtratos.length;
+      document.getElementById('totalBoletos').textContent = todosBoletos.length;
+
+      // ===== NOVOS CLIENTES NO PERÍODO =====
+      let novosNoPeriodo = 0;
+      if (mesAnoSelecionado) {
+        novosNoPeriodo = [...todosPj, ...todosPf].filter(c => c.created_at && c.created_at.slice(0, 7) === mesAnoSelecionado).length;
+      }
+      document.getElementById('novosClientesPeriodo').textContent = novosNoPeriodo;
+
+      // ===== SITUAÇÃO DE CLIENTES NO MÊS SELECIONADO =====
+      let qtdAdimplentes = 0, qtdInadimplentes = 0, valorAdimplente = 0, valorInadimplente = 0;
+
+      if (mesAnoSelecionado) {
+        for (const pj of todosPj) {
+          if (!pj.inicio_cobranca) continue;
+          const inicioStr = pj.inicio_cobranca.slice(0, 7);
+          const fimStr = pj.final_contrato ? pj.final_contrato.slice(0, 7) : mesAnoSelecionado;
+
+          // Contrato cobre o mês selecionado?
+          if (mesAnoSelecionado < inicioStr || mesAnoSelecionado > fimStr) continue;
+
+          const valoresAnoDoCliente = todosValoresAno.filter(v => v.pj_id === pj.id);
+          const valorEsperado = obterValorAnoDash(mesAnoSelecionado, valoresAnoDoCliente, pj.valor_contrato);
+
+          const pago = todosBoletos.some(b =>
+            b.cliente === pj.razao_social &&
+            (b.situacao || '').toUpperCase().includes('LIQUIDADO') &&
+            b.data_vencimento && b.data_vencimento.slice(0, 7) === mesAnoSelecionado
+          ) || todosExtratos.some(e =>
+            e.cliente === pj.razao_social &&
+            parseFloat(e.valor) > 0 &&
+            e.data && e.data.slice(0, 7) === mesAnoSelecionado
+          );
+
+          if (pago) {
+            qtdAdimplentes++;
+            valorAdimplente += valorEsperado;
+          } else {
+            qtdInadimplentes++;
+            valorInadimplente += valorEsperado;
+          }
+        }
+      }
+
+      document.getElementById('qtdAdimplentes').textContent = qtdAdimplentes;
+      document.getElementById('qtdInadimplentes').textContent = qtdInadimplentes;
+      document.getElementById('valorAdimplente').textContent = valorAdimplente.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      document.getElementById('valorInadimplente').textContent = valorInadimplente.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+      renderizarChartAdimplencia(qtdAdimplentes, qtdInadimplentes, valorAdimplente, valorInadimplente);
+
+      // ===== SERVIÇOS (Extrato + Boleto) NO MÊS SELECIONADO =====
+      const lancamentosDoMes = [
+        ...todosExtratos.filter(e => mesAnoSelecionado ? (e.data && e.data.slice(0, 7) === mesAnoSelecionado) : true),
+        ...todosBoletos.filter(b => mesAnoSelecionado ? (b.data_vencimento && b.data_vencimento.slice(0, 7) === mesAnoSelecionado) : true)
+      ];
+
+      const resumoServicos = {};
+      lancamentosDoMes.forEach(l => {
+        const servico = l.servicos;
+        if (!servico) return;
+        if (!resumoServicos[servico]) resumoServicos[servico] = { qtd: 0, valor: 0 };
+        resumoServicos[servico].qtd++;
+        resumoServicos[servico].valor += parseFloat(l.valor) || 0;
+      });
+
+      const containerServicos = document.getElementById('cardsServicosDashboard');
+      const entradasServicos = Object.entries(resumoServicos);
+      if (entradasServicos.length === 0) {
+        containerServicos.innerHTML = '<p style="font-size:12px; color:var(--tinta-40);">Nenhum lançamento com Serviço preenchido nesse período.</p>';
+      } else {
+        containerServicos.innerHTML = entradasServicos.map(([servico, dados]) => `
+          <div class="categoria-box">
+            <label>${servico}</label>
+            <value style="font-size:20px;">${dados.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</value>
+            <p style="font-size:11px; color:var(--tinta-40); margin:4px 0 0 0;">${dados.qtd} lançamento(s)</p>
+          </div>
+        `).join('');
+      }
+
+      renderizarChartServicos(entradasServicos);
+
+      // ===== NOVOS CLIENTES - ÚLTIMOS 6 MESES =====
+      const hoje = new Date();
+      const ultimosMeses = [];
+      for (let i = 5; i >= 0; i--) {
+        const d = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1);
+        ultimosMeses.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+      }
+      const contagemNovosClientes = ultimosMeses.map(m =>
+        [...todosPj, ...todosPf].filter(c => c.created_at && c.created_at.slice(0, 7) === m).length
+      );
+
+      renderizarChartNovosClientes(ultimosMeses.map(nomeMesAnoDash), contagemNovosClientes);
+    }
+
+    function renderizarChartAdimplencia(qtdAdi, qtdInad, valorAdi, valorInad) {
+      const ctxQtd = document.getElementById('chartQtdAdimplencia');
+      if (CHART_QTD) CHART_QTD.destroy();
+      CHART_QTD = new Chart(ctxQtd, {
+        type: 'doughnut',
+        data: {
+          labels: ['Adimplentes', 'Inadimplentes'],
+          datasets: [{ data: [qtdAdi, qtdInad], backgroundColor: ['#00A3E0', '#A8481B'] }]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+      });
+
+      const ctxValor = document.getElementById('chartValorAdimplencia');
+      if (CHART_VALOR) CHART_VALOR.destroy();
+      CHART_VALOR = new Chart(ctxValor, {
+        type: 'bar',
+        data: {
+          labels: ['Adimplente', 'Inadimplente'],
+          datasets: [{ data: [valorAdi, valorInad], backgroundColor: ['#00A3E0', '#A8481B'] }]
+        },
+        options: { responsive: true, plugins: { legend: { display: false } } }
+      });
+    }
+
+    function renderizarChartServicos(entradasServicos) {
+      const ctx = document.getElementById('chartServicos');
+      if (CHART_SERVICOS) CHART_SERVICOS.destroy();
+      CHART_SERVICOS = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: entradasServicos.map(([nome]) => nome),
+          datasets: [{ label: 'Valor (R$)', data: entradasServicos.map(([, d]) => d.valor), backgroundColor: '#1F55A5' }]
+        },
+        options: { responsive: true, plugins: { legend: { display: false } } }
+      });
+    }
+
+    function renderizarChartNovosClientes(labels, valores) {
+      const ctx = document.getElementById('chartNovosClientes');
+      if (CHART_NOVOS_CLIENTES) CHART_NOVOS_CLIENTES.destroy();
+      CHART_NOVOS_CLIENTES = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{ label: 'Novos clientes', data: valores, backgroundColor: '#143A70' }]
+        },
+        options: { responsive: true, plugins: { legend: { display: false } } }
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', inicializar);
+    } else {
+      inicializar();
+    }
+  </script>
+</body>
+</html>
