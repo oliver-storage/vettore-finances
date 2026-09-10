@@ -1,5 +1,5 @@
 /**
- * Vettore Finances - Geração de Documentos v1.9.45.0
+ * Vettore Finances - Geração de Documentos v1.9.46.0
  * Preenche modelos de documento (Configuração > Contrato) com dados reais do cliente
  */
 

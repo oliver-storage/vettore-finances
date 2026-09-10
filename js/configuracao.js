@@ -1,5 +1,5 @@
 /**
- * Vettore Finances - Configuração com Supabase v1.9.45.0
+ * Vettore Finances - Configuração com Supabase v1.9.46.0
  */
 
 const CATEGORIAS_PADRAO = [
@@ -214,9 +214,10 @@ async function handleNovaUnidade(e) {
     if (result && result.length > 0) {
       alert('✅ Unidade criada com sucesso!');
       e.target.reset();
-      await carregarUnidades();
+      const user = JSON.parse(localStorage.getItem('currentUser'));
+      await carregarUnidades(user);
       const unidades = await SupabaseAPI.get('unidades');
-      await carregarFranquiasSelect(unidades);
+      await carregarFranquiasSelect(unidades, user);
     } else {
       alert('❌ Erro ao criar unidade');
     }
@@ -344,9 +345,10 @@ async function salvarEdicaoFranquia(e) {
     await SupabaseAPI.update('unidades', id, updateData);
     alert('✅ Franquia atualizada!');
     fecharModalFranquia();
-    await carregarUnidades();
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+    await carregarUnidades(user);
     const unidades = await SupabaseAPI.get('unidades');
-    await carregarFranquiasSelect(unidades);
+    await carregarFranquiasSelect(unidades, user);
   } catch (error) {
     alert('❌ Erro: ' + error.message);
   }
@@ -358,9 +360,10 @@ async function deletarUnidade(id) {
   try {
     await SupabaseAPI.delete('unidades', id);
     alert('✅ Unidade deletada!');
-    await carregarUnidades();
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+    await carregarUnidades(user);
     const unidades = await SupabaseAPI.get('unidades');
-    await carregarFranquiasSelect(unidades);
+    await carregarFranquiasSelect(unidades, user);
   } catch (error) {
     alert('❌ Erro: ' + error.message);
   }
