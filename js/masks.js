@@ -1,5 +1,5 @@
 /**
- * VA Business - Vettore Finances v1.9.58.0
+ * VA Business - Vettore Finances v1.9.59.0
  * Desenvolvido por OliverStorage
  * Módulo: Máscaras de Input
  */
