@@ -1,0 +1,134 @@
+<!-- v1.9.69.0 -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ferramentas - Vettore Finances</title>
+    <link rel="stylesheet" href="../css/navbar.css?v=1.9.69.0">
+    <link rel="stylesheet" href="../css/styles.css?v=1.9.69.0">
+    <style>
+        .container-main {
+            max-width: 1400px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        .tabs-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--linha);
+        }
+
+        .tab-button {
+            padding: 12px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--tinta-70);
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button.active {
+            color: var(--marca);
+            border-bottom-color: var(--marca);
+        }
+
+        .tab-button:hover {
+            color: var(--marca);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-left">
+            <span class="logo">Vettore</span>
+            <div class="menu">
+                <a href="dashboard.html" class="menu-item">Dashboard</a>
+                <a href="clientes.html" class="menu-item">Clientes</a>
+                <a href="financeiro.html" class="menu-item">Financeiro</a>
+                <a href="configuracao.html" class="menu-item">Configuração</a>
+                <a href="ferramentas.html" class="menu-item active">Ferramentas</a>
+            </div>
+        </div>
+        <div class="navbar-right">
+            <span id="userName">Usuário</span>
+            <button class="btn-logout" onclick="logout()">Sair</button>
+        </div>
+    </nav>
+
+    <div class="container-main">
+        <h1>Ferramentas</h1>
+        
+        <div class="tabs-container">
+            <button class="tab-button active" onclick="abrirAba('custo-usuarios')">Custo Usuários</button>
+        </div>
+
+        <div id="custo-usuarios" class="tab-content active">
+            <div class="card">
+                <iframe id="custousuariosframe" src="custo-usuarios.html" style="width: 100%; height: 800px; border: none; border-radius: 8px;"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/auth.js?v=1.9.69.0"></script>
+    <script src="../js/auto-login.js?v=1.9.69.0"></script>
+    <script>
+        // /** v1.9.69.0 */
+        
+        function abrirAba(abaId) {
+            // Esconder todas as abas
+            const abas = document.querySelectorAll('.tab-content');
+            abas.forEach(aba => aba.classList.remove('active'));
+
+            // Remover active de todos os botões
+            const botoes = document.querySelectorAll('.tab-button');
+            botoes.forEach(botao => botao.classList.remove('active'));
+
+            // Mostrar aba clicada
+            document.getElementById(abaId).classList.add('active');
+
+            // Marcar botão como active
+            event.target.classList.add('active');
+        }
+
+        // Atualizar nome do usuário
+        function atualizarNomeUsuario() {
+            const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+            if (user.nome) {
+                document.getElementById('userName').textContent = `${user.nome}`;
+            }
+        }
+
+        // Chamar ao carregar
+        window.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            atualizarNomeUsuario();
+        });
+    </script>
+
+    <footer style="text-align: center; padding: 20px; color: var(--tinta-70); font-size: 12px; margin-top: 40px;">
+        © Vettore Finances 2026 - v1.9.69.0
+    </footer>
+</body>
+</html>

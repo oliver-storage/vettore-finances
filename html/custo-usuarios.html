@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extrator Custo dos Usuários PDF → CSV v1.0.5</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+        h1 { color: #333; margin-bottom: 10px; font-size: 28px; }
+        .subtitle { color: #666; margin-bottom: 30px; font-size: 14px; }
+        .upload-area {
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+            background: #f8f9ff;
+        }
+        .upload-area:hover { background: #f0f2ff; border-color: #764ba2; }
+        .upload-area.dragover { background: #e8ebff; border-color: #764ba2; transform: scale(1.02); }
+        .upload-icon { font-size: 48px; margin-bottom: 10px; }
+        .upload-text { color: #333; font-weight: bold; margin-bottom: 5px; }
+        .upload-hint { color: #999; font-size: 12px; }
+        input[type="file"] { display: none; }
+        .button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: transform 0.2s;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .button:hover:not(:disabled) { transform: translateY(-2px); }
+        .button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .status { margin-top: 15px; padding: 15px; border-radius: 6px; display: none; font-size: 13px; font-weight: 500; }
+        .status.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; display: block; }
+        .status.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; display: block; }
+        .status.info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; display: block; }
+        .download-btn { background: #28a745; display: none; margin-top: 15px; }
+        .download-btn:hover:not(:disabled) { background: #218838; }
+        .file-info { color: #666; font-size: 12px; margin-top: 8px; }
+        .stats-container { display: none; margin: 20px 0; }
+        .stat-row { padding: 10px; background: #f5f5f5; border-radius: 6px; margin-bottom: 8px; font-size: 13px; }
+        .stat-row strong { color: #333; }
+        .stat-row span { color: #667eea; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Extrator Custo dos Usuários</h1>
+        <p class="subtitle">100% offline - v1.0.5 - PDF → CSV - Português BR</p>
+        
+        <div class="upload-area" id="dropZone">
+            <div class="upload-icon">📄</div>
+            <div class="upload-text">Clique ou arraste o arquivo PDF aqui</div>
+            <div class="upload-hint">Processa localmente no seu computador</div>
+            <input type="file" id="fileInput" accept=".pdf">
+            <div class="file-info" id="fileName"></div>
+        </div>
+
+        <button class="button" id="processBtn" disabled>⚙️ Processar PDF</button>
+        <div class="status" id="status"></div>
+        
+        <div class="stats-container" id="statsContainer">
+            <div class="stat-row"><strong>Empresas encontradas:</strong> <span id="empresasStats">0</span></div>
+            <div class="stat-row"><strong>Registros extraídos:</strong> <span id="registrosStats">0</span></div>
+            <div class="stat-row"><strong>Páginas processadas:</strong> <span id="paginasStats">0</span></div>
+            <div class="stat-row"><strong>Status:</strong> <span id="statusStats">Pronto</span></div>
+        </div>
+
+        <button class="button download-btn" id="downloadBtn">⬇️ Baixar CSV</button>
+    </div>
+
+    <script>
+        const VERSION = '1.0.5';
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const processBtn = document.getElementById('processBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const status = document.getElementById('status');
+        const fileNameDiv = document.getElementById('fileName');
+        const statsContainer = document.getElementById('statsContainer');
+        
+        let processedData = null;
+        let importedFileName = null;
+
+        function showStatus(msg, type) {
+            status.textContent = msg;
+            status.className = `status ${type}`;
+        }
+
+        function cleanText(text) {
+            if (!text) return '';
+            return text.replace(/\s+/g, ' ').trim();
+        }
+
+        async function extractPDFText(file) {
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                console.log('PDF carregado:', arrayBuffer.byteLength, 'bytes');
+                
+                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                console.log('PDF parseado, total de páginas:', pdf.numPages);
+                
+                let fullText = '';
+                const totalPages = pdf.numPages;
+
+                for (let i = 1; i <= totalPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const textContent = await page.getTextContent();
+                    const pageText = textContent.items.map(item => item.str).join(' ');
+                    fullText += pageText + '\n---PAGE---\n';
+                    console.log('Página', i, 'extraída,', pageText.length, 'caracteres');
+                }
+                
+                console.log('Texto total extraído:', fullText.length, 'caracteres');
+                console.log('Primeros 500 caracteres:', fullText.substring(0, 500));
+                
+                return { text: fullText, totalPages };
+            } catch (err) {
+                console.error('ERRO ao ler PDF:', err);
+                throw new Error(`Erro ao ler PDF: ${err.message}`);
+            }
+        }
+
+        function parseCustoUsuarios(text) {
+            const linhas = [];
+            
+            // Normalizar espaços múltiplos e quebras
+            let textLimpo = text.replace(/\s+/g, ' ').trim();
+            
+            // Split por "Empresa:" 
+            const blocos = textLimpo.split('Empresa:');
+            
+            console.log('Total de blocos:', blocos.length);
+            
+            for (let i = 1; i < blocos.length; i++) {
+                const bloco = blocos[i];
+                
+                // Pegar primeira parte até "Total" ou próximo "Empresa"
+                const partes = bloco.split(/Total|Empresa:/);
+                const cabecalho = partes[0].trim();
+                const dados = partes[0];
+                
+                // Extrair código e nome da empresa
+                let codigo = '';
+                let empresa = '';
+                
+                // Padrão: "(Sem vinculação com empresa)" ou "(Todas) Fortes Gestão" ou "0001 - NOME"
+                if (cabecalho.includes('(Sem vinculação')) {
+                    codigo = 'SEM VINC';
+                    empresa = 'Sem vinculação com empresa';
+                } else if (cabecalho.includes('(Todas)')) {
+                    codigo = 'TODAS';
+                    empresa = 'Todas';
+                } else {
+                    const match = cabecalho.match(/(\d{4})\s*-\s*(.+?)\s+(?:ANDERSON|BRAULIO|CLARISSE|CRISTIANE|JOSY|MORGANA|YANA|ISLA|GISELLE|GIOV|EDUARDA|HEBER|MAYARA|VITÓRIA|JORDANA|ULISSES)/);
+                    if (match) {
+                        codigo = match[1];
+                        empresa = match[2].trim();
+                    } else {
+                        const m = cabecalho.match(/(\d{4})\s*-\s*([^A-Z]*)/);
+                        if (m) {
+                            codigo = m[1];
+                            empresa = m[2].trim();
+                        }
+                    }
+                }
+                
+                if (!codigo) continue;
+                console.log('Empresa:', codigo, '|', empresa);
+                
+                // Procurar por: USUARIO CUSTO SETOR TEMPO
+                // Padrão: [PALAVRA] [0,00] [PALAVRA+] [HH:MM]
+                const usuarioRegex = /([A-ZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸA-záéíóúâêôãõç\s\.]+?)\s+([\d,]+)\s+([A-ZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸA-záéíóúâêôãõç\s]+?)\s+(\d{1,3}:\d{2})/g;
+                
+                let match;
+                while ((match = usuarioRegex.exec(dados)) !== null) {
+                    let usuario = match[1].trim();
+                    const custo = match[2];
+                    let setor = match[3].trim();
+                    const tempo = match[4];
+                    
+                    // Limpar dados
+                    usuario = usuario.replace(/Usuário|Setor|Custo|Tempo|Pag/gi, '').trim();
+                    setor = setor.replace(/Usuário|Setor|Custo|Tempo|Pag|Mês|RD|Data/gi, '').trim();
+                    
+                    if (usuario.length > 2 && setor.length > 1 && !usuario.includes('Total')) {
+                        linhas.push({
+                            codigo,
+                            empresa,
+                            usuario,
+                            setor,
+                            tempo
+                        });
+                        console.log('✓', usuario, '|', setor, '|', tempo);
+                    }
+                }
+            }
+            
+            console.log('TOTAL REGISTROS:', linhas.length);
+            return {
+                linhas,
+                empresas: blocos.length - 1,
+                totalPages: 40,
+                avisos: []
+            };
+        }
+
+        // Drag and drop
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            if (e.dataTransfer.files.length > 0) {
+                fileInput.files = e.dataTransfer.files;
+                const file = fileInput.files[0];
+                importedFileName = file.name;
+                fileNameDiv.textContent = `📦 ${file.name}`;
+                processBtn.disabled = false;
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                const file = e.target.files[0];
+                importedFileName = file.name;
+                fileNameDiv.textContent = `📦 ${file.name}`;
+                processBtn.disabled = false;
+            }
+        });
+
+        processBtn.addEventListener('click', async () => {
+            const file = fileInput.files[0];
+            if (!file) return;
+            
+            console.log('COMEÇOU - Arquivo:', file.name, 'Tamanho:', file.size);
+            
+            processBtn.disabled = true;
+            showStatus('⏳ Extraindo PDF...', 'info');
+            statsContainer.style.display = 'none';
+            downloadBtn.style.display = 'none';
+            
+            try {
+                // Extrai texto do PDF
+                const { text, totalPages } = await extractPDFText(file);
+                
+                console.log('Texto extraído, chamando parser...');
+                showStatus('⏳ Analisando dados...', 'info');
+                
+                // Parse dos dados
+                const result = parseCustoUsuarios(text);
+                
+                console.log('Parse completo. Linhas:', result.linhas.length);
+                
+                if (result.linhas.length === 0) {
+                    showStatus('❌ Nenhum registro encontrado. Verifique o formato do PDF.', 'error');
+                    processBtn.disabled = false;
+                    return;
+                }
+                
+                processedData = result;
+                
+                // Atualiza estatísticas
+                document.getElementById('empresasStats').textContent = result.empresas;
+                document.getElementById('registrosStats').textContent = result.linhas.length;
+                document.getElementById('paginasStats').textContent = result.totalPages;
+                document.getElementById('statusStats').textContent = '✅ Sucesso';
+                statsContainer.style.display = 'block';
+                
+                // Avisos
+                if (result.avisos.length > 0) {
+                    showStatus(`✅ Sucesso! ${result.linhas.length} registros extraídos. ${result.avisos.join(' ')}`, 'success');
+                } else {
+                    showStatus(`✅ Sucesso! ${result.linhas.length} registros extraídos de ${result.totalPages} páginas.`, 'success');
+                }
+                
+                downloadBtn.style.display = 'block';
+                processBtn.disabled = false;
+                
+            } catch (err) {
+                console.error('ERRO:', err);
+                showStatus(`❌ Erro: ${err.message}`, 'error');
+                processBtn.disabled = false;
+            }
+        });
+
+        downloadBtn.addEventListener('click', () => {
+            if (!processedData) return;
+            
+            const headers = ['Código', 'Empresa', 'Usuário', 'Setor', 'Tempo'];
+            let csv = '\uFEFF' + headers.join(',') + '\n';
+            
+            for (const row of processedData.linhas) {
+                const linha = [
+                    row.codigo,
+                    `"${row.empresa}"`,
+                    row.usuario,
+                    row.setor,
+                    row.tempo
+                ];
+                csv += linha.join(',') + '\n';
+            }
+            
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            link.setAttribute('href', url);
+            const csvFileName = importedFileName 
+                ? importedFileName.replace(/\.pdf$/i, '.csv')
+                : `Custo-Usuarios_v${VERSION}.csv`;
+            link.setAttribute('download', csvFileName);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showStatus('✅ Arquivo baixado com sucesso!', 'success');
+        });
+    </script>
+</body>
+</html>
