@@ -3,11 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Extrator Custo dos Usuários PDF → CSV v1.0.5</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script>
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-    </script>
+    <title>Conversor HTM → CSV v1.0.5</title>
     <style>
         :root {
             --marca: #1F55A5;
@@ -71,17 +67,12 @@
         }
         .button:hover:not(:disabled) { transform: translateY(-2px); background: var(--topo-bg); }
         .button:disabled { opacity: 0.5; cursor: not-allowed; }
-        .status { margin-top: 15px; padding: 15px; border-radius: 6px; display: none; font-size: 13px; font-weight: 500; }
+        .status { margin-top: 15px; padding: 15px; border-radius: 6px; display: none; font-size: 13px; }
         .status.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; display: block; }
         .status.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; display: block; }
         .status.info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; display: block; }
         .download-btn { background: #28a745; display: none; margin-top: 15px; }
         .download-btn:hover:not(:disabled) { background: #218838; }
-        .file-info { color: #666; font-size: 12px; margin-top: 8px; }
-        .stats-container { display: none; margin: 20px 0; }
-        .stat-row { padding: 10px; background: var(--papel); border-radius: 6px; margin-bottom: 8px; font-size: 13px; border-left: 4px solid var(--marca); }
-        .stat-row strong { color: var(--tinta); }
-        .stat-row span { color: var(--marca); font-weight: bold; }
         footer {
             text-align: center;
             margin-top: 30px;
@@ -94,27 +85,18 @@
 </head>
 <body>
     <div class="container">
-        <h1>📊 Extrator Custo dos Usuários</h1>
-        <p class="subtitle">100% offline - v1.0.5 - PDF → CSV - Português BR</p>
+        <h1>📊 Conversor HTM → CSV</h1>
+        <p class="subtitle">100% offline - v1.0.5 - Português BR</p>
         
         <div class="upload-area" id="dropZone">
-            <div class="upload-icon">📄</div>
-            <div class="upload-text">Clique ou arraste o arquivo PDF aqui</div>
+            <div class="upload-icon">📁</div>
+            <div class="upload-text">Clique ou arraste o arquivo .HTM aqui</div>
             <div class="upload-hint">Processa localmente no seu computador</div>
-            <input type="file" id="fileInput" accept=".pdf">
-            <div class="file-info" id="fileName"></div>
+            <input type="file" id="fileInput" accept=".htm,.html">
         </div>
 
-        <button class="button" id="processBtn" disabled>⚙️ Processar PDF</button>
+        <button class="button" id="processBtn" disabled>⚙️ Processar Arquivo</button>
         <div class="status" id="status"></div>
-        
-        <div class="stats-container" id="statsContainer">
-            <div class="stat-row"><strong>Empresas encontradas:</strong> <span id="empresasStats">0</span></div>
-            <div class="stat-row"><strong>Registros extraídos:</strong> <span id="registrosStats">0</span></div>
-            <div class="stat-row"><strong>Páginas processadas:</strong> <span id="paginasStats">0</span></div>
-            <div class="stat-row"><strong>Status:</strong> <span id="statusStats">Pronto</span></div>
-        </div>
-
         <button class="button download-btn" id="downloadBtn">⬇️ Baixar CSV</button>
         
         <footer>
@@ -124,252 +106,186 @@
 
     <script>
         const VERSION = '1.0.5';
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
         
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
         const processBtn = document.getElementById('processBtn');
         const downloadBtn = document.getElementById('downloadBtn');
         const status = document.getElementById('status');
-        const fileNameDiv = document.getElementById('fileName');
-        const statsContainer = document.getElementById('statsContainer');
         
         let processedData = null;
         let importedFileName = null;
 
-        function showStatus(msg, type) {
-            status.textContent = msg;
-            status.className = `status ${type}`;
+        function decodeHTMLEntities(text) {
+            if (!text) return '';
+            const textarea = document.createElement('textarea');
+            textarea.innerHTML = text;
+            return textarea.value;
+        }
+
+        function formatNumberBR(num) {
+            if (!num) return '0,00';
+            let n = parseFloat(String(num).replace(/\./g, '').replace(',', '.'));
+            if (isNaN(n)) return '0,00';
+            const formatted = n.toFixed(2);
+            const [integer, decimal] = formatted.split('.');
+            const withThousands = integer.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+            return withThousands + ',' + decimal;
+        }
+
+        function formatPercentBR(num) {
+            if (!num && num !== 0) return '0,00%';
+            let n = parseFloat(String(num).replace(',', '.'));
+            if (isNaN(n)) return '0,00%';
+            return n.toFixed(2).replace('.', ',') + '%';
         }
 
         function cleanText(text) {
             if (!text) return '';
-            return text.replace(/\s+/g, ' ').trim();
+            text = decodeHTMLEntities(text);
+            text = text.replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ');
+            text = text.replace(/[\x00-\x1F\x7F]/g, '');
+            return text.trim();
         }
 
-        async function extractPDFText(file) {
-            try {
-                const arrayBuffer = await file.arrayBuffer();
-                console.log('PDF carregado:', arrayBuffer.byteLength, 'bytes');
-                
-                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-                console.log('PDF parseado, total de páginas:', pdf.numPages);
-                
-                let fullText = '';
-                const totalPages = pdf.numPages;
-
-                for (let i = 1; i <= totalPages; i++) {
-                    const page = await pdf.getPage(i);
-                    const textContent = await page.getTextContent();
-                    const pageText = textContent.items.map(item => item.str).join(' ');
-                    fullText += pageText + '\n---PAGE---\n';
-                    console.log('Página', i, 'extraída,', pageText.length, 'caracteres');
-                }
-                
-                console.log('Texto total extraído:', fullText.length, 'caracteres');
-                console.log('Primeros 500 caracteres:', fullText.substring(0, 500));
-                
-                return { text: fullText, totalPages };
-            } catch (err) {
-                console.error('ERRO ao ler PDF:', err);
-                throw new Error(`Erro ao ler PDF: ${err.message}`);
-            }
-        }
-
-        function parseCustoUsuarios(text) {
+        function parseHTM(html) {
             const linhas = [];
+            html = decodeHTMLEntities(html);
             
-            // Normalizar espaços múltiplos e quebras
-            let textLimpo = text.replace(/\s+/g, ' ').trim();
+            // Dividir por páginas
+            const pageRegex = /<a name="page(\d+)"[^>]*>([\s\S]*?)(?=<a name="page\d+"|$)/g;
+            let pageMatch;
             
-            // Split por "Empresa:" 
-            const blocos = textLimpo.split('Empresa:');
-            
-            console.log('Total de blocos:', blocos.length);
-            
-            for (let i = 1; i < blocos.length; i++) {
-                const bloco = blocos[i];
+            while ((pageMatch = pageRegex.exec(html)) !== null) {
+                const pageNum = pageMatch[1];
+                const pageContent = pageMatch[2];
                 
-                // Pegar primeira parte até "Total" ou próximo "Empresa"
-                const partes = bloco.split(/Total|Empresa:/);
-                const cabecalho = partes[0].trim();
-                const dados = partes[0];
+                // Extrair cabeçalho
+                const empresaMatch = /ID="QRDBText1"[^>]*>\s*([^<]+)</i.exec(pageContent);
+                if (!empresaMatch) continue;
                 
-                // Extrair código e nome da empresa
-                let codigo = '';
-                let empresa = '';
+                const responsavelMatch = /ID="QRDBText2"[^>]*>\s*([^<]+)/i.exec(pageContent);
+                const regimeMatch = /ID="QRDBText28"[^>]*>\s*([^<]+)/i.exec(pageContent);
                 
-                // Padrão: "(Sem vinculação com empresa)" ou "(Todas) Fortes Gestão" ou "0001 - NOME"
-                if (cabecalho.includes('(Sem vinculação')) {
-                    codigo = 'SEM VINC';
-                    empresa = 'Sem vinculação com empresa';
-                } else if (cabecalho.includes('(Todas)')) {
-                    codigo = 'TODAS';
-                    empresa = 'Todas';
-                } else {
-                    const match = cabecalho.match(/(\d{4})\s*-\s*(.+?)\s+(?:ANDERSON|BRAULIO|CLARISSE|CRISTIANE|JOSY|MORGANA|YANA|ISLA|GISELLE|GIOV|EDUARDA|HEBER|MAYARA|VITÓRIA|JORDANA|ULISSES)/);
-                    if (match) {
-                        codigo = match[1];
-                        empresa = match[2].trim();
-                    } else {
-                        const m = cabecalho.match(/(\d{4})\s*-\s*([^A-Z]*)/);
-                        if (m) {
-                            codigo = m[1];
-                            empresa = m[2].trim();
-                        }
-                    }
+                const empresa = cleanText(empresaMatch[1]);
+                const responsavel = responsavelMatch ? cleanText(responsavelMatch[1]) : 'N/D';
+                const regime = regimeMatch ? cleanText(regimeMatch[1]) : 'N/D';
+                
+                // Extrair TODOS os valores dos IDs (podem ser múltiplos)
+                const impostos = Array.from(pageContent.matchAll(/ID="QRDBText27"[^>]*>\s*([^<]+)</gi)).map(m => cleanText(m[1]));
+                const periodos = Array.from(pageContent.matchAll(/ID="QRDBText29"[^>]*>\s*([^<]+)</gi)).map(m => cleanText(m[1]));
+                const valores = Array.from(pageContent.matchAll(/ID="QRDBText30"[^>]*>\s*([^<]+)</gi)).map(m => cleanText(m[1]));
+                const vencimentos = Array.from(pageContent.matchAll(/ID="QRDBText31"[^>]*>\s*([^<]+)</gi)).map(m => cleanText(m[1]));
+                
+                // Extrair linha TOTAL
+                const totalMatch = /TOTAL\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)\s+([-\d,\%]+)\s+\S+\s+\S+\s+(\w+)/i.exec(pageContent);
+                
+                let compras = '0,00', vendas = '0,00', servicos = '0,00', lucroPct = '0,00%', aviso = 'Ok';
+                
+                if (totalMatch) {
+                    compras = formatNumberBR(totalMatch[1]);
+                    vendas = formatNumberBR(totalMatch[2]);
+                    servicos = formatNumberBR(totalMatch[3]);
+                    
+                    const lucroStr = totalMatch[4].replace('%', '').trim();
+                    lucroPct = formatPercentBR(parseFloat(lucroStr.replace(',', '.')));
+                    
+                    aviso = totalMatch[5][0].toUpperCase() + totalMatch[5].slice(1).toLowerCase();
                 }
                 
-                if (!codigo) continue;
-                console.log('Empresa:', codigo, '|', empresa);
+                // Correlacionar: imposto[0], periodo[0], valor[0], vencimento[0] = primeira linha
+                const maxImpostos = Math.max(impostos.length, periodos.length, valores.length, vencimentos.length);
                 
-                // Procurar por: USUARIO CUSTO SETOR TEMPO
-                // Padrão: [PALAVRA] [0,00] [PALAVRA+] [HH:MM]
-                const usuarioRegex = /([A-ZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸA-záéíóúâêôãõç\s\.]+?)\s+([\d,]+)\s+([A-ZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸA-záéíóúâêôãõç\s]+?)\s+(\d{1,3}:\d{2})/g;
-                
-                let match;
-                while ((match = usuarioRegex.exec(dados)) !== null) {
-                    let usuario = match[1].trim();
-                    const custo = match[2];
-                    let setor = match[3].trim();
-                    const tempo = match[4];
+                for (let i = 0; i < maxImpostos; i++) {
+                    const imposto = impostos[i] || 'N/D';
+                    const periodo = periodos[i] || 'N/D';
+                    const valor = formatNumberBR(valores[i] || '0');
+                    const vencimento = vencimentos[i] || 'N/D';
                     
-                    // Limpar dados
-                    usuario = usuario.replace(/Usuário|Setor|Custo|Tempo|Pag/gi, '').trim();
-                    setor = setor.replace(/Usuário|Setor|Custo|Tempo|Pag|Mês|RD|Data/gi, '').trim();
-                    
-                    if (usuario.length > 2 && setor.length > 1 && !usuario.includes('Total')) {
+                    if (imposto !== 'N/D' && valor !== '0,00') {
                         linhas.push({
-                            codigo,
-                            empresa,
-                            usuario,
-                            setor,
-                            tempo
+                            empresa, responsavel, regime, imposto,
+                            periodo, vencimento, valor, aviso,
+                            lucro_pct: lucroPct, compras, vendas, servicos,
+                            cod_barras: 'N/D'
                         });
-                        console.log('✓', usuario, '|', setor, '|', tempo);
                     }
                 }
             }
             
-            console.log('TOTAL REGISTROS:', linhas.length);
+            const totalPages = (html.match(/<a name="page\d+"/g) || []).length;
+            
             return {
                 linhas,
-                empresas: blocos.length - 1,
-                totalPages: 40,
-                avisos: []
+                empresas: new Set(linhas.map(l => l.empresa)).size,
+                impostos: linhas.length,
+                pages: totalPages
             };
         }
 
-        // Drag and drop
         dropZone.addEventListener('click', () => fileInput.click());
-        dropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropZone.classList.add('dragover');
-        });
-        dropZone.addEventListener('dragleave', () => {
-            dropZone.classList.remove('dragover');
-        });
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+        dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('dragover'); });
         dropZone.addEventListener('drop', (e) => {
             e.preventDefault();
             dropZone.classList.remove('dragover');
-            if (e.dataTransfer.files.length > 0) {
-                fileInput.files = e.dataTransfer.files;
-                const file = fileInput.files[0];
-                importedFileName = file.name;
-                fileNameDiv.textContent = `📦 ${file.name}`;
-                processBtn.disabled = false;
-            }
+            fileInput.files = e.dataTransfer.files;
+            if (fileInput.files.length > 0) importedFileName = fileInput.files[0].name;
+            processBtn.disabled = !fileInput.files.length;
         });
-
         fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) {
-                const file = e.target.files[0];
-                importedFileName = file.name;
-                fileNameDiv.textContent = `📦 ${file.name}`;
-                processBtn.disabled = false;
-            }
+            if (e.target.files.length > 0) importedFileName = e.target.files[0].name;
+            processBtn.disabled = !e.target.files.length;
         });
 
-        processBtn.addEventListener('click', async () => {
+        processBtn.addEventListener('click', () => {
             const file = fileInput.files[0];
             if (!file) return;
-            
-            console.log('COMEÇOU - Arquivo:', file.name, 'Tamanho:', file.size);
-            
             processBtn.disabled = true;
-            showStatus('⏳ Extraindo PDF...', 'info');
-            statsContainer.style.display = 'none';
-            downloadBtn.style.display = 'none';
-            
-            try {
-                // Extrai texto do PDF
-                const { text, totalPages } = await extractPDFText(file);
-                
-                console.log('Texto extraído, chamando parser...');
-                showStatus('⏳ Analisando dados...', 'info');
-                
-                // Parse dos dados
-                const result = parseCustoUsuarios(text);
-                
-                console.log('Parse completo. Linhas:', result.linhas.length);
-                
-                if (result.linhas.length === 0) {
-                    showStatus('❌ Nenhum registro encontrado. Verifique o formato do PDF.', 'error');
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    showStatus('⏳ Processando...', 'info');
+                    processedData = parseHTM(e.target.result);
+                    
+                    if (processedData.linhas.length > 0) {
+                        showStatus(`✅ Sucesso! ${processedData.linhas.length} registros extraídos`, 'success');
+                        downloadBtn.style.display = 'block';
+                    } else {
+                        showStatus('❌ Nenhum dado extraído', 'error');
+                    }
                     processBtn.disabled = false;
-                    return;
+                } catch (err) {
+                    showStatus(`❌ Erro: ${err.message}`, 'error');
+                    processBtn.disabled = false;
                 }
-                
-                processedData = result;
-                
-                // Atualiza estatísticas
-                document.getElementById('empresasStats').textContent = result.empresas;
-                document.getElementById('registrosStats').textContent = result.linhas.length;
-                document.getElementById('paginasStats').textContent = result.totalPages;
-                document.getElementById('statusStats').textContent = '✅ Sucesso';
-                statsContainer.style.display = 'block';
-                
-                // Avisos
-                if (result.avisos.length > 0) {
-                    showStatus(`✅ Sucesso! ${result.linhas.length} registros extraídos. ${result.avisos.join(' ')}`, 'success');
-                } else {
-                    showStatus(`✅ Sucesso! ${result.linhas.length} registros extraídos de ${result.totalPages} páginas.`, 'success');
-                }
-                
-                downloadBtn.style.display = 'block';
-                processBtn.disabled = false;
-                
-            } catch (err) {
-                console.error('ERRO:', err);
-                showStatus(`❌ Erro: ${err.message}`, 'error');
-                processBtn.disabled = false;
-            }
+            };
+            reader.readAsText(file, 'iso-8859-1');
         });
 
         downloadBtn.addEventListener('click', () => {
             if (!processedData) return;
-            
-            const headers = ['Código', 'Empresa', 'Usuário', 'Setor', 'Tempo'];
-            let csv = '\uFEFF' + headers.join(',') + '\n';
+            const headers = ['EMPRESA', 'RESPONSÁVEL', 'REGIME', 'IMPOSTO', 'PERÍODO', 'VENCIMENTO',
+                           'VALOR', 'AVISO', 'LUCRO %', 'COMPRAS', 'VENDAS', 'SERVIÇOS', 'CÓD. BARRAS'];
+            let csv = '\uFEFF' + headers.join(';') + '\n';
             
             for (const row of processedData.linhas) {
                 const linha = [
-                    row.codigo,
-                    `"${row.empresa}"`,
-                    row.usuario,
-                    row.setor,
-                    row.tempo
+                    `"${row.empresa}"`, `"${row.responsavel}"`, `"${row.regime}"`, `"${row.imposto}"`,
+                    `"${row.periodo}"`, `"${row.vencimento}"`, row.valor, `"${row.aviso}"`,
+                    row.lucro_pct, row.compras, row.vendas, row.servicos, `"${row.cod_barras}"`
                 ];
-                csv += linha.join(',') + '\n';
+                csv += linha.join(';') + '\n';
             }
-            
+
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             const url = URL.createObjectURL(blob);
             
             link.setAttribute('href', url);
             const csvFileName = importedFileName 
-                ? importedFileName.replace(/\.pdf$/i, '.csv')
-                : `Custo-Usuarios_v${VERSION}.csv`;
+                ? importedFileName.replace(/\.[^/.]+$/, '.csv')
+                : `Conversor - v${VERSION}.csv`;
             link.setAttribute('download', csvFileName);
             link.style.visibility = 'hidden';
             
@@ -378,6 +294,11 @@
             document.body.removeChild(link);
             showStatus('✅ Arquivo baixado com sucesso!', 'success');
         });
+
+        function showStatus(msg, type) {
+            status.textContent = msg;
+            status.className = `status ${type}`;
+        }
     </script>
 </body>
 </html>
