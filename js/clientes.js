@@ -1,5 +1,5 @@
 /**
- * Vettore Finances - Módulo Clientes (PF/PJ) v1.9.69.0
+ * Vettore Finances - Módulo Clientes (PF/PJ) v1.9.70.0
  * Lista unificada com filtros + modal de cadastro/edição
  */
 
