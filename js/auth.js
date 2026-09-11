@@ -1,5 +1,5 @@
 /**
- * VA Business - Vettore Finances v1.9.74.0
+ * VA Business - Vettore Finances v1.9.73.0
  * Desenvolvido por OliverStorage
  * Módulo: Autenticação
  */
