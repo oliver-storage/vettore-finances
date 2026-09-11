@@ -9,10 +9,21 @@
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     </script>
     <style>
+        :root {
+            --marca: #1F55A5;
+            --destaque: #00A3E0;
+            --topo-bg: #143A70;
+            --alerta: #A8481B;
+            --tinta: #10243F;
+            --papel: #F4F6FA;
+            --papel-alto: #FFFFFF;
+            --linha: #D9DFE8;
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--marca) 0%, var(--topo-bg) 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -20,33 +31,33 @@
             padding: 20px;
         }
         .container {
-            background: white;
+            background: var(--papel-alto);
             border-radius: 12px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             max-width: 600px;
             width: 100%;
             padding: 40px;
         }
-        h1 { color: #333; margin-bottom: 10px; font-size: 28px; }
+        h1 { color: var(--tinta); margin-bottom: 10px; font-size: 28px; }
         .subtitle { color: #666; margin-bottom: 30px; font-size: 14px; }
         .upload-area {
-            border: 2px dashed #667eea;
+            border: 2px dashed var(--marca);
             border-radius: 8px;
             padding: 40px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
             margin-bottom: 20px;
-            background: #f8f9ff;
+            background: var(--papel);
         }
-        .upload-area:hover { background: #f0f2ff; border-color: #764ba2; }
-        .upload-area.dragover { background: #e8ebff; border-color: #764ba2; transform: scale(1.02); }
+        .upload-area:hover { background: #e8f0ff; border-color: var(--destaque); }
+        .upload-area.dragover { background: #dce7ff; border-color: var(--destaque); transform: scale(1.02); }
         .upload-icon { font-size: 48px; margin-bottom: 10px; }
-        .upload-text { color: #333; font-weight: bold; margin-bottom: 5px; }
+        .upload-text { color: var(--tinta); font-weight: bold; margin-bottom: 5px; }
         .upload-hint { color: #999; font-size: 12px; }
         input[type="file"] { display: none; }
         .button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--marca);
             color: white;
             border: none;
             padding: 12px 24px;
@@ -54,11 +65,11 @@
             cursor: pointer;
             font-size: 14px;
             font-weight: bold;
-            transition: transform 0.2s;
+            transition: transform 0.2s, background 0.2s;
             width: 100%;
             margin-top: 10px;
         }
-        .button:hover:not(:disabled) { transform: translateY(-2px); }
+        .button:hover:not(:disabled) { transform: translateY(-2px); background: var(--topo-bg); }
         .button:disabled { opacity: 0.5; cursor: not-allowed; }
         .status { margin-top: 15px; padding: 15px; border-radius: 6px; display: none; font-size: 13px; font-weight: 500; }
         .status.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; display: block; }
@@ -68,9 +79,17 @@
         .download-btn:hover:not(:disabled) { background: #218838; }
         .file-info { color: #666; font-size: 12px; margin-top: 8px; }
         .stats-container { display: none; margin: 20px 0; }
-        .stat-row { padding: 10px; background: #f5f5f5; border-radius: 6px; margin-bottom: 8px; font-size: 13px; }
-        .stat-row strong { color: #333; }
-        .stat-row span { color: #667eea; font-weight: bold; }
+        .stat-row { padding: 10px; background: var(--papel); border-radius: 6px; margin-bottom: 8px; font-size: 13px; border-left: 4px solid var(--marca); }
+        .stat-row strong { color: var(--tinta); }
+        .stat-row span { color: var(--marca); font-weight: bold; }
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--linha);
+            color: #999;
+            font-size: 12px;
+        }
     </style>
 </head>
 <body>
@@ -98,6 +117,10 @@
 
         <button class="button download-btn" id="downloadBtn">⬇️ Baixar CSV</button>
     </div>
+
+    <footer>
+        Custo Usuários FORTES • Desenvolvido por Vettore Finances
+    </footer>
 
     <script>
         const VERSION = '1.0.5';
