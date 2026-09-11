@@ -1,5 +1,5 @@
 /**
- * Vettore Finances - Módulo Boletos v1.9.74.0
+ * Vettore Finances - Módulo Boletos v1.9.75.0
  */
 
 let BOLETOS_CACHE = [];
