@@ -1,13 +1,27 @@
 /**
- * Vettore Finances - Parser Robusto de Extratos Bancários v1.9.70.0
+ * Vettore Finances - Parser Robusto de Extratos Bancários v1.9.74.0
+ * Com suporte a OCR para PDFs escaneados
  */
 
 class ParserExtratos {
   static async processar(arrayBuffer) {
     try {
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-      const textContent = await this.extrairTexto(pdf);
+      let textContent = await this.extrairTexto(pdf);
       
+      // Se não encontrou texto suficiente, usar OCR
+      if (textContent.trim().length < 100) {
+        console.log('📋 PDF escaneado detectado. Iniciando OCR...');
+        textContent = await this.extrairComOCR(pdf);
+      }
+
+      if (textContent.trim().length < 50) {
+        return {
+          sucesso: false,
+          erro: '❌ Nenhuma linha foi reconhecida no PDF. Pode ser uma imagem ou PDF escaneado sem OCR.'
+        };
+      }
+
       const banco = this.detectarBanco(textContent);
       const dadosConta = this.extrairDadosConta(textContent);
       const linhas = this.extrairLinhasBB(textContent);
@@ -41,6 +55,50 @@ class ParserExtratos {
       textContent += content.items.map(item => item.str).join(' ') + '\n';
     }
     return textContent;
+  }
+
+  static async extrairComOCR(pdf) {
+    console.log('🤖 Iniciando OCR com Tesseract...');
+    let textContent = '';
+    
+    try {
+      // Carregar Tesseract.js dinamicamente
+      if (typeof Tesseract === 'undefined') {
+        // Inject Tesseract.js se não estiver carregado
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.0.0/dist/tesseract.min.js';
+        document.head.appendChild(script);
+        
+        // Aguardar carregamento
+        await new Promise(resolve => {
+          script.onload = resolve;
+        });
+      }
+
+      for (let i = 1; i <= Math.min(pdf.numPages, 5); i++) {
+        const page = await pdf.getPage(i);
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        
+        const viewport = page.getViewport({ scale: 2 });
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        
+        await page.render({
+          canvasContext: context,
+          viewport: viewport
+        }).promise;
+
+        // Usar Tesseract para OCR
+        const result = await Tesseract.recognize(canvas, 'por');
+        textContent += result.data.text + '\n';
+      }
+
+      return textContent;
+    } catch (err) {
+      console.error('❌ Erro no OCR:', err);
+      return '';
+    }
   }
 
   static detectarBanco(texto) {
@@ -118,4 +176,4 @@ class ParserExtratos {
   }
 }
 
-console.log('✅ Parser de Extratos v1.9.70.0 carregado');
+console.log('✅ Parser de Extratos v1.9.74.0 carregado');
