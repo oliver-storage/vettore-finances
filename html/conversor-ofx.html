@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Conversor de extratos bancários PDF, CSV, Excel, OFX com gerenciador de clientes">
+    <title>Ofx VA - Conversor Bancário</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.95;
+        }
+
+        .tabs-main {
+            display: flex;
+            gap: 10px;
+            background: #f5f5f5;
+            padding: 20px;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .tab-main-btn {
+            padding: 12px 25px;
+            background: white;
+            border: 2px solid #ddd;
+            cursor: pointer;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .tab-main-btn.active {
+            background: #555;
+            color: white;
+            border-color: #555;
+        }
+
+        .tab-main-btn:hover {
+            border-color: #555;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 40px;
+        }
+
+        .content.full {
+            grid-template-columns: 1fr;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .section {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+            border-bottom: 3px solid #666;
+            padding-bottom: 10px;
+        }
+
+        .section h3 {
+            color: #555;
+            margin-top: 20px;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: #555;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #333;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .btn-action {
+            background: #f97316;
+            color: white;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .btn-action:hover {
+            background: #ea580c;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+            padding: 8px 12px;
+            font-size: 0.9em;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #d1d5db;
+        }
+
+        .client-item {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #555;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .client-info {
+            flex: 1;
+        }
+
+        .client-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .client-meta {
+            font-size: 0.85em;
+            color: #666;
+        }
+
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .status.success {
+            background: #ecfdf5;
+            color: #065f46;
+            border-left: 4px solid #10b981;
+            display: block;
+        }
+
+        .status.error {
+            background: #fef2f2;
+            color: #7f1d1d;
+            border-left: 4px solid #ef4444;
+            display: block;
+        }
+
+        .status.info {
+            background: #f5f5f5;
+            color: #333;
+            border-left: 4px solid #999;
+            display: block;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            max-width: 1200px;
+            max-height: 90vh;
+            overflow-y: auto;
+            width: 95%;
+            padding: 40px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 15px;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: #333;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .modal-close:hover {
+            color: #333;
+        }
+
+        .tabs-modal {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e5e7eb;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn-modal {
+            padding: 12px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: #999;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn-modal.active {
+            color: #555;
+            border-bottom-color: #666;
+        }
+
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        .footer {
+            background: #2a2a2a;
+            color: #999;
+            text-align: center;
+            padding: 20px;
+            font-size: 0.9em;
+            border-top: 1px solid #444;
+            margin-top: 40px;
+        }
+
+        .footer p {
+            margin: 0;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 30px;
+        }
+
+        .btn-large {
+            padding: 15px 30px;
+            font-size: 1.1em;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-input-label {
+            display: block;
+            padding: 20px;
+            background: #f3f4f6;
+            border: 2px dashed #999;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .file-input-label:hover {
+            background: #e8e8e8;
+            border-color: #444;
+        }
+
+        .conversion-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .conversion-grid .btn {
+            width: 100%;
+        }
+
+        .info-box {
+            background: #f5f5f5;
+            border-left: 4px solid #999;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 0.95em;
+            line-height: 1.6;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .history-item {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            border-left: 4px solid #999;
+            font-size: 0.9em;
+        }
+
+        .credito {
+            color: #10b981;
+            font-weight: 600;
+        }
+
+        .debito {
+            color: #ef4444;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏦 Ofx VA</h1>
+            <p>Conversor de extratos com gerenciador de clientes</p>
+        </div>
+
+        <div class="tabs-main">
+            <button class="tab-main-btn active" onclick="switchMainTab('conversor')">📁 Conversor</button>
+            <button class="tab-main-btn" onclick="switchMainTab('clientes')">👥 Clientes</button>
+        </div>
+
+        <!-- TAB CONVERSOR -->
+        <div id="conversor" class="tab-main-content" style="display: block;">
+            <div class="content">
+                <div class="section">
+                    <h2>📁 Conversão de Arquivos</h2>
+
+                    <div class="info-box">
+                        📌 Selecione o cliente e carregue o arquivo
+                    </div>
+
+                    <div class="form-group">
+                        <label>Selecione um Cliente</label>
+                        <select id="clienteSelect" onchange="updateClientInfo()" style="padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 1em;">
+                            <option value="">-- Sem Cliente --</option>
+                        </select>
+                    </div>
+
+                    <div id="clienteInfo" class="info-box" style="display: none;">
+                        <strong>Cliente:</strong> <span id="clienteNome"></span><br>
+                        <strong>CNPJ:</strong> <span id="clienteCNPJ"></span><br>
+                        <strong>Regras:</strong> <span id="clienteRegras">Nenhuma</span>
+                    </div>
+
+                    <h3>Arquivo de Origem</h3>
+                    <div class="file-input-wrapper">
+                        <label for="file-input" class="file-input-label">
+                            📤 Clique ou arraste o arquivo aqui
+                        </label>
+                        <input type="file" id="file-input" accept=".pdf,.csv,.xlsx,.xls,.ofx,.txt">
+                    </div>
+
+                    <div id="file-info" class="status"></div>
+
+                    <h3>Formato de Destino</h3>
+                    <div class="conversion-grid">
+                        <button class="btn btn-primary" data-format="csv">Para CSV</button>
+                        <button class="btn btn-primary" data-format="xlsx">Para Excel</button>
+                        <button class="btn btn-primary" data-format="ofx">Para OFX</button>
+                        <button class="btn btn-secondary" data-format="json">Para JSON</button>
+                    </div>
+
+                    <div id="result-status" class="status"></div>
+                </div>
+
+                <div class="section">
+                    <h2>ℹ️ Sobre</h2>
+
+                    <h3>Funcionalidades</h3>
+                    <ul style="margin-left: 20px; color: #555; line-height: 2;">
+                        <li>✓ Gerenciador de Clientes</li>
+                        <li>✓ Parametrizações por cliente</li>
+                        <li>✓ Editar transações antes de baixar</li>
+                        <li>✓ Ações em massa</li>
+                        <li>✓ Regras de edição automáticas</li>
+                        <li>✓ Múltiplos formatos</li>
+                        <li>✓ Processamento 100% local</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB CLIENTES -->
+        <div id="clientes" class="tab-main-content" style="display: none;">
+            <div class="content full">
+                <div class="section">
+                    <h2>👥 Gerenciador de Clientes</h2>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nome do Cliente *</label>
+                            <input type="text" id="nomeCliente" placeholder="Ex: Empresa XYZ">
+                        </div>
+                        <div class="form-group">
+                            <label>CNPJ</label>
+                            <input type="text" id="cnpjCliente" placeholder="00.000.000/0000-00">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Agência</label>
+                        <input type="text" id="agenciaCliente" placeholder="0000">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Conta</label>
+                        <input type="text" id="contaCliente" placeholder="0000000-0">
+                    </div>
+
+                    <h3>Parametrizações (Regras Automáticas)</h3>
+
+                    <div class="form-group">
+                        <label>Substituir Termos (localizar → substituir, 1 por linha)</label>
+                        <textarea id="substituicoesCliente" placeholder="PIX → TRANSFERÊNCIA&#10;DEP → DEPOSITO"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Remover Palavras (separadas por vírgula)</label>
+                        <input type="text" id="removerPalavrasCliente" placeholder="TAXA, TARIFA, JUROS">
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                            <input type="checkbox" id="removerAcentosCliente"> Remover Acentos
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                            <input type="checkbox" id="maiorMinusculaCliente"> Converter para MAIÚSCULAS
+                        </label>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; margin-top: 20px;">
+                        <button class="btn btn-success" onclick="salvarCliente()">💾 Salvar Cliente</button>
+                        <button class="btn btn-secondary" onclick="limparFormulario()">🔄 Limpar</button>
+                    </div>
+
+                    <div id="statusCliente" class="status"></div>
+
+                    <h3 style="margin-top: 40px;">Clientes Cadastrados</h3>
+                    <div id="listaClientes" style="max-height: 500px; overflow-y: auto;">
+                        <p style="color: #999; text-align: center;">Nenhum cliente cadastrado</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE REVISÃO -->
+    <div id="reviewModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Revisar & Editar</h2>
+                <button class="modal-close" onclick="closeReview()">✕</button>
+            </div>
+
+            <div class="tabs-modal">
+                <button class="tab-btn-modal active" onclick="switchModalTab('dados')">Dados</button>
+                <button class="tab-btn-modal" onclick="switchModalTab('masiva')">Ações em Massa</button>
+                <button class="tab-btn-modal" onclick="switchModalTab('regras')">Regras</button>
+                <button class="tab-btn-modal" onclick="switchModalTab('historico')">Histórico</button>
+                <button class="tab-btn-modal" onclick="switchModalTab('transacoes')">Transações</button>
+            </div>
+
+            <!-- TAB: DADOS -->
+            <div id="dados" class="tab-pane active">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Agência</label>
+                        <input type="text" id="agencia" placeholder="Digite a agência">
+                    </div>
+                    <div class="form-group">
+                        <label>Conta</label>
+                        <input type="text" id="conta" placeholder="Digite a conta">
+                    </div>
+                    <div class="form-group">
+                        <label>Saldo Final</label>
+                        <input type="text" id="saldoFinal" placeholder="Digite o saldo final">
+                    </div>
+                </div>
+                <div class="info-box">
+                    <strong>Total de Transações:</strong> <span id="totalTransactions">0</span>
+                </div>
+            </div>
+
+            <!-- TAB: AÇÕES EM MASSA -->
+            <div id="masiva" class="tab-pane">
+                <h3>Remover Transações</h3>
+                <button class="btn btn-action" onclick="removeByCreditDebit('CRÉDITO')">
+                    Remover Créditos (<span id="countCredito">0</span>)
+                </button>
+                <button class="btn btn-action" onclick="removeByCreditDebit('DÉBITO')">
+                    Remover Débitos (<span id="countDebito">0</span>)
+                </button>
+
+                <h3 style="margin-top: 20px;">Filtro por Descrição</h3>
+                <div class="form-group">
+                    <label>Contém a palavra</label>
+                    <input type="text" id="filterWord" placeholder="Ex: PIX">
+                </div>
+                <button class="btn btn-action" onclick="filterByWord()">
+                    Remover com essa Palavra
+                </button>
+            </div>
+
+            <!-- TAB: REGRAS DE EDIÇÃO -->
+            <div id="regras" class="tab-pane">
+                <h3>Substituir Termos</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Localizar</label>
+                        <input type="text" id="findTerm" placeholder="Termo a buscar">
+                    </div>
+                    <div class="form-group">
+                        <label>Substituir por</label>
+                        <input type="text" id="replaceTerm" placeholder="Novo termo">
+                    </div>
+                </div>
+                <button class="btn btn-action" onclick="applySubstitution()">
+                    Aplicar Substituição
+                </button>
+
+                <h3 style="margin-top: 20px;">Ajustar Descrições</h3>
+                <button class="btn btn-action" onclick="applyRule('removeAccents')">
+                    Remover Acentos
+                </button>
+                <button class="btn btn-action" onclick="applyRule('removeNumbers')">
+                    Remover Números
+                </button>
+                <button class="btn btn-action" onclick="applyRule('uppercase')">
+                    Converter para MAIÚSCULAS
+                </button>
+                <button class="btn btn-action" onclick="applyRule('trim')">
+                    Remover Espaços Extras
+                </button>
+            </div>
+
+            <!-- TAB: HISTÓRICO -->
+            <div id="historico" class="tab-pane">
+                <h3>Histórico de Edições</h3>
+                <div id="historyList" style="max-height: 400px; overflow-y: auto; min-height: 200px;">
+                    <p style="color: #999; text-align: center;">Nenhuma ação registrada</p>
+                </div>
+                <button class="btn btn-secondary" onclick="clearHistory()" style="margin-top: 15px; width: 100%;">
+                    Limpar Histórico
+                </button>
+            </div>
+
+            <!-- TAB: TRANSAÇÕES -->
+            <div id="transacoes" class="tab-pane">
+                <h3>Lançamentos (<span id="totalTransactions2">0</span>)</h3>
+                <div style="overflow-x: auto; margin-bottom: 20px;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.9em;">
+                        <thead>
+                            <tr style="background: #555; color: white;">
+                                <th style="padding: 12px; text-align: left; width: 80px;">Data</th>
+                                <th style="padding: 12px; text-align: left;">Descrição</th>
+                                <th style="padding: 12px; text-align: left; width: 120px;">Valor</th>
+                                <th style="padding: 12px; text-align: left; width: 80px;">Tipo</th>
+                                <th style="padding: 12px; text-align: center; width: 60px;">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactionsTable">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn btn-secondary btn-large" onclick="closeReview()">Cancelar</button>
+                <button class="btn btn-success btn-large" id="btnDownloadReview">Baixar</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>Ofx VA v1.3.1 • Desenvolvido por DSP Group</p>
+    </footer>
+
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        let currentData = [];
+        let clienteSelecionado = null;
+        let currentFormat = '';
+        let clientes = JSON.parse(localStorage.getItem('ofxvaClientes')) || [];
+        let history = [];
+
+        function switchMainTab(tab) {
+            document.querySelectorAll('.tab-main-content').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.tab-main-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tab).style.display = 'block';
+            event.target.classList.add('active');
+            if (tab === 'clientes') listarClientes();
+        }
+
+        function switchModalTab(tab) {
+            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn-modal').forEach(b => b.classList.remove('active'));
+            document.getElementById(tab).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function salvarCliente() {
+            const nome = document.getElementById('nomeCliente').value.trim();
+            if (!nome) return alert('Nome do cliente é obrigatório!');
+
+            const cliente = {
+                id: Date.now(),
+                nome,
+                cnpj: document.getElementById('cnpjCliente').value,
+                agencia: document.getElementById('agenciaCliente').value,
+                conta: document.getElementById('contaCliente').value,
+                substituicoes: document.getElementById('substituicoesCliente').value.split('\n').filter(l => l.trim()),
+                removerPalavras: document.getElementById('removerPalavrasCliente').value.split(',').map(p => p.trim()).filter(p => p),
+                removerAcentos: document.getElementById('removerAcentosCliente').checked,
+                maiuscula: document.getElementById('maiorMinusculaCliente').checked
+            };
+
+            clientes.push(cliente);
+            localStorage.setItem('ofxvaClientes', JSON.stringify(clientes));
+
+            const status = document.getElementById('statusCliente');
+            status.className = 'status success';
+            status.textContent = `✓ Cliente "${nome}" salvo com sucesso!`;
+
+            limparFormulario();
+            listarClientes();
+            atualizarSelectClientes();
+        }
+
+        function listarClientes() {
+            const lista = document.getElementById('listaClientes');
+            if (clientes.length === 0) {
+                lista.innerHTML = '<p style="color: #999; text-align: center;">Nenhum cliente cadastrado</p>';
+                return;
+            }
+
+            lista.innerHTML = clientes.map(c => `
+                <div class="client-item">
+                    <div class="client-info">
+                        <div class="client-name">${c.nome}</div>
+                        <div class="client-meta">
+                            ${c.cnpj ? 'CNPJ: ' + c.cnpj + ' | ' : ''}
+                            ${c.substituicoes.length + c.removerPalavras.length} regra(s)
+                        </div>
+                    </div>
+                    <button class="btn btn-danger" onclick="excluirCliente(${c.id})">✕</button>
+                </div>
+            `).join('');
+        }
+
+        function excluirCliente(id) {
+            if (confirm('Excluir este cliente?')) {
+                clientes = clientes.filter(c => c.id !== id);
+                localStorage.setItem('ofxvaClientes', JSON.stringify(clientes));
+                listarClientes();
+                atualizarSelectClientes();
+            }
+        }
+
+        function limparFormulario() {
+            document.getElementById('nomeCliente').value = '';
+            document.getElementById('cnpjCliente').value = '';
+            document.getElementById('agenciaCliente').value = '';
+            document.getElementById('contaCliente').value = '';
+            document.getElementById('substituicoesCliente').value = '';
+            document.getElementById('removerPalavrasCliente').value = '';
+            document.getElementById('removerAcentosCliente').checked = false;
+            document.getElementById('maiorMinusculaCliente').checked = false;
+        }
+
+        function atualizarSelectClientes() {
+            const select = document.getElementById('clienteSelect');
+            const html = '<option value="">-- Sem Cliente --</option>' +
+                clientes.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+            select.innerHTML = html;
+        }
+
+        function updateClientInfo() {
+            const id = document.getElementById('clienteSelect').value;
+            const info = document.getElementById('clienteInfo');
+
+            if (!id) {
+                info.style.display = 'none';
+                clienteSelecionado = null;
+                return;
+            }
+
+            clienteSelecionado = clientes.find(c => c.id == id);
+            if (clienteSelecionado) {
+                document.getElementById('clienteNome').textContent = clienteSelecionado.nome;
+                document.getElementById('clienteCNPJ').textContent = clienteSelecionado.cnpj || '---';
+                const totalRegras = clienteSelecionado.substituicoes.length + clienteSelecionado.removerPalavras.length;
+                document.getElementById('clienteRegras').textContent = totalRegras > 0 ? totalRegras + ' regra(s)' : 'Nenhuma';
+                info.style.display = 'block';
+            }
+        }
+
+        const fileInput = document.getElementById('file-input');
+        fileInput.addEventListener('change', handleFileSelect);
+
+        async function handleFileSelect() {
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            const fileExt = file.name.split('.').pop().toLowerCase();
+            const statusEl = document.getElementById('file-info');
+            statusEl.className = 'status info';
+            statusEl.textContent = `📋 Processando ${file.name}...`;
+
+            try {
+                if (fileExt === 'pdf') await processPDF(file);
+                else if (fileExt === 'csv' || fileExt === 'txt') await processCSV(file);
+                else if (['xlsx', 'xls'].includes(fileExt)) await processExcel(file);
+                else if (fileExt === 'ofx') await processOFX(file);
+                else throw new Error('Formato não suportado');
+
+                if (clienteSelecionado) aplicarRegrasCliente();
+
+                history = [];
+                statusEl.className = 'status success';
+                statusEl.textContent = `✓ Arquivo carregado! ${currentData.length} transações.`;
+            } catch (error) {
+                statusEl.className = 'status error';
+                statusEl.textContent = `✗ Erro: ${error.message}`;
+            }
+        }
+
+        function aplicarRegrasCliente() {
+            if (!clienteSelecionado) return;
+
+            clienteSelecionado.substituicoes.forEach(sub => {
+                const [buscar, substituir] = sub.split('→').map(s => s.trim());
+                if (buscar && substituir) {
+                    currentData.forEach(t => {
+                        t.descricao = t.descricao.replaceAll(buscar, substituir);
+                    });
+                }
+            });
+
+            clienteSelecionado.removerPalavras.forEach(palavra => {
+                currentData = currentData.filter(t => !t.descricao.includes(palavra));
+            });
+
+            if (clienteSelecionado.removerAcentos) {
+                currentData.forEach(t => {
+                    t.descricao = t.descricao.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                });
+            }
+
+            if (clienteSelecionado.maiuscula) {
+                currentData.forEach(t => {
+                    t.descricao = t.descricao.toUpperCase();
+                });
+            }
+        }
+
+        async function processPDF(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+            let text = '';
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const content = await page.getTextContent();
+                text += content.items.map(item => item.str).join(' ') + '\n';
+            }
+            parseExtract(text);
+        }
+
+        async function processCSV(file) {
+            const text = await file.text();
+            parseCSVData(text);
+        }
+
+        async function processExcel(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+            const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+            const data = XLSX.utils.sheet_to_json(worksheet);
+            currentData = data.map(row => ({
+                data: row.Data || row.data || row.Date || row.date || '',
+                descricao: row.Descricao || row.descricao || row.Description || row.description || row.Lançamento || row.Lancamento || '',
+                valor: parseFloat(row.Valor || row.valor || row.Amount || row.amount || 0),
+                tipo: (parseFloat(row.Valor || row.valor || row.Amount || row.amount || 0) > 0) ? 'CRÉDITO' : 'DÉBITO',
+                saldo: row.Saldo || row.saldo || row.Balance || row.balance || ''
+            })).filter(row => row.data && row.valor !== 0);
+        }
+
+        async function processOFX(file) {
+            const text = await file.text();
+            const transactions = [];
+            const transRegex = /<STMTTRN>[\s\S]*?<\/STMTTRN>/g;
+            const matches = text.match(transRegex) || [];
+            matches.forEach(match => {
+                const data = extractOFXField(match, 'DTPOSTED');
+                const amount = extractOFXField(match, 'TRNAMT');
+                const memo = extractOFXField(match, 'MEMO');
+                if (data && amount) {
+                    transactions.push({
+                        data: formatDate(data),
+                        descricao: memo,
+                        valor: parseFloat(amount),
+                        tipo: parseFloat(amount) > 0 ? 'CRÉDITO' : 'DÉBITO',
+                        saldo: ''
+                    });
+                }
+            });
+            currentData = transactions;
+        }
+
+        function parseCSVData(text) {
+            const lines = text.trim().split('\n');
+            currentData = lines.slice(1).map(line => {
+                const values = line.split(',').map(v => v.trim());
+                return {
+                    data: values[0] || '',
+                    descricao: values[1] || values[2] || '',
+                    valor: parseFloat(values[2] || values[3] || 0),
+                    tipo: (parseFloat(values[2] || values[3] || 0) > 0) ? 'CRÉDITO' : 'DÉBITO',
+                    saldo: values[4] || ''
+                };
+            }).filter(row => row.data && row.valor !== 0);
+        }
+
+        function parseExtract(text) {
+            const lines = text.split('\n').filter(line => line.trim());
+            const transactions = [];
+            const datePattern = /(\d{1,2}\/\d{1,2}\/\d{4})/;
+            const valuePattern = /\d+[.,]\d{2}/g;
+
+            let i = 0;
+            while (i < lines.length) {
+                const line = lines[i];
+                const dateMatch = line.match(datePattern);
+
+                if (dateMatch) {
+                    const data = dateMatch[1];
+                    let descricao = line.replace(data, '').trim();
+                    let valores = line.match(valuePattern) || [];
+
+                    let j = i + 1;
+                    let maxLinhas = 0;
+                    while (j < lines.length && maxLinhas < 5) {
+                        const nextLine = lines[j];
+                        if (nextLine.match(/^\d{1,2}\/\d{1,2}\/\d{4}/)) break;
+                        const nextValues = nextLine.match(valuePattern) || [];
+                        valores = valores.concat(nextValues);
+                        if (nextValues.length > 0) descricao += ' ' + nextLine.substring(0, 40);
+                        j++;
+                        maxLinhas++;
+                        if (valores.length >= 3) break;
+                    }
+
+                    if (valores.length >= 1) {
+                        let credito = 0, debito = 0, saldo = '';
+                        if (valores.length >= 3) {
+                            const val1 = parseFloat(valores[0].replace(',', '.'));
+                            const val2 = parseFloat(valores[1].replace(',', '.'));
+                            credito = val1;
+                            debito = val2;
+                            saldo = valores[2];
+                        } else if (valores.length === 2) {
+                            credito = parseFloat(valores[0].replace(',', '.'));
+                            saldo = valores[1];
+                        } else {
+                            credito = parseFloat(valores[0].replace(',', '.'));
+                        }
+
+                        const valor = credito !== 0 ? credito : debito;
+                        if (valor !== 0) {
+                            transactions.push({
+                                data: data,
+                                descricao: descricao.substring(0, 100),
+                                valor: Math.abs(valor),
+                                tipo: valor > 0 ? 'CRÉDITO' : 'DÉBITO',
+                                saldo: saldo.toString()
+                            });
+                        }
+                    }
+
+                    i = j > i + 1 ? j : i + 1;
+                } else {
+                    i++;
+                }
+            }
+
+            currentData = transactions;
+        }
+
+        function extractOFXField(str, field) {
+            const regex = new RegExp(`<${field}>([^<]+)`);
+            const match = str.match(regex);
+            return match ? match[1] : '';
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            dateStr = dateStr.replace(/\D/g, '');
+            if (dateStr.length >= 8) {
+                return `${dateStr.substring(4, 6)}/${dateStr.substring(6, 8)}/${dateStr.substring(0, 4)}`;
+            }
+            return dateStr;
+        }
+
+        document.querySelectorAll('[data-format]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (currentData.length === 0) {
+                    alert('Carregue um arquivo primeiro!');
+                    return;
+                }
+                currentFormat = btn.getAttribute('data-format');
+                openReview();
+            });
+        });
+
+        function openReview() {
+            document.getElementById('reviewModal').classList.add('show');
+            if (clienteSelecionado) {
+                document.getElementById('agencia').value = clienteSelecionado.agencia;
+                document.getElementById('conta').value = clienteSelecionado.conta;
+            }
+            renderTransactions();
+            updateCounters();
+            document.getElementById('btnDownloadReview').onclick = () => convertData(currentFormat);
+        }
+
+        function closeReview() {
+            document.getElementById('reviewModal').classList.remove('show');
+        }
+
+        function renderTransactions() {
+            const tbody = document.getElementById('transactionsTable');
+            tbody.innerHTML = '';
+            currentData.forEach((row, idx) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;"><input type="text" value="${row.data}" onchange="updateTransaction(${idx}, 'data', this.value)" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;"></td>
+                    <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;"><input type="text" value="${row.descricao}" onchange="updateTransaction(${idx}, 'descricao', this.value)" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;"></td>
+                    <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;"><input type="text" value="R$ ${row.valor.toFixed(2)}" onchange="updateTransaction(${idx}, 'valor', this.value)" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;"></td>
+                    <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;"><span class="${row.tipo === 'CRÉDITO' ? 'credito' : 'debito'}">${row.tipo}</span></td>
+                    <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: center;"><button class="btn btn-danger" onclick="deleteTransaction(${idx})">✕</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+            document.getElementById('totalTransactions2').textContent = currentData.length;
+        }
+
+        function updateTransaction(idx, field, value) {
+            if (field === 'valor') {
+                value = parseFloat(value.replace(/[^\d.,]/g, '').replace(',', '.'));
+                currentData[idx].tipo = value > 0 ? 'CRÉDITO' : 'DÉBITO';
+            }
+            currentData[idx][field] = value;
+            renderTransactions();
+            updateCounters();
+        }
+
+        function deleteTransaction(idx) {
+            if (confirm('Excluir este lançamento?')) {
+                currentData.splice(idx, 1);
+                renderTransactions();
+                updateCounters();
+            }
+        }
+
+        function updateCounters() {
+            const total = currentData.length;
+            const creditos = currentData.filter(t => t.tipo === 'CRÉDITO').length;
+            const debitos = currentData.filter(t => t.tipo === 'DÉBITO').length;
+            document.getElementById('totalTransactions').textContent = total;
+            document.getElementById('countCredito').textContent = creditos;
+            document.getElementById('countDebito').textContent = debitos;
+        }
+
+        function removeByCreditDebit(tipo) {
+            const count = currentData.filter(t => t.tipo === tipo).length;
+            if (confirm(`Remover ${count} lançamento(s) de ${tipo}?`)) {
+                currentData = currentData.filter(t => t.tipo !== tipo);
+                addToHistory(`Removidos ${count} ${tipo}s`);
+                renderTransactions();
+                updateCounters();
+            }
+        }
+
+        function filterByWord() {
+            const word = document.getElementById('filterWord').value.trim();
+            if (!word) return alert('Digite uma palavra!');
+            const count = currentData.filter(t => t.descricao.includes(word)).length;
+            if (confirm(`Remover ${count} transação(ões) contendo "${word}"?`)) {
+                currentData = currentData.filter(t => !t.descricao.includes(word));
+                addToHistory(`Removidas ${count} transações com "${word}"`);
+                renderTransactions();
+                updateCounters();
+            }
+        }
+
+        function applySubstitution() {
+            const find = document.getElementById('findTerm').value.trim();
+            const replace = document.getElementById('replaceTerm').value.trim();
+            if (!find) return alert('Digite o termo a buscar!');
+            const count = currentData.filter(t => t.descricao.includes(find)).length;
+            if (count === 0) return alert(`Nenhuma transação contém "${find}"`);
+            if (confirm(`Substituir "${find}" por "${replace}" em ${count} transação(ões)?`)) {
+                currentData.forEach(t => {
+                    t.descricao = t.descricao.replaceAll(find, replace);
+                });
+                addToHistory(`Substituído "${find}" por "${replace}"`);
+                renderTransactions();
+            }
+        }
+
+        function applyRule(rule) {
+            if (rule === 'removeAccents') {
+                currentData.forEach(t => {
+                    t.descricao = t.descricao.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                });
+                addToHistory('Acentos removidos');
+            } else if (rule === 'removeNumbers') {
+                currentData.forEach(t => t.descricao = t.descricao.replace(/\d/g, ''));
+                addToHistory('Números removidos');
+            } else if (rule === 'uppercase') {
+                currentData.forEach(t => t.descricao = t.descricao.toUpperCase());
+                addToHistory('Convertido para MAIÚSCULAS');
+            } else if (rule === 'trim') {
+                currentData.forEach(t => t.descricao = t.descricao.replace(/\s+/g, ' ').trim());
+                addToHistory('Espaços extras removidos');
+            }
+            renderTransactions();
+        }
+
+        function addToHistory(action) {
+            history.push({
+                timestamp: new Date().toLocaleTimeString('pt-BR'),
+                action: action
+            });
+            updateHistoryDisplay();
+        }
+
+        function updateHistoryDisplay() {
+            const historyList = document.getElementById('historyList');
+            if (history.length === 0) {
+                historyList.innerHTML = '<p style="color: #999; text-align: center;">Nenhuma ação registrada</p>';
+                return;
+            }
+            historyList.innerHTML = history.map((h, i) => `
+                <div class="history-item">
+                    <strong>${i + 1}.</strong> ${h.action} <span style="color: #999; font-size: 0.85em;">(${h.timestamp})</span>
+                </div>
+            `).join('');
+        }
+
+        function clearHistory() {
+            if (confirm('Limpar histórico?')) {
+                history = [];
+                updateHistoryDisplay();
+            }
+        }
+
+        function convertData(format) {
+            const agencia = document.getElementById('agencia').value;
+            const conta = document.getElementById('conta').value;
+            const saldoFinal = document.getElementById('saldoFinal').value;
+
+            try {
+                let content = '';
+                let fileName = '';
+                let type = '';
+
+                switch (format) {
+                    case 'csv':
+                        content = convertToCSV();
+                        fileName = `extrato_${new Date().toISOString().split('T')[0]}.csv`;
+                        type = 'text/csv';
+                        break;
+                    case 'xlsx':
+                        const worksheet = XLSX.utils.json_to_sheet(currentData);
+                        const workbook = XLSX.utils.book_new();
+                        XLSX.utils.book_append_sheet(workbook, worksheet, 'Extrato');
+                        XLSX.writeFile(workbook, `extrato_${new Date().toISOString().split('T')[0]}.xlsx`);
+                        closeReview();
+                        return;
+                    case 'ofx':
+                        content = convertToOFX(agencia, conta);
+                        fileName = `extrato_${new Date().toISOString().split('T')[0]}.ofx`;
+                        type = 'text/plain';
+                        break;
+                    case 'json':
+                        content = JSON.stringify({ agencia, conta, saldoFinal, transacoes: currentData }, null, 2);
+                        fileName = `extrato_${new Date().toISOString().split('T')[0]}.json`;
+                        type = 'application/json';
+                        break;
+                }
+
+                downloadFile(content, fileName, type);
+                closeReview();
+                alert('✓ Arquivo baixado com sucesso!');
+            } catch (error) {
+                alert(`✗ Erro: ${error.message}`);
+            }
+        }
+
+        function convertToCSV() {
+            const headers = ['Data', 'Descrição', 'Valor', 'Tipo', 'Saldo'];
+            const rows = currentData.map(row => [
+                row.data,
+                `"${row.descricao}"`,
+                row.valor.toFixed(2),
+                row.tipo,
+                row.saldo
+            ]);
+            return [headers, ...rows].map(row => row.join(',')).join('\n');
+        }
+
+        function convertToOFX(agencia, conta) {
+            const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+            const startDate = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10).replace(/-/g, '');
+
+            let ofx = `OFXHEADER:100
+SECURITY:NONE
+ENCODING:USASCII
+CHARSET:1252
+COMPRESSION:NONE
+OLDFILEFORMAT:NO
+NEWFILEFORMAT:YES
+
+<OFX>
+<SIGNONMSGSRSV1>
+<SONRS>
+<STATUS>
+<CODE>0
+<SEVERITY>INFO
+</STATUS>
+<DTSERVER>${today}
+<LANGUAGE>POR
+</SONRS>
+</SIGNONMSGSRSV1>
+<BANKMSGSRSV1>
+<STMTTRNRS>
+<STATUS>
+<CODE>0
+<SEVERITY>INFO
+</STATUS>
+<STMTRS>
+<CURDEF>BRL
+<BANKACC>
+<BANKID>${agencia || '000000'}
+<ACCTID>${conta || 'CONTA'}
+<ACCTTYPE>CHECKING
+</BANKACC>
+<BANKTRANLIST>
+<DTSTART>${startDate}
+<DTEND>${today}
+`;
+
+            currentData.forEach((row, idx) => {
+                const dtPosted = row.data.replace(/\//g, '').substring(4) + row.data.replace(/\//g, '').substring(0, 4);
+                const id = String(idx + 1).padStart(10, '0');
+                const amount = row.tipo === 'DÉBITO' ? -row.valor : row.valor;
+
+                ofx += `<STMTTRN>
+<TRNTYPE>${row.tipo === 'DÉBITO' ? 'DEBIT' : 'CREDIT'}
+<DTPOSTED>${dtPosted}
+<TRNAMT>${amount.toFixed(2)}
+<FITID>${id}
+<NAME>${row.descricao.substring(0, 32)}
+<MEMO>${row.descricao.substring(0, 255)}
+</STMTTRN>
+`;
+            });
+
+            ofx += `</BANKTRANLIST>
+<LEDGERBAL>
+<BALAMT>0.00
+<DTASOF>${today}
+</LEDGERBAL>
+</STMTRS>
+</STMTTRNRS>
+</BANKMSGSRSV1>
+</OFX>`;
+
+            return ofx;
+        }
+
+        function downloadFile(content, fileName, type) {
+            const blob = new Blob([content], { type });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = fileName;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        atualizarSelectClientes();
+    </script>
+</body>
+</html>
