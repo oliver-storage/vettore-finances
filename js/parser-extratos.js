@@ -1,5 +1,5 @@
 /**
- * Vettore Finances - Parser Robusto de Extratos Bancários v1.9.80.0
+ * Vettore Finances - Parser Robusto de Extratos Bancários v1.9.81.0
  * Com suporte a OCR para PDFs escaneados
  */
 
@@ -176,4 +176,4 @@ class ParserExtratos {
   }
 }
 
-console.log('✅ Parser de Extratos v1.9.80.0 carregado');
+console.log('✅ Parser de Extratos v1.9.81.0 carregado');

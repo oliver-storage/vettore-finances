@@ -1,13 +1,13 @@
-<!-- v1.9.80.0 -->
+<!-- v1.9.81.0 -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ferramentas - Vettore Finances</title>
-    <link rel="icon" href="../css/favicon.svg?v=1.9.80.0" type="image/svg+xml">
-    <link rel="stylesheet" href="../css/navbar.css?v=1.9.80.0">
-    <link rel="stylesheet" href="../css/styles.css?v=1.9.80.0">
+    <link rel="icon" href="../css/favicon.svg?v=1.9.81.0" type="image/svg+xml">
+    <link rel="stylesheet" href="../css/navbar.css?v=1.9.81.0">
+    <link rel="stylesheet" href="../css/styles.css?v=1.9.81.0">
     <style>
         .container-main {
             max-width: 1400px;
@@ -85,6 +85,7 @@
             <button class="tab-button active" onclick="abrirAba('custo-usuarios')">Custo Usuários FORTES</button>
             <button class="tab-button" onclick="abrirAba('colaborador-empresa')">Colaborador Empresa SERVCONTABIL</button>
             <button class="tab-button" onclick="abrirAba('conversor-ofx')">Conversor OFX</button>
+            <button class="tab-button" onclick="abrirAba('conversor-protocolo')">Conversor Protocolo SERVCONTABIL</button>
         </div>
 
         <div id="custo-usuarios" class="tab-content active">
@@ -104,12 +105,18 @@
                 <iframe id="conversorofxframe" src="conversor-ofx.html" style="width: 100%; height: 800px; border: none; border-radius: 8px;"></iframe>
             </div>
         </div>
+
+        <div id="conversor-protocolo" class="tab-content">
+            <div class="card">
+                <iframe id="conversorprotocoloframe" src="conversor-protocolo.html" style="width: 100%; height: 800px; border: none; border-radius: 8px;"></iframe>
+            </div>
+        </div>
     </div>
 
-    <script src="../js/auth.js?v=1.9.80.0"></script>
-    <script src="../js/auto-login.js?v=1.9.80.0"></script>
+    <script src="../js/auth.js?v=1.9.81.0"></script>
+    <script src="../js/auto-login.js?v=1.9.81.0"></script>
     <script>
-        // /** v1.9.80.0 */
+        // /** v1.9.81.0 */
         
         function abrirAba(abaId) {
             // Esconder todas as abas
@@ -143,7 +150,7 @@
     </script>
 
     <footer style="text-align: center; padding: 20px; color: var(--tinta-70); font-size: 12px; margin-top: 40px;">
-        © Vettore Finances 2026 - v1.9.80.0
+        © Vettore Finances 2026 - v1.9.81.0
     </footer>
 </body>
 </html>

@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversor HTM → CSV v1.0.5</title>
+    <style>
+        :root {
+            --marca: #1F55A5;
+            --destaque: #00A3E0;
+            --topo-bg: #143A70;
+            --alerta: #A8481B;
+            --tinta: #10243F;
+            --papel: #F4F6FA;
+            --papel-alto: #FFFFFF;
+            --linha: #D9DFE8;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, var(--marca) 0%, var(--topo-bg) 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: var(--papel-alto);
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+        h1 { color: var(--tinta); margin-bottom: 10px; font-size: 28px; }
+        .subtitle { color: #666; margin-bottom: 30px; font-size: 14px; }
+        .upload-area {
+            border: 2px dashed var(--marca);
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+            background: var(--papel);
+        }
+        .upload-area:hover { background: #e8f0ff; border-color: var(--destaque); }
+        .upload-area.dragover { background: #dce7ff; border-color: var(--destaque); transform: scale(1.02); }
+        .upload-icon { font-size: 48px; margin-bottom: 10px; }
+        .upload-text { color: var(--tinta); font-weight: bold; margin-bottom: 5px; }
+        .upload-hint { color: #999; font-size: 12px; }
+        input[type="file"] { display: none; }
+        .button {
+            background: var(--marca);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: transform 0.2s, background 0.2s;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .button:hover:not(:disabled) { transform: translateY(-2px); background: var(--topo-bg); }
+        .button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .status { margin-top: 15px; padding: 15px; border-radius: 6px; display: none; font-size: 13px; }
+        .status.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; display: block; }
+        .status.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; display: block; }
+        .status.info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; display: block; }
+        .download-btn { background: #28a745; display: none; margin-top: 15px; }
+        .download-btn:hover:not(:disabled) { background: #218838; }
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid var(--linha);
+            color: #999;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Conversor HTM → CSV</h1>
+        <p class="subtitle">100% offline - v1.0.5 - Português BR</p>
+        
+        <div class="upload-area" id="dropZone">
+            <div class="upload-icon">📁</div>
+            <div class="upload-text">Clique ou arraste o arquivo .HTM aqui</div>
+            <div class="upload-hint">Processa localmente no seu computador</div>
+            <input type="file" id="fileInput" accept=".htm,.html">
+        </div>
+
+        <button class="button" id="processBtn" disabled>⚙️ Processar Arquivo</button>
+        <div class="status" id="status"></div>
+        <button class="button download-btn" id="downloadBtn">⬇️ Baixar CSV</button>
+        
+        <footer>
+            Conversor Protocolo SERVCONTABIL • Desenvolvido por Vettore Finances
+        </footer>
+    </div>
+
+    <script>
+        const VERSION = '1.0.5';
+        
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const processBtn = document.getElementById('processBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const status = document.getElementById('status');
+        
+        let processedData = null;
+        let importedFileName = null;
+
+        function decodeHTMLEntities(text) {
+            if (!text) return '';
+            const textarea = document.createElement('textarea');
+            textarea.innerHTML = text;
+            return textarea.value;
+        }
+
+        function formatNumberBR(num) {
+            if (!num) return '0,00';
+            let n = parseFloat(String(num).replace(/\./g, '').replace(',', '.'));
+            if (isNaN(n)) return '0,00';
+            const formatted = n.toFixed(2);
+            const [integer, decimal] = formatted.split('.');
+            const withThousands = integer.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+            return withThousands + ',' + decimal;
+        }
+
+        function formatPercentBR(num) {
+            if (!num && num !== 0) return '0,00%';
+            let n = parseFloat(String(num).replace(',', '.'));
+            if (isNaN(n)) return '0,00%';
+            return n.toFixed(2).replace('.', ',') + '%';
+        }
+
+        function cleanText(text) {
+            if (!text) return '';
+            text = decodeHTMLEntities(text);
+            text = text.replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ');
+            text = text.replace(/[\x00-\x1F\x7F]/g, '');
+            return text.trim();
+        }
+
+        function parseHTM(html) {
+            const linhas = [];
+            html = decodeHTMLEntities(html);
+            
+            // Dividir por páginas
+            const pageRegex = /<a name="page(\d+)"[^>]*>([\s\S]*?)(?=<a name="page\d+"|$)/g;
+            let pageMatch;
+            
+            while ((pageMatch = pageRegex.exec(html)) !== null) {
+                const pageNum = pageMatch[1];
+                const pageContent = pageMatch[2];
+                
+                // Extrair cabeçalho
+                const empresaMatch = /ID="QRDBText1"[^>]*>\s*([^<]+)</i.exec(pageContent);
+                if (!empresaMatch) continue;
+                
+                const responsavelMatch = /ID="QRDBText2"[^>]*>\s*([^<]+)/i.exec(pageContent);
+                const regimeMatch = /ID="QRDBText28"[^>]*>\s*([^<]+)/i.exec(pageContent);
+                
+                const empresa = cleanText(empresaMatch[1]);
+                const responsavel = responsavelMatch ? cleanText(responsavelMatch[1]) : 'N/D';
+                const regime = regimeMatch ? cleanText(regimeMatch[1]) : 'N/D';
+                
+                // Extrair TODOS os valores dos IDs (podem ser múltiplos)
+                const impostos = Array.from(pageContent.matchAll(/ID="QRDBText27"[^>]*>\s*([^<]+)</gi)).map(m => cleanText(m[1]));
+                const periodos = Array.from(pageContent.matchAll(/ID="QRDBText29"[^>]*>\s*([^<]+)</gi)).map(m => cleanText(m[1]));
+                const valores = Array.from(pageContent.matchAll(/ID="QRDBText30"[^>]*>\s*([^<]+)</gi)).map(m => cleanText(m[1]));
+                const vencimentos = Array.from(pageContent.matchAll(/ID="QRDBText31"[^>]*>\s*([^<]+)</gi)).map(m => cleanText(m[1]));
+                
+                // Extrair linha TOTAL
+                const totalMatch = /TOTAL\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)\s+([-\d,\%]+)\s+\S+\s+\S+\s+(\w+)/i.exec(pageContent);
+                
+                let compras = '0,00', vendas = '0,00', servicos = '0,00', lucroPct = '0,00%', aviso = 'Ok';
+                
+                if (totalMatch) {
+                    compras = formatNumberBR(totalMatch[1]);
+                    vendas = formatNumberBR(totalMatch[2]);
+                    servicos = formatNumberBR(totalMatch[3]);
+                    
+                    const lucroStr = totalMatch[4].replace('%', '').trim();
+                    lucroPct = formatPercentBR(parseFloat(lucroStr.replace(',', '.')));
+                    
+                    aviso = totalMatch[5][0].toUpperCase() + totalMatch[5].slice(1).toLowerCase();
+                }
+                
+                // Correlacionar: imposto[0], periodo[0], valor[0], vencimento[0] = primeira linha
+                const maxImpostos = Math.max(impostos.length, periodos.length, valores.length, vencimentos.length);
+                
+                for (let i = 0; i < maxImpostos; i++) {
+                    const imposto = impostos[i] || 'N/D';
+                    const periodo = periodos[i] || 'N/D';
+                    const valor = formatNumberBR(valores[i] || '0');
+                    const vencimento = vencimentos[i] || 'N/D';
+                    
+                    if (imposto !== 'N/D' && valor !== '0,00') {
+                        linhas.push({
+                            empresa, responsavel, regime, imposto,
+                            periodo, vencimento, valor, aviso,
+                            lucro_pct: lucroPct, compras, vendas, servicos,
+                            cod_barras: 'N/D'
+                        });
+                    }
+                }
+            }
+            
+            const totalPages = (html.match(/<a name="page\d+"/g) || []).length;
+            
+            return {
+                linhas,
+                empresas: new Set(linhas.map(l => l.empresa)).size,
+                impostos: linhas.length,
+                pages: totalPages
+            };
+        }
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+        dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('dragover'); });
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            fileInput.files = e.dataTransfer.files;
+            if (fileInput.files.length > 0) importedFileName = fileInput.files[0].name;
+            processBtn.disabled = !fileInput.files.length;
+        });
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) importedFileName = e.target.files[0].name;
+            processBtn.disabled = !e.target.files.length;
+        });
+
+        processBtn.addEventListener('click', () => {
+            const file = fileInput.files[0];
+            if (!file) return;
+            processBtn.disabled = true;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    showStatus('⏳ Processando...', 'info');
+                    processedData = parseHTM(e.target.result);
+                    
+                    if (processedData.linhas.length > 0) {
+                        showStatus(`✅ Sucesso! ${processedData.linhas.length} registros extraídos`, 'success');
+                        downloadBtn.style.display = 'block';
+                    } else {
+                        showStatus('❌ Nenhum dado extraído', 'error');
+                    }
+                    processBtn.disabled = false;
+                } catch (err) {
+                    showStatus(`❌ Erro: ${err.message}`, 'error');
+                    processBtn.disabled = false;
+                }
+            };
+            reader.readAsText(file, 'iso-8859-1');
+        });
+
+        downloadBtn.addEventListener('click', () => {
+            if (!processedData) return;
+            const headers = ['EMPRESA', 'RESPONSÁVEL', 'REGIME', 'IMPOSTO', 'PERÍODO', 'VENCIMENTO',
+                           'VALOR', 'AVISO', 'LUCRO %', 'COMPRAS', 'VENDAS', 'SERVIÇOS', 'CÓD. BARRAS'];
+            let csv = '\uFEFF' + headers.join(';') + '\n';
+            
+            for (const row of processedData.linhas) {
+                const linha = [
+                    `"${row.empresa}"`, `"${row.responsavel}"`, `"${row.regime}"`, `"${row.imposto}"`,
+                    `"${row.periodo}"`, `"${row.vencimento}"`, row.valor, `"${row.aviso}"`,
+                    row.lucro_pct, row.compras, row.vendas, row.servicos, `"${row.cod_barras}"`
+                ];
+                csv += linha.join(';') + '\n';
+            }
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            link.setAttribute('href', url);
+            const csvFileName = importedFileName 
+                ? importedFileName.replace(/\.[^/.]+$/, '.csv')
+                : `Conversor - v${VERSION}.csv`;
+            link.setAttribute('download', csvFileName);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showStatus('✅ Arquivo baixado com sucesso!', 'success');
+        });
+
+        function showStatus(msg, type) {
+            status.textContent = msg;
+            status.className = `status ${type}`;
+        }
+    </script>
+</body>
+</html>
